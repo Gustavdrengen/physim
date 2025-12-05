@@ -8,32 +8,7 @@
 <body>
   <canvas id="sim" width="800" height="600" style="border:1px solid #000000;"></canvas>
   <script type="module">
-    import 'https://cdn.jsdelivr.net/npm/ses@0.15.3/dist/ses.umd.min.js';
-
-    const response = await fetch('/bundle.js');
-    const code = await response.text();
-
-    const sim = {
-      log: (...args) => console.log(...args),
-      ctx: document.getElementById('sim').getContext('2d'),
-      resizeCanvas: (width, height) => {
-        const canvas = document.getElementById('sim');
-        canvas.width = width;
-        canvas.height = height;
-      }
-    }
-
-    const compartment = new Compartment({
-       sim
-    });
-
-    compartment.evaluate(code);
-
-    if (sim.onUpdate) {
-      setInterval(() => {
-        sim.onUpdate();
-      }, 1000 / 60);
-    }
+    //JS
   </script>
 </body>
 </html>

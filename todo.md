@@ -1,8 +1,10 @@
 # Todo:
- - Basic simulation system
  - Complete core
- - AI-assisted std development
+  - Error handeling
+  - Auto opening and waiting for new simulation
+  - Audio
  - Complete std overview
+ - AI-assisted std development
  - Gravity
- - Bodyes
+ - Bodies
  - Colision
