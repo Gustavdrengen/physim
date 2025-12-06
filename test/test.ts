@@ -1,4 +1,4 @@
-import { Display, Draw, Entity, Graphics, Logging, Physics, /*Sound, */ Vec2 } from "physim";
+import { Display, Draw, Entity, Graphics, Logging, Physics, Sound, Vec2 } from "physim";
 
 const ent = new Entity(new Vec2(0, 0));
 const physics = new Physics();
@@ -10,14 +10,14 @@ ent.addComp(pointComponent, { color: new Draw.Color(250, 50, 100), radius: 5 });
 
 Logging.log("Starting simulation...");
 
-//const sound = new Sound("https://www.myinstants.com/media/sounds/rizz-sound-effect.mp3");
+const sound = new Sound("https://www.myinstants.com/media/sounds/rizz-sound-effect.mp3");
 
 sim.onUpdate = () => {
   physics.update();
   display.draw();
 
   if (sim.frame % 60 == 0) {
-    //  sound.play();
+    sound.play();
   }
   if (sim.frame == 60 * 5) {
     sim.finish();

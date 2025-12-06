@@ -15,7 +15,7 @@
     "baseUrl": "/",
     "paths": {
       "physim": [
-        "/home/theman/physim/std/mod.ts"
+        "/home/theman/physim/std/src/mod.ts"
       ]
     }
   }

@@ -27,7 +27,7 @@ echo "Creating start script at $START_SCRIPT (requires sudo)..."
 
 sudo tee "$START_SCRIPT" > /dev/null <<EOF
 #!/usr/bin/env bash
-deno run --allow-net --allow-read --allow-env --allow-write --allow-run "$(pwd)/core/main.ts" "\$@"
+deno run --allow-net --allow-read --allow-env --allow-write --allow-run "$(pwd)/core/src/main.ts" "\$@"
 EOF
 
 sudo chmod +x "$START_SCRIPT"

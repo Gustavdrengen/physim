@@ -1,7 +1,7 @@
 import { fromFileUrl, resolve } from "@std/path";
 
-const envDeclarationRelative = "../../sandbox.d.ts";
-const stdlibPathRelative = "../../std/mod.ts";
+const envDeclarationRelative = "../../../sandbox.d.ts";
+const stdlibPathRelative = "../../../std/src/mod.ts";
 const outputTsconfig = "./tsconfig.json";
 
 const scriptDir = fromFileUrl(import.meta.url);
