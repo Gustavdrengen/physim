@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { typeCheck } from "./tsc.ts";
 const scriptDir = dirname(fromFileUrl(import.meta.url));
-const stdlibPath = join(scriptDir, "..", "std", "mod.ts");
+const stdlibPath = join(scriptDir, "..", "..", "std", "src", "mod.ts");
 
 const aliasPlugin = {
   name: "physim-alias-simple",

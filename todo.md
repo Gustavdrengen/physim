@@ -1,9 +1,11 @@
 # Todo:
+ - Structure core
+ - Audio system
  - Complete core
+  - Audio
   - Error handeling
   - Auto opening and waiting for new simulation
-  - Audio
- - Complete std overview
+ - Complete std overview and structure
  - AI-assisted std development
  - Gravity
  - Bodies
