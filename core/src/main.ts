@@ -2,7 +2,7 @@ import { Command } from "@cliffy/command";
 import { init } from "./init.ts";
 import { checkTscInstalled, installTscIfAllowed } from "./tsc.ts";
 import { setGlobalErrorHandler, unwrap } from "./err.ts";
-import { run } from "../run.ts";
+import { run } from "./run.ts";
 
 setGlobalErrorHandler();
 
