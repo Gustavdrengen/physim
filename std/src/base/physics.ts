@@ -1,5 +1,4 @@
 import { Component, Entity } from "./entity.ts";
-import { log } from "./logging/mod.ts";
 import { Vec2 } from "./vec.ts";
 
 export class Physics {

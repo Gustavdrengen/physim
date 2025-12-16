@@ -1,12 +1,16 @@
 # Todo:
- - Structure core
- - Audio system
  - Complete core
-  - Audio
+  - Asset system
   - Error handeling
-  - Auto opening and waiting for new simulation
+   - Pretty errors (when not raw)
+   - New error system everywhere
+  - Auto open
  - Complete std overview and structure
  - AI-assisted std development
  - Gravity
  - Bodies
- - Colision
+  - Graphical
+  - Physical
+ - Collision
+ - More things
+ - AI-generated videos

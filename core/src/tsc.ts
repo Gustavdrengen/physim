@@ -1,4 +1,4 @@
-import { basename, dirname, resolve } from "@std/path";
+import { dirname, resolve } from "@std/path";
 
 const decoder = new TextDecoder();
 
