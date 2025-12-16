@@ -10,7 +10,9 @@ ent.addComp(pointComponent, { color: new Draw.Color(250, 50, 100), radius: 5 });
 
 Logging.log("Starting simulation...");
 
-const sound = new Sound("https://www.myinstants.com/media/sounds/rizz-sound-effect.mp3");
+await sim.addFetchAsset("sfx.mp3", "https://www.myinstants.com/media/sounds/rizz-sound-effect.mp3")
+
+const sound = await Sound.fromSrc("sfx.mp3");
 
 sim.onUpdate = () => {
   physics.update();

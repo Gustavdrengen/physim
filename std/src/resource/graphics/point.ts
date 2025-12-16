@@ -1,7 +1,7 @@
-import { Display } from "../display.ts";
-import { Color } from "../draw/color.ts";
-import { circle } from "../draw/shapes.ts";
-import { Component } from "../entity.ts";
+import { Display } from "../../base/display.ts";
+import { Color } from "../../base/draw/color.ts";
+import { circle } from "../../base/draw/shapes.ts";
+import { Component } from "../../base/entity.ts";
 
 class PointData {
   color: Color;
