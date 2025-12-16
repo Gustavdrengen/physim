@@ -1,9 +1,9 @@
 import { dirname } from "@std/path";
-import { buildSimulation } from "./src/build.ts";
-import { Result } from "./src/err.ts";
-import { runServer } from "./src/serve.ts";
-import { AssetManager } from "./src/assets.ts";
-import { AudioPlayer } from "./src/audio.ts";
+import { buildSimulation } from "./build.ts";
+import { Result } from "./err.ts";
+import { runServer } from "./serve.ts";
+import { AssetManager } from "./assets.ts";
+import { AudioPlayer } from "./audio.ts";
 
 export async function compileVideo(tempDirName: string, outfile: string) {
   const command = new Deno.Command("ffmpeg", {
