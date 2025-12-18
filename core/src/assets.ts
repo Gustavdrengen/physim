@@ -37,7 +37,6 @@ export class AssetManager {
 
     const data = new Uint8Array(await res.arrayBuffer());
     const savePath = join(this.tempDir, `asset_${this.id}${extname(fetchAddr)}`);
-    console.log(savePath);
     await Deno.writeFile(savePath, data);
     this.redirects.set(path, savePath);
   }

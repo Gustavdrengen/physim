@@ -1,9 +1,51 @@
+/**
+ * @module
+ *
+ * A color class that can be used to represent colors in RGB, HSL, HSV and hex formats.
+ *
+ * @example
+ * ```ts
+ * import { Color } from "./color.ts";
+ *
+ * const red = Color.fromRGB(255, 0, 0);
+ * const green = Color.fromHex("#00ff00");
+ * const blue = Color.fromHSL(240, 1, 0.5);
+ *
+ * console.log(red.toCSS()); // rgb(255, 0, 0)
+ * console.log(green.toHex()); // #00ff00
+ * console.log(blue.toHSL()); // { h: 240, s: 1, l: 0.5, a: 1 }
+ * ```
+ */
+
+/**
+ * A color class that can be used to represent colors in RGB, HSL, HSV and hex formats.
+ */
 export class Color {
+  /**
+   * The red component of the color, from 0 to 255.
+   */
   r: number;
+  /**
+   * The green component of the color, from 0 to 255.
+   */
   g: number;
+  /**
+   * The blue component of the color, from 0 to 255.
+   */
   b: number;
+  /**
+   * The alpha component of the color, from 0 to 1.
+   */
   a: number;
 
+  /**
+   * Creates a new Color.
+   *
+   * @param r The red component of the color, from 0 to 255.
+   * @param g The green component of the color, from 0 to 255.
+   * @param b The blue component of the color, from 0 to 255.
+   * @param a The alpha component of the color, from 0 to 1.
+   */
   constructor(r: number, g: number, b: number, a: number = 1) {
     this.r = Color._clampInt(r);
     this.g = Color._clampInt(g);
@@ -12,13 +54,26 @@ export class Color {
   }
 
   // --- Factories ---------------------------------------------------------
+  /**
+   * Creates a new Color from RGB values.
+   *
+   * @param r The red component of the color, from 0 to 255.
+   * @param g The green component of the color, from 0 to 255.
+   * @param b The blue component of the color, from 0 to 255.
+   * @param a The alpha component of the color, from 0 to 1.
+   * @returns A new Color.
+   */
   static fromRGB(r: number, g: number, b: number, a: number = 1) {
     return new Color(r, g, b, a);
   }
 
   /**
+   * Creates a new Color from a hex string.
    * Accepts hex strings:
    * #RGB, #RRGGBB, #RGBA, #RRGGBBAA (with or without leading '#')
+   *
+   * @param hex The hex string.
+   * @returns A new Color.
    */
   static fromHex(hex: string) {
     let s = hex.trim();
@@ -43,7 +98,13 @@ export class Color {
   }
 
   /**
-   * h in degrees [0..360), s and l either as fraction 0..1 or percent 0..100
+   * Creates a new Color from HSL values.
+   *
+   * @param h The hue of the color, in degrees [0..360).
+   * @param s The saturation of the color, as a fraction 0..1 or percent 0..100.
+   * @param l The lightness of the color, as a fraction 0..1 or percent 0..100.
+   * @param a The alpha component of the color, from 0 to 1.
+   * @returns A new Color.
    */
   static fromHSL(h: number, s: number, l: number, a: number = 1) {
     // normalize
@@ -76,8 +137,13 @@ export class Color {
   }
 
   /**
-   * HSV (Hue, Saturation, Value)
-   * h degrees 0..360, s and v either 0..1 or 0..100
+   * Creates a new Color from HSV values.
+   *
+   * @param h The hue of the color, in degrees [0..360).
+   * @param s The saturation of the color, as a fraction 0..1 or percent 0..100.
+   * @param v The value of the color, as a fraction 0..1 or percent 0..100.
+   * @param a The alpha component of the color, from 0 to 1.
+   * @returns A new Color.
    */
   static fromHSV(h: number, s: number, v: number, a: number = 1) {
     const H = ((h % 360) + 360) % 360;
@@ -134,12 +200,17 @@ export class Color {
   }
 
   /**
+   * Creates a new Color from a CSS-like string.
+   *
    * Parse some common CSS-like strings:
    * - #RGB, #RRGGBB, #RGBA, #RRGGBBAA
    * - rgb(r,g,b) / rgba(r,g,b,a) (supports percent for r,g,b)
    * - hsl(h,s%,l%) / hsla(h,s%,l%,a)
    *
    * Returns a Color or throws on unsupported format.
+   *
+   * @param s The CSS-like string.
+   * @returns A new Color.
    */
   static fromString(s: string): Color {
     const raw = s.trim();
@@ -181,6 +252,11 @@ export class Color {
   }
 
   // --- Helpers ----------------------------------------------------------
+  /**
+   * Converts the color to a CSS string.
+   *
+   * @returns A CSS string representation of the color.
+   */
   toCSS(): string {
     if (this.a >= 1) {
       return `rgb(${this.r}, ${this.g}, ${this.b})`;
@@ -190,6 +266,12 @@ export class Color {
     }
   }
 
+  /**
+   * Converts the color to a hex string.
+   *
+   * @param includeAlpha Whether to include the alpha component in the hex string.
+   * @returns A hex string representation of the color.
+   */
   toHex(includeAlpha = false): string {
     const comp = (v: number) => v.toString(16).padStart(2, "0");
     if (includeAlpha) {
@@ -199,6 +281,12 @@ export class Color {
     return `#${comp(this.r)}${comp(this.g)}${comp(this.b)}`;
   }
 
+  /**
+   * Creates a new color with the same RGB values but a different alpha value.
+   *
+   * @param a The new alpha value.
+   * @returns A new color with the new alpha value.
+   */
   withAlpha(a: number) {
     return new Color(this.r, this.g, this.b, a);
   }
