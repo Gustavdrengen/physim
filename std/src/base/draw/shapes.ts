@@ -1,3 +1,19 @@
+/**
+ * @module
+ *
+ * A collection of functions for drawing shapes on the canvas.
+ *
+ * @example
+ * ```ts
+ * import { Draw } from "./mod.ts";
+ * import { Vec2 } from "../vec.ts";
+ *
+ * Draw.clear();
+ * Draw.circle(new Vec2(100, 100), 50, "red");
+ * Draw.rect(new Vec2(200, 200), 100, 100, "blue");
+ * ```
+ */
+
 import { Vec2 } from "../vec.ts";
 import { Color } from "./color.ts";
 
@@ -6,6 +22,11 @@ function _colorToCss(c: Color | string) {
   return c;
 }
 
+/**
+ * Clears the canvas with a given color.
+ *
+ * @param color The color to clear the canvas with.
+ */
 export function clear(color: Color | string = Color.fromRGB(0, 0, 0)) {
   const ctx = sim.ctx;
   const canvas = ctx.canvas;
@@ -13,6 +34,13 @@ export function clear(color: Color | string = Color.fromRGB(0, 0, 0)) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+/**
+ * Draws a circle on the canvas.
+ *
+ * @param pos The position of the center of the circle.
+ * @param radius The radius of the circle.
+ * @param color The color of the circle.
+ */
 export function circle(
   pos: Vec2,
   radius: number,
@@ -25,6 +53,14 @@ export function circle(
   ctx.fill();
 }
 
+/**
+ * Draws a rectangle on the canvas.
+ *
+ * @param pos The position of the center of the rectangle.
+ * @param width The width of the rectangle.
+ * @param height The height of the rectangle.
+ * @param color The color of the rectangle.
+ */
 export function rect(
   pos: Vec2,
   width: number,
@@ -36,6 +72,14 @@ export function rect(
   ctx.fillRect(pos.x - width / 2, pos.y - height / 2, width, height);
 }
 
+/**
+ * Draws a line on the canvas.
+ *
+ * @param start The start position of the line.
+ * @param end The end position of the line.
+ * @param color The color of the line.
+ * @param lineWidth The width of the line.
+ */
 export function line(
   start: Vec2,
   end: Vec2,
@@ -51,6 +95,15 @@ export function line(
   ctx.stroke();
 }
 
+/**
+ * Draws a vector on the canvas.
+ *
+ * @param pos The start position of the vector.
+ * @param vec The vector to draw.
+ * @param color The color of the vector.
+ * @param scale A scalar to multiply the vector by.
+ * @param lineWidth The width of the line.
+ */
 export function vector(
   pos: Vec2,
   vec: Vec2,
@@ -62,6 +115,13 @@ export function vector(
   line(pos, end, color, lineWidth);
 }
 
+/**
+ * Draws a set of points on the canvas.
+ *
+ * @param points The points to draw.
+ * @param radius The radius of the points.
+ * @param color The color of the points.
+ */
 export function points(
   points: Vec2[],
   radius: number = 2,

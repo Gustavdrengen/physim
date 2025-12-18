@@ -1,11 +1,11 @@
 # Todo:
  - Complete core
-  - Asset system
   - Error handeling
    - Pretty errors (when not raw)
    - New error system everywhere
-  - Auto open
- - Complete std overview and structure
+ - Std documentation
+  - Styled human-readable
+  - Machine-readable
  - AI-assisted std development
  - Gravity
  - Bodies
