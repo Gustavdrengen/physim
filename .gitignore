@@ -3,3 +3,4 @@ package-lock.json
 node_modules
 out.mp4
 std/docs/bin
+std/feature_reports

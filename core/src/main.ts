@@ -97,7 +97,7 @@ const cmd = new Command()
     }
 
     if (markdown) {
-      // markdown docs is for plain docs intended for pure-text comsumsion (like llm's). It should still contain all info
+      // markdown docs is for plain docs intended for pure-text consumption (like llm's). It should still contain all info
       await runWithOptions("typedoc-md.json");
       console.log(`Saved markdown documentation to ${join(docsBinDirPath, "md")}`);
     }
