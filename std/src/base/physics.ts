@@ -29,11 +29,27 @@ export class Physics {
    * If an entity has this component, it will be moved by its velocity every frame.
    */
   velocity: Component<Vec2> = new Component<Vec2>();
+  /**
+   * The acceleration component.
+   * This component is used to accumulate forces on an entity.
+   */
+  acceleration: Component<Vec2> = new Component<Vec2>();
+  /**
+   * The mass component.
+   * This component is used to store the mass of an entity.
+   */
+  mass: Component<number> = new Component<number>();
 
   /**
    * Creates a new `Physics` instance.
    */
   constructor() {
+    this.registerForce(this.acceleration, (entity: Entity, acc: Vec2) => {
+      const vel = this.velocity.get(entity) || new Vec2(0, 0);
+      this.velocity.set(entity, vel.add(acc));
+      this.acceleration.set(entity, new Vec2(0, 0));
+    });
+
     this.registerForce(this.velocity, (entity: Entity, vel: Vec2) => {
       entity.pos = entity.pos.add(vel);
     });

@@ -1,21 +1,25 @@
 # Todo:
+ - Canvas scaling
+ - Tests
  - Complete core
-  - Error handeling
-   - Pretty errors (when not raw)
-   - New error system everywhere
+   - Error handeling
+     - Pretty errors (when not raw)
+     - New error system everywhere
    - Dependency management system:
      - tsc
      - deno
      - typedoc
      - typedoc-plugin-markdown
      - ffmpeg
- - Std documentation
-  - Machine-readable
  - AI-assisted std development
- - Gravity
+ - Relating components to each other
  - Bodies
-  - Graphical
-  - Physical
+   - Graphical
+   - Physical
  - Collision
+ - Fields
+ - More advanced gravity
+   - Its own "mass" component
+   - Custom attraction logic
  - More things
  - AI-generated videos
