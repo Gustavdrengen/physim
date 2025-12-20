@@ -3,8 +3,13 @@
   - Error handeling
    - Pretty errors (when not raw)
    - New error system everywhere
+   - Dependency management system:
+     - tsc
+     - deno
+     - typedoc
+     - typedoc-plugin-markdown
+     - ffmpeg
  - Std documentation
-  - Styled human-readable
   - Machine-readable
  - AI-assisted std development
  - Gravity
