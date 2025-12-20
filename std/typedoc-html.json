@@ -3,11 +3,7 @@
     "src/mod.ts"
   ],
   "tsconfig": "tsconfig.json",
-  "excludePrivate": true,
-  "excludeProtected": true,
-  "includeVersion": true,
-  "json": "docs/docs.json",
   "customCss": "docsStyle.css",
   "name": "Physim Standard Library",
-  "out": "docs"
+  "out": "docs/bin/html"
 }

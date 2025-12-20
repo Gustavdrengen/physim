@@ -62,31 +62,49 @@ const cmd = new Command()
     await init();
     console.log("Generated tsconfig.json");
   })
-  .command("docs", "Serves the standard library documentation locally")
+  .command("docs", "Generates and/or serves the standard library documentation.")
   .option("-s --serve", "Host the documentation locally.")
-  .action(async ({ serve }) => {
+  .option("--html", "Generate html documentation.")
+  .option("--markdown", "Generate markdown documentation.")
+  .action(async ({ serve, html, markdown }) => {
     const scriptDir = dirname(fromFileUrl(import.meta.url));
     const stdDirPath = join(scriptDir, "..", "..", "std");
     const docsDirPath = join(stdDirPath, "docs");
+    const docsBinDirPath = join(docsDirPath, "bin");
 
-    const cmd = new Deno.Command("npx", {
-      args: [
-        "typedoc",
-      ],
-      cwd: stdDirPath,
-    });
-    const { code } = await cmd.output();
+    await Deno.mkdir(docsBinDirPath, { recursive: true });
 
-    if (code !== 0) {
-      throw new Error(`TypeDoc exited with code ${code}`);
+    async function runWithOptions(opt: string) {
+      const cmd = new Deno.Command("npx", {
+        args: [
+          "typedoc",
+          "--options",
+          opt,
+        ],
+        cwd: stdDirPath,
+      });
+      const { code } = await cmd.output();
+
+      if (code !== 0) {
+        throw new Error(`TypeDoc exited with code ${code}`);
+      }
     }
 
-    console.log(`Saved documentation to ${docsDirPath}`);
-    console.log(`Saved JSON documentation to ${join(docsDirPath, "docs.json")}`);
+    if (html) {
+      // html docs is for advanced docs intended for humans
+      await runWithOptions("typedoc-html.json");
+      console.log(`Saved html documentation to ${join(docsBinDirPath, "html")}`);
+    }
+
+    if (markdown) {
+      // markdown docs is for plain docs intended for pure-text comsumsion (like llm's). It should still contain all info
+      await runWithOptions("typedoc-md.json");
+      console.log(`Saved markdown documentation to ${join(docsBinDirPath, "md")}`);
+    }
 
     if (serve) {
       const PORT = 6767;
-      console.log(`Serving documentation at http://localhost:${PORT}`);
+      console.log(`Serving documentation at http://localhost:${PORT}/`);
       serveDirectory(docsDirPath, PORT);
     }
   });

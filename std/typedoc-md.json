@@ -1,0 +1,12 @@
+{
+  "entryPoints": [
+    "src/mod.ts"
+  ],
+  "tsconfig": "tsconfig.json",
+  "plugin": [
+    "typedoc-plugin-markdown"
+  ],
+  "theme": "markdown",
+  "out": "docs/bin/md",
+  "name": "Physim Standard Library"
+}
