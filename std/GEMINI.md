@@ -19,3 +19,8 @@ This is how code should be styled:
  2. Document everything, that is exposed to the user of the library, like functions and classes, but not internal things or flattened modules.
 
 If you see code, where these principles are not being complied with, you should ask the user for permission to fix it.
+
+# General Instructions
+
+- Look in `../sandbox.d.ts` for an environment description.
+- Always read the relevant files for a task.

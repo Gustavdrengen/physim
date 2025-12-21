@@ -228,6 +228,22 @@ let interval = null;
 
 const canvas = document.getElementById("sim");
 
+function fixCanvasDisplay() {
+  const windowRatio = window.innerWidth / window.innerHeight;
+  const canvasRatio = canvas.width / canvas.height;
+
+  if (windowRatio > canvasRatio) {
+    canvas.style.width = `${window.innerHeight * canvasRatio}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+  } else {
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerWidth / canvasRatio}px`;
+  }
+}
+
+window.addEventListener("resize", fixCanvasDisplay);
+fixCanvasDisplay();
+
 const sim = {
   log: (...args) => {
     console.log(...args);

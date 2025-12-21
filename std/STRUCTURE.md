@@ -30,6 +30,7 @@ Basic display System:
 | Name                  | Description                                                                         |
 | --------------------- | ----------------------------------------------------------------------------------- |
 | Display               | A basic display system to manage rendering entities to the screen                   |
+| Camera                | A camera for controlling the view of the simulation                                 |
 
 ## Resource layer
 *Builds on Layer 1 to provide more specified things*

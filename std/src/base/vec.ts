@@ -105,4 +105,31 @@ export class Vec2 {
   static zero(): Vec2 {
     return new Vec2(0, 0);
   }
+
+  /**
+   * Calculates the average of an array of vectors.
+   *
+   * @param vectors The array of vectors to average.
+   * @returns The average vector, or a zero vector if the array is empty.
+   *
+   * @example
+   * ```ts
+   * import { Vec2 } from "./vec.ts";
+   *
+   * const vectors = [new Vec2(1, 2), new Vec2(3, 4), new Vec2(5, 6)];
+   * const avg = Vec2.average(vectors); // Vec2 { x: 3, y: 4 }
+   * ```
+   */
+  static average(vectors: Vec2[]): Vec2 {
+    if (vectors.length === 0) {
+      return Vec2.zero();
+    }
+
+    let sum = Vec2.zero();
+    for (const vec of vectors) {
+      sum = sum.add(vec);
+    }
+
+    return sum.scale(1 / vectors.length);
+  }
 }
