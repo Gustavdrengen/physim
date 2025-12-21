@@ -131,3 +131,12 @@ export function points(
     circle(p, radius, color);
   }
 }
+
+/**
+ * Sets the size of the canvas.
+ * @param width The new width of the canvas.
+ * @param height The new height of the canvas.
+ */
+export function setCanvasSize(width: number, height: number) {
+  sim.resizeCanvas(width, height);
+}

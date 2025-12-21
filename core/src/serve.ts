@@ -10,10 +10,12 @@ const PORT = 8080;
 const scriptDir = dirname(fromFileUrl(import.meta.url));
 const htmlPath = join(scriptDir, "..", "sim.html");
 const jsPath = join(scriptDir, "..", "sim.js");
+const cssPath = join(scriptDir, "..", "sim.css");
 
 const htmlContentRaw = await Deno.readTextFile(htmlPath);
 const jsContent = await Deno.readTextFile(jsPath);
-let htmlContent = htmlContentRaw.replace("//JS", jsContent);
+const cssContent = await Deno.readTextFile(cssPath);
+let htmlContent = htmlContentRaw.replace("//JS", jsContent).replace("CSS", cssContent);
 
 export async function openUrl(url: string): Promise<Result<undefined>> {
   try {

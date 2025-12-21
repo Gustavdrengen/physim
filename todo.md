@@ -1,5 +1,4 @@
 # Todo:
- - Canvas scaling
  - Tests
  - Complete core
    - Error handeling
