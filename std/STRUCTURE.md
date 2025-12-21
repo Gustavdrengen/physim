@@ -37,8 +37,9 @@ Basic display System:
 
 | Name                  | Description                                                                         |
 | --------------------- | ----------------------------------------------------------------------------------- |
-| ***Forces***          | Physics forces like gravity, drag, collisions, etc.                                 |
+| **Forces**            | Physics forces like gravity, drag, collisions, etc.                                 |
 | **Graphics**          | Display components using Display                                                    |
+| **Bodies**            | A system for defining the physical shape of an entity for physics and graphics.     |
 
 ## Helper layer
 *Builds on Layer 2 to provide complete helper systems for the user*

@@ -26,21 +26,29 @@ import { Vec2 } from "./vec.ts";
  */
 export class Display {
   private drawComponents: Map<
-    Component<any>,
+    Component<any>[] | Component<any>,
     (entity: Entity, data: any) => void
   > = new Map();
 
   /**
-   * Registers a draw function for a component.
+   * Registers a draw function for a component or multiple components.
    *
-   * @param comp The component to register.
-   * @param drawFunc The function to call to draw the component.
+   * @param comps The component or array of components to register.
+   * @param drawFunc The function to call to draw the component(s).
    */
+  registerDrawComponent<T extends any[]>(
+    comps: Component<T[number]>[],
+    drawFunc: (entity: Entity, data: T) => void
+  ): void;
   registerDrawComponent<T>(
     comp: Component<T>,
     drawFunc: (entity: Entity, data: T) => void
+  ): void;
+  registerDrawComponent<T>(
+    comps: Component<T>[] | Component<T>,
+    drawFunc: (entity: Entity, data: T | T[]) => void
   ) {
-    this.drawComponents.set(comp, drawFunc);
+    this.drawComponents.set(comps, drawFunc);
   }
 
   /**
@@ -60,14 +68,34 @@ export class Display {
     }
 
     clear();
+    sim.ctx.save(); // Save the context before applying camera transforms
     effectiveCamera._applyTransforms(sim.ctx);
 
-    for (const [comp, drawFunc] of this.drawComponents) {
-      for (const entity of comp.keys()) {
-        drawFunc(entity, comp.get(entity));
+    for (const [comps, drawFunc] of this.drawComponents) {
+      const componentsArray = Array.isArray(comps) ? comps : [comps];
+      
+      // Find entities that have all required components
+      let entitiesWithAllComps: Set<Entity> | undefined;
+
+      for (const comp of componentsArray) {
+        if (!entitiesWithAllComps) {
+          entitiesWithAllComps = new Set(comp.keys());
+        } else {
+          entitiesWithAllComps = new Set([...entitiesWithAllComps].filter(entity => comp.has(entity)));
+        }
+      }
+
+      if (entitiesWithAllComps) {
+        for (const entity of entitiesWithAllComps) {
+          const data = componentsArray.length === 1
+            ? componentsArray[0].get(entity)
+            : componentsArray.map(c => c.get(entity));
+          drawFunc(entity, data);
+        }
       }
     }
 
     effectiveCamera._removeTransforms(sim.ctx);
+    sim.ctx.restore(); // Restore the context after drawing
   }
 }

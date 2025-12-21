@@ -140,3 +140,39 @@ export function points(
 export function setCanvasSize(width: number, height: number) {
   sim.resizeCanvas(width, height);
 }
+
+/**
+ * Draws a polygon on the canvas.
+ *
+ * @param vertices The vertices of the polygon.
+ * @param color The color of the polygon.
+ * @param fill Whether to fill the polygon.
+ * @param lineWidth The width of the line if not filled.
+ */
+export function polygon(
+  vertices: Vec2[],
+  color: Color | string = Color.fromRGB(255, 255, 255),
+  fill: boolean = false,
+  lineWidth: number = 1,
+) {
+  if (vertices.length < 2) {
+    return; // Not enough vertices to draw a polygon
+  }
+
+  const ctx = sim.ctx;
+  ctx.beginPath();
+  ctx.moveTo(vertices[0].x, vertices[0].y);
+  for (let i = 1; i < vertices.length; i++) {
+    ctx.lineTo(vertices[i].x, vertices[i].y);
+  }
+  ctx.closePath();
+
+  if (fill) {
+    ctx.fillStyle = _colorToCss(color);
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = _colorToCss(color);
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+  }
+}

@@ -3,14 +3,9 @@ import { Color } from "../../base/draw/color.ts";
 import { circle } from "../../base/draw/shapes.ts";
 import { Component } from "../../base/entity.ts";
 
-class PointData {
+type PointData = {
   color: Color;
   radius: number;
-
-  constructor(color: Color, radius: number) {
-    this.color = color;
-    this.radius = radius;
-  }
 }
 
 /**

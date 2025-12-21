@@ -1,4 +1,7 @@
 # Todo:
+ - Proper layer definitions
+ - Plan for getting complete std structure overview
+ - Plan for fixing documentation
  - Tests
  - Complete core
    - Error handeling
@@ -10,12 +13,10 @@
      - typedoc
      - typedoc-plugin-markdown
      - ffmpeg
- - AI-assisted std development
  - Relating components to each other
  - Bodies
-   - Graphical
-   - Physical
- - Collision
+   - Physical, collision
+     - Rotation
  - Fields
  - More advanced gravity
    - Its own "mass" component

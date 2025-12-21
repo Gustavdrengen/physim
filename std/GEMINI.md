@@ -1,6 +1,4 @@
 This is the physim standard library
-See STRUCTURE.md for a detailed project structure
-See docs/bin/md for documentation
 
 # Protocol for implementing features
 
@@ -22,5 +20,7 @@ If you see code, where these principles are not being complied with, you should 
 
 # General Instructions
 
+- See `docs/bin/md` for documentation
+- See `STRUCTURE.md` for a detailed project structure.
 - Look in `../sandbox.d.ts` for an environment description.
 - Always read the relevant files for a task.

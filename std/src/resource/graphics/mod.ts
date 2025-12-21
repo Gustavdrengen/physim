@@ -12,3 +12,4 @@
  */
 
 export * from "./point.ts";
+export * from "./body.ts";
