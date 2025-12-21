@@ -21,7 +21,7 @@ import { Vec2 } from "./vec.ts";
  */
 export class Physics {
   private forces: Array<
-    [comp: Component<any>, (entity: Entity, data: any) => void]
+    [comps: Component<any>[] | Component<any>, (entity: Entity, data: any) => void]
   > = [];
 
   /**
@@ -58,23 +58,49 @@ export class Physics {
   /**
    * Registers a force to be applied to entities.
    *
-   * @param comp The component that the force is associated with.
+   * @param comps The component or array of components that the force is associated with.
    * @param force The function that applies the force.
    */
+  registerForce<T extends any[]>(
+    comps: Component<T[number]>[],
+    force: (entity: Entity, data: T) => void,
+  ): void;
   registerForce<T>(
     comp: Component<T>,
     force: (entity: Entity, data: T) => void,
+  ): void;
+  registerForce<T>(
+    comps: Component<T>[] | Component<T>,
+    force: (entity: Entity, data: T | T[]) => void,
   ) {
-    this.forces.push([comp, force]);
+    this.forces.push([comps, force]);
   }
 
   /**
    * Updates the position of all entities based on the registered forces.
    */
   update() {
-    for (const force of this.forces) {
-      for (const entity of force[0].keys()) {
-        force[1](entity, force[0].get(entity));
+    for (const [comps, forceFunc] of this.forces) {
+      const componentsArray = Array.isArray(comps) ? comps : [comps];
+
+      // Find entities that have all required components
+      let entitiesWithAllComps: Set<Entity> | undefined;
+
+      for (const comp of componentsArray) {
+        if (!entitiesWithAllComps) {
+          entitiesWithAllComps = new Set(comp.keys());
+        } else {
+          entitiesWithAllComps = new Set([...entitiesWithAllComps].filter(entity => comp.has(entity)));
+        }
+      }
+
+      if (entitiesWithAllComps) {
+        for (const entity of entitiesWithAllComps) {
+          const data = componentsArray.length === 1
+            ? componentsArray[0].get(entity)
+            : componentsArray.map(c => c.get(entity));
+          forceFunc(entity, data);
+        }
       }
     }
   }

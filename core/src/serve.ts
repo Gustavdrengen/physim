@@ -44,7 +44,9 @@ export async function openUrl(url: string): Promise<Result<undefined>> {
         const ver = await Deno.readTextFile("/proc/version");
         if (/microsoft/i.test(ver)) isWsl = true;
       }
-    } catch {}
+    } catch {
+      //
+    }
 
     if (isWsl) {
       program = "cmd.exe";
