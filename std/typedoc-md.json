@@ -1,12 +1,14 @@
 {
   "entryPoints": [
-    "src/mod.ts"
+    "src/public"
   ],
+  "entryPointStrategy": "expand",
   "tsconfig": "tsconfig.json",
   "plugin": [
     "typedoc-plugin-markdown"
   ],
   "theme": "markdown",
   "out": "docs/bin/md",
-  "name": "Physim Standard Library"
+  "name": "Physim Standard Library",
+  "readme": "README.md"
 }

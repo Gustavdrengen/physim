@@ -83,6 +83,7 @@ const cmd = new Command()
         ],
         cwd: stdDirPath,
       });
+
       const { code } = await cmd.output();
 
       if (code !== 0) {

@@ -1,7 +1,7 @@
-import { fromFileUrl, resolve } from "@std/path";
+import { fromFileUrl, join, resolve } from "@std/path";
 
 const envDeclarationRelative = "../../../sandbox.d.ts";
-const stdlibPathRelative = "../../../std/src/mod.ts";
+const stdlibPathRelative = "../../../std";
 const outputTsconfig = "./tsconfig.json";
 
 const scriptDir = fromFileUrl(import.meta.url);
@@ -22,7 +22,7 @@ const tsconfig = {
 
     baseUrl: "/",
     paths: {
-      "physim": [stdlibAbs],
+      "physim/*": [join(stdlibAbs, "src/public/*")],
     },
   },
 };

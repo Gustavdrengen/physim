@@ -1,19 +1,3 @@
-/**
- * @module
- *
- * A collection of functions for drawing shapes on the canvas.
- *
- * @example
- * ```ts
- * import { Draw } from "./mod.ts";
- * import { Vec2 } from "../vec.ts";
- *
- * Draw.clear();
- * Draw.circle(new Vec2(100, 100), 50, "red");
- * Draw.rect(new Vec2(200, 200), 100, 100, "blue");
- * ```
- */
-
 import { Vec2 } from "../vec.ts";
 import { Color } from "./color.ts";
 

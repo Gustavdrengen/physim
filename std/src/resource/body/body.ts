@@ -113,8 +113,9 @@ export class Body {
  *
  * @example
  * ```ts
- * import { Entity, Vec2 } from "physim";
- * import { createRectangle, initBodyComponent, Body } from "physim/resource";
+ * import { Entity } from "physim/ecs";
+ * import { Vec2 } from "physim/vec";
+ * import { createRectangle, initBodyComponent, Body } from "physim/bodies";
  *
  * const bodyComponent = initBodyComponent();
  *

@@ -1,12 +1,16 @@
 # Todo:
- - Proper layer definitions
- - Plan for getting complete std structure overview
- - Plan for fixing documentation
- - Tests
+ - Std development cycle
+   - Proper layer definitions
+   - Plan for getting complete std structure overview
+   - Plan for fixing documentation
+   - Plan for reorganizing
+   - Plan for code style
+   - Tests
  - Complete core
    - Error handeling
      - Pretty errors (when not raw)
      - New error system everywhere
+     - Better controls
    - Dependency management system:
      - tsc
      - deno

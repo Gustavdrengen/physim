@@ -21,18 +21,22 @@ type BodyDisplayData = {
  *
  * @example
  * ```ts
- * import { Display, Entity, Vec2 } from "physim";
- * import { Bodies, Graphics, Draw } from "physim";
+ * import { Display } from "physim/display";
+ * import { Entity } from "physim/ecs";
+ * import { Vec2 } from "physim/vec";
+ * import { initBodyDisplayComponent } from "physim/graphics";
+ * import { initBodyComponent, createRectangle, Body } from "physim/bodies";
+ * import { Color } from "physim/draw";
  *
  * const display = new Display();
- * const bodyDisplay = Graphics.initBodyDisplayComponent(display);
- * const bodyComponent = Bodies.initBodyComponent();
+ * const bodyComponent = initBodyComponent();
+ * const bodyDisplay = initBodyDisplayComponent(display, bodyComponent);
  *
- * const myBody = Bodies.Body.fromShape(Bodies.createRectangle(50, 50));
+ * const myBody = Body.fromShape(createRectangle(50, 50));
  *
  * const entity = new Entity(new Vec2(100, 100));
  * entity.addComp(bodyComponent, myBody);
- * entity.addComp(bodyDisplay, { color: Draw.Color.fromRGB(0, 255, 0), fill: true });
+ * entity.addComp(bodyDisplay, { color: Color.fromRGB(0, 255, 0), fill: true });
  * ```
  */
 export function initBodyDisplayComponent(

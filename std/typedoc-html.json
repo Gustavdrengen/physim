@@ -1,9 +1,11 @@
 {
   "entryPoints": [
-    "src/mod.ts"
+    "src/public"
   ],
+  "entryPointStrategy": "expand",
   "tsconfig": "tsconfig.json",
   "customCss": "docsStyle.css",
   "name": "Physim Standard Library",
-  "out": "docs/bin/html"
+  "out": "docs/bin/html",
+  "readme": "README.md"
 }

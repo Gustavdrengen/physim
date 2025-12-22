@@ -1,21 +1,4 @@
-/**
- * @module
- *
- * A color class that can be used to represent colors in RGB, HSL, HSV and hex formats.
- *
- * @example
- * ```ts
- * import { Color } from "./color.ts";
- *
- * const red = Color.fromRGB(255, 0, 0);
- * const green = Color.fromHex("#00ff00");
- * const blue = Color.fromHSL(240, 1, 0.5);
- *
- * console.log(red.toCSS()); // rgb(255, 0, 0)
- * console.log(green.toHex()); // #00ff00
- * console.log(blue.toHSL()); // { h: 240, s: 1, l: 0.5, a: 1 }
- * ```
- */
+
 
 /**
  * A color class that can be used to represent colors in RGB, HSL, HSV and hex formats.

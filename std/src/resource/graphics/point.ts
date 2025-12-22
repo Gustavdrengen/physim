@@ -16,13 +16,17 @@ type PointData = {
  *
  * @example
  * ```ts
- * import { Display, Entity, Vec2, Graphics } from "physim";
+ * import { Display } from "physim/display";
+ * import { Entity } from "physim/ecs";
+ * import { Vec2 } from "physim/vec";
+ * import { initPointDisplayComponent } from "physim/graphics";
+ * import { Color } from "physim/draw";
  *
  * const display = new Display();
- * const pointDisplay = Graphics.initPointDisplayComponent(display);
+ * const pointDisplay = initPointDisplayComponent(display);
  *
  * const player = new Entity(new Vec2(0, 0));
- * player.addComp(pointDisplay, { color: "red", radius: 10 });
+ * player.addComp(pointDisplay, { color: Color.fromString("red"), radius: 10 });
  * ```
  */
 export function initPointDisplayComponent(
