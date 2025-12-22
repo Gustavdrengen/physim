@@ -14,8 +14,8 @@
     "allowImportingTsExtensions": true,
     "baseUrl": "/",
     "paths": {
-      "physim": [
-        "/home/theman/physim/std/src/mod.ts"
+      "physim/*": [
+        "/home/theman/physim/std/src/public/*"
       ]
     }
   }

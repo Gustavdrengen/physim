@@ -1,18 +1,4 @@
-/**
- * @module
- *
- * A 2D vector class.
- *
- * @example
- * ```ts
- * import { Vec2 } from "./vec.ts";
- *
- * const a = new Vec2(1, 2);
- * const b = new Vec2(3, 4);
- *
- * console.log(a.add(b)); // Vec2 { x: 4, y: 6 }
- * ```
- */
+
 
 /**
  * A 2D vector.
@@ -114,10 +100,12 @@ export class Vec2 {
    *
    * @example
    * ```ts
-   * import { Vec2 } from "./vec.ts";
+   * import { Vec2 } from "physim/vec";
+   * import { log } from "physim/logging";
    *
    * const vectors = [new Vec2(1, 2), new Vec2(3, 4), new Vec2(5, 6)];
-   * const avg = Vec2.average(vectors); // Vec2 { x: 3, y: 4 }
+   * const avg = Vec2.average(vectors);
+   * log(avg); // Vec2 { x: 3, y: 4 }
    * ```
    */
   static average(vectors: Vec2[]): Vec2 {

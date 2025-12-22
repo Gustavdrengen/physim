@@ -7,7 +7,8 @@ import { Vec2 } from "./vec.ts";
  *
  * @example
  * ```ts
- * import { Camera, Vec2 } from "physim";
+ * import { Camera } from "physim/display";
+ * import { Vec2 } from "physim/vec";
  *
  * const camera = new Camera();
  * camera.position = new Vec2(100, 100);

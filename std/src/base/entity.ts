@@ -5,8 +5,9 @@ import { Vec2 } from "./vec.ts";
  *
  * @example
  * ```ts
- * import { Entity, Component } from "./entity.ts";
- * import { Vec2 } from "./vec.ts";
+ * import { Entity, Component } from "physim/ecs";
+ * import { Vec2 } from "physim/vec";
+ * import { log } from "physim/logging";
  *
  * const position = new Component<Vec2>();
  * const health = new Component<number>();
@@ -15,7 +16,7 @@ import { Vec2 } from "./vec.ts";
  * player.addComp(position, new Vec2(10, 20));
  * player.addComp(health, 100);
  *
- * console.log(player.getComp(position)); // Vec2 { x: 10, y: 20 }
+ * log(player.getComp(position)); // Vec2 { x: 10, y: 20 }
  * ```
  */
 export class Entity {

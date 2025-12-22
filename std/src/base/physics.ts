@@ -6,7 +6,9 @@ import { Vec2 } from "./vec.ts";
  *
  * @example
  * ```ts
- * import { Physics, Entity, Vec2 } from "physim";
+ * import { Physics } from "physim/physics";
+ * import { Entity } from "physim/ecs";
+ * import { Vec2 } from "physim/vec";
  *
  * const physics = new Physics();
  *
