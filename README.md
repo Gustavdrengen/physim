@@ -1,6 +1,6 @@
 # Physim
 
-A 2D physics simulation engine written in TypeScript.
+A 2D physics simulation and visualization engine written in TypeScript.
 
 ## Project Structure
 

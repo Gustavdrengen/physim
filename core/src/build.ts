@@ -32,8 +32,9 @@ export async function buildSimulation(
     outfile,
     platform: "browser",
     format: "esm",
-    minify: false,
     sourcemap: true,
+    treeShaking: true,
+    minify: false,
     plugins: [aliasPlugin],
   });
 }

@@ -19,11 +19,14 @@ export interface BodyPart {
  */
 export class Body {
   readonly parts: readonly BodyPart[];
+  // TODO: I think this is unused
   readonly vertices: readonly Vec2[];
   readonly aabb: { min: Vec2; max: Vec2 };
+  rotation: number;
 
-  constructor(parts: BodyPart[]) {
+  constructor(parts: BodyPart[], initialRotation: number = 0) {
     this.parts = parts;
+    this.rotation = initialRotation;
 
     const allVertices: Vec2[] = [];
     for (const part of parts) {
@@ -42,14 +45,14 @@ export class Body {
    * @param shape The shape to create the body from.
    * @returns A new Body instance.
    */
-  static fromShape(shape: Shape): Body {
+  static fromShape(shape: Shape, initialRotation: number = 0): Body {
     return new Body([
       {
         shape,
         position: Vec2.zero(),
         rotation: 0,
       },
-    ]);
+    ], initialRotation);
   }
 
   private static calculatePartVertices(part: BodyPart): Vec2[] {
@@ -57,10 +60,10 @@ export class Body {
     let baseVertices: Vec2[];
 
     if (shape.type === "circle") {
-      // Approximate circle with 8 vertices for general vertex handling
+      // Approximate circle with 32 vertices for general vertex handling
       baseVertices = [];
-      for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * 2 * Math.PI;
+      for (let i = 0; i < 32; i++) {
+        const angle = (i / 32) * 2 * Math.PI;
         baseVertices.push(
           new Vec2(
             Math.cos(angle) * shape.radius,
@@ -68,8 +71,33 @@ export class Body {
           )
         );
       }
-    } else {
+    } else if (shape.type === "ring") {
+      baseVertices = [];
+
+      const segments = 128;
+      const outerR = shape.outerRadius;
+      const innerR = shape.innerRadius;
+
+      for (let i = 0; i < segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        baseVertices.push(new Vec2(
+          Math.cos(angle) * outerR,
+          Math.sin(angle) * outerR
+        ));
+      }
+
+      for (let i = segments - 1; i >= 0; i--) {
+        const angle = (i / segments) * Math.PI * 2;
+        baseVertices.push(new Vec2(
+          Math.cos(angle) * innerR,
+          Math.sin(angle) * innerR
+        ));
+      }
+
+    } else if (shape.type === "polygon") {
       baseVertices = shape.vertices;
+    } else {
+      baseVertices = [];
     }
 
     const cos = Math.cos(rotation);
