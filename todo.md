@@ -1,11 +1,8 @@
 # Todo:
- - Std development cycle
-   - Proper layer definitions
-   - Plan for getting complete std structure overview
-   - Plan for fixing documentation
-   - Plan for reorganizing
-   - Plan for code style
-   - Tests
+ - Testing
+   - Implementing tests
+   - Updating development cycle
+ - Tools for helping spot problems
  - Complete core
    - Error handeling
      - Pretty errors (when not raw)
@@ -17,13 +14,11 @@
      - typedoc
      - typedoc-plugin-markdown
      - ffmpeg
- - Relating components to each other
- - Bodies
-   - Physical, collision
-     - Rotation
+ - Forces taking components as input and returning their own versions if not specified
+ - Linking components (dynamic)
  - Fields
+ - Better controlled collision system
  - More advanced gravity
    - Its own "mass" component
    - Custom attraction logic
  - More things
- - AI-generated videos

@@ -1,10 +1,9 @@
-
 import { Vec2 } from "../../base/vec.ts";
 
 /**
  * A geometric shape.
  */
-export type Shape = Circle | Polygon;
+export type Shape = Circle | Polygon | Ring;
 
 /**
  * A circle shape.
@@ -26,6 +25,15 @@ export interface Polygon {
 }
 
 /**
+ * A ring shape
+ */
+export interface Ring {
+  type: "ring";
+  innerRadius: number;
+  outerRadius: number;
+}
+
+/**
  * Creates a new circle shape.
  *
  * @param radius The radius of the circle.
@@ -33,6 +41,18 @@ export interface Polygon {
  */
 export function createCircle(radius: number): Circle {
   return { type: "circle", radius };
+}
+
+/**
+ * Creates a new ring shape.
+ *
+ * @param innerRadius The inner radius of the ring.
+ * @param outerRadius The outer radius of the ring.
+ * @returns A new ring shape.
+ *
+ */
+export function createRing(innerRadius: number, outerRadius: number): Ring {
+  return { type: "ring", innerRadius, outerRadius };
 }
 
 /**

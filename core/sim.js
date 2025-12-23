@@ -11,9 +11,7 @@ function runInFrame(code, endowments = {}, onError) {
     const settleOnce = (fn) => (val) => {
       if (settled) return;
       settled = true;
-      try {
-        cleanup();
-      } catch (_) {}
+      cleanup();
       fn(val);
     };
 
@@ -22,54 +20,55 @@ function runInFrame(code, endowments = {}, onError) {
       outerReject(reason instanceof Error ? reason : new Error(reason))
     );
 
-    const doOnErrorCallback = (err) => {
-      try {
-        if (typeof onError === "function") onError(err);
-      } catch (_) {}
+    const callOnError = (err) => {
+      if (typeof onError === "function") {
+        try {
+          onError(err);
+        } catch (_) {}
+      }
     };
 
     const errorHandler = (ev) => {
-      const err = ev && (ev.error || ev.reason || ev.message || ev);
-      doOnErrorCallback(err);
+      const err = ev?.error || ev?.reason || ev?.message || ev;
+      callOnError(err);
       rejectOnce(err || new Error("Unhandled error in iframe"));
     };
 
     const rejectionHandler = (ev) => {
-      const err = ev && (ev.reason || ev);
-      doOnErrorCallback(err);
+      const err = ev?.reason || ev;
+      callOnError(err);
       rejectOnce(err || new Error("Unhandled rejection in iframe"));
     };
 
-    const onScriptError = (ev) => {
-      const e = ev && (ev.error || ev) || new Error("Script failed to load/run");
-      doOnErrorCallback(e);
-      rejectOnce(e);
+    const scriptErrorHandler = (ev) => {
+      const err = ev?.error || ev || new Error("Script failed to load/run");
+      callOnError(err);
+      rejectOnce(err);
     };
 
     const cleanup = () => {
-      try {
-        if (userBlobUrl) URL.revokeObjectURL(userBlobUrl);
-      } catch (_) {}
-      try {
-        if (wrapperBlobUrl) URL.revokeObjectURL(wrapperBlobUrl);
-      } catch (_) {}
-      try {
-        const win = iframe.contentWindow;
-        if (win) {
+      if (userBlobUrl) {
+        try {
+          URL.revokeObjectURL(userBlobUrl);
+        } catch (_) {}
+      }
+      if (wrapperBlobUrl) {
+        try {
+          URL.revokeObjectURL(wrapperBlobUrl);
+        } catch (_) {}
+      }
+
+      const win = iframe.contentWindow;
+      if (win) {
+        try {
           win.removeEventListener("error", errorHandler);
           win.removeEventListener("unhandledrejection", rejectionHandler);
-          // remove the exposed resolvers if present
-          try {
-            delete win.__runInFrameDone;
-          } catch (_) {}
-          try {
-            delete win.__runInFrameDoneResolve;
-          } catch (_) {}
-          try {
-            delete win.__runInFrameDoneReject;
-          } catch (_) {}
-        }
-      } catch (_) {}
+          delete win.__runInFrameDone;
+          delete win.__runInFrameDoneResolve;
+          delete win.__runInFrameDoneReject;
+        } catch (_) {}
+      }
+
       try {
         iframe.removeEventListener("load", onLoad);
       } catch (_) {}
@@ -83,11 +82,11 @@ function runInFrame(code, endowments = {}, onError) {
         win.addEventListener("error", errorHandler);
         win.addEventListener("unhandledrejection", rejectionHandler);
 
-        for (const k of Object.keys(endowments)) {
+        Object.entries(endowments).forEach(([key, value]) => {
           try {
-            win[k] = endowments[k];
-          } catch (e) { /* ignore */ }
-        }
+            win[key] = value;
+          } catch (_) {}
+        });
 
         let resolveInner, rejectInner;
         const donePromise = new Promise((res, rej) => {
@@ -99,44 +98,49 @@ function runInFrame(code, endowments = {}, onError) {
         win.__runInFrameDoneResolve = resolveInner;
         win.__runInFrameDoneReject = rejectInner;
 
-        const userBlob = new Blob([code], { type: "text/javascript" });
-        userBlobUrl = URL.createObjectURL(userBlob);
+        userBlobUrl = URL.createObjectURL(
+          new Blob([code], { type: "text/javascript" }),
+        );
 
         const wrapperCode = `
           (async () => {
             try {
               const ns = await import(${JSON.stringify(userBlobUrl)});
-              if (window && typeof window.__runInFrameDoneResolve === "function") {
-                try { window.__runInFrameDoneResolve(ns); } catch(e) { /* swallow */ }
-              }
+              window?.__runInFrameDoneResolve?.(ns);
               return ns;
             } catch (err) {
-              if (window && typeof window.__runInFrameDoneReject === "function") {
-                try { window.__runInFrameDoneReject(err); } catch(e) { /* swallow */ }
-              }
+              window?.__runInFrameDoneReject?.(err);
               throw err;
             }
           })();
         `;
-        const wrapperBlob = new Blob([wrapperCode], { type: "text/javascript" });
-        wrapperBlobUrl = URL.createObjectURL(wrapperBlob);
+
+        wrapperBlobUrl = URL.createObjectURL(
+          new Blob([wrapperCode], { type: "text/javascript" }),
+        );
 
         const script = doc.createElement("script");
         script.type = "module";
         script.src = wrapperBlobUrl;
-
-        script.onerror = onScriptError;
+        script.onerror = scriptErrorHandler;
 
         doc.body.appendChild(script);
 
-        donePromise.then((moduleNamespace) => {
-          resolveOnce({ iframe, window: win, document: doc, module: moduleNamespace });
-        }).catch((err) => {
-          doOnErrorCallback(err);
-          rejectOnce(err);
-        });
+        donePromise
+          .then((moduleNamespace) => {
+            resolveOnce({
+              iframe,
+              window: win,
+              document: doc,
+              module: moduleNamespace,
+            });
+          })
+          .catch((err) => {
+            callOnError(err);
+            rejectOnce(err);
+          });
       } catch (err) {
-        doOnErrorCallback(err);
+        callOnError(err);
         rejectOnce(err);
       }
     };
@@ -146,85 +150,100 @@ function runInFrame(code, endowments = {}, onError) {
   });
 }
 
-function showFinishOverlay() {
-  const existing = document.getElementById("finish-overlay");
+function showOverlay({ id, title, message, color, centered = false }) {
+  const existing = document.getElementById(id);
   if (existing) existing.remove();
 
   const overlay = document.createElement("div");
-  overlay.id = "finish-overlay";
+  overlay.id = id;
+  Object.assign(overlay.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "100vw",
+    height: "100vh",
+    background: color,
+    color: "white",
+    zIndex: "999999",
+    fontFamily: "monospace",
+    boxSizing: "border-box",
+  });
 
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100vw";
-  overlay.style.height = "100vh";
-  overlay.style.background = "rgba(0, 180, 0, 0.85)";
-  overlay.style.color = "white";
-  overlay.style.zIndex = "999999";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.fontFamily = "monospace";
-  overlay.style.boxSizing = "border-box";
-  overlay.style.fontSize = "48px";
-  overlay.style.fontWeight = "bold";
+  if (centered) {
+    Object.assign(overlay.style, {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "48px",
+      fontWeight: "bold",
+    });
+    const text = document.createElement("div");
+    text.textContent = title;
+    overlay.appendChild(text);
+  } else {
+    Object.assign(overlay.style, {
+      padding: "20px",
+      overflow: "auto",
+    });
 
-  const text = document.createElement("div");
-  text.textContent = "Finished";
+    const container = document.createElement("div");
+    Object.assign(container.style, {
+      maxWidth: "900px",
+      margin: "40px auto",
+    });
 
-  overlay.appendChild(text);
+    const titleEl = document.createElement("h1");
+    titleEl.textContent = title;
+    titleEl.style.marginTop = "0";
+    container.appendChild(titleEl);
+
+    if (message) {
+      const messageEl = document.createElement("pre");
+      messageEl.textContent = message;
+      container.appendChild(messageEl);
+    }
+
+    overlay.appendChild(container);
+  }
+
   document.body.appendChild(overlay);
+}
+
+function showFinishOverlay() {
+  showOverlay({
+    id: "finish-overlay",
+    title: "Finished",
+    color: "rgba(0, 180, 0, 0.85)",
+    centered: true,
+  });
 }
 
 function showErrorOverlay(err) {
   if (!err) return;
+  showOverlay({
+    id: "error-overlay",
+    title: "Error",
+    message: `${err.message || String(err)}\n\n${err.stack || "(no stack trace available)"}`,
+    color: "rgba(255, 0, 0, 0.85)",
+    centered: false,
+  });
+}
 
-  const existing = document.getElementById("error-overlay");
-  if (existing) existing.remove();
-
-  const overlay = document.createElement("div");
-  overlay.id = "error-overlay";
-
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100vw";
-  overlay.style.height = "100vh";
-  overlay.style.background = "rgba(255, 0, 0, 0.85)";
-  overlay.style.color = "white";
-  overlay.style.zIndex = "999999";
-  overlay.style.padding = "20px";
-  overlay.style.fontFamily = "monospace";
-  overlay.style.overflow = "auto";
-  overlay.style.boxSizing = "border-box";
-
-  const container = document.createElement("div");
-  container.style.maxWidth = "900px";
-  container.style.margin = "40px auto";
-
-  const title = document.createElement("h1");
-  title.textContent = "Error";
-  title.style.marginTop = "0";
-
-  const messageEl = document.createElement("pre");
-  messageEl.textContent = err.message || String(err);
-
-  const stackEl = document.createElement("pre");
-  stackEl.textContent = err.stack || "(no stack trace available)";
-  stackEl.style.marginTop = "20px";
-
-  container.appendChild(title);
-  container.appendChild(messageEl);
-  container.appendChild(stackEl);
-
-  overlay.appendChild(container);
-  document.body.appendChild(overlay);
+function showStoppedOverlay() {
+  showOverlay({
+    id: "stopped-overlay",
+    title: "Stopped",
+    color: "rgba(255, 180, 0, 0.85)",
+    centered: true,
+  });
 }
 
 const response = await fetch("/bundle.js");
 const code = await response.text();
 
 let interval = null;
+let pingInterval = null;
+let isFinished = false;
 
 const canvas = document.getElementById("sim");
 
@@ -244,64 +263,99 @@ function fixCanvasDisplay() {
 window.addEventListener("resize", fixCanvasDisplay);
 fixCanvasDisplay();
 
+function stopSimulation() {
+  if (interval != null) {
+    clearInterval(interval);
+    interval = null;
+  }
+  if (pingInterval != null) {
+    clearInterval(pingInterval);
+    pingInterval = null;
+  }
+}
+
 const sim = {
   log: (...args) => {
     console.log(...args);
-
     fetch("/log", {
       method: "POST",
       keepalive: true,
-      body: args.map((arg) => typeof arg === "string" ? arg : JSON.stringify(arg)).join("\t"),
+      body: args
+        .map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg)))
+        .join("\t"),
       headers: { "Content-Type": "application/json" },
-    });
+    }).catch(() => {});
   },
   finish: () => {
+    isFinished = true;
     fetch("/finish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-    });
-    if (interval != null) {
-      clearInterval(interval);
-    }
+    }).catch(() => {});
+    stopSimulation();
     showFinishOverlay();
     waitForNext();
   },
   ctx: canvas.getContext("2d"),
   frame: 0,
   resizeCanvas: (width, height) => {
-    const canvas = document.getElementById("sim");
     canvas.width = width;
     canvas.height = height;
   },
   addSound: async (soundProps) => {
-    const res = await fetch("/addSound", {
-      method: "POST",
-      body: JSON.stringify(soundProps),
-      headers: { "Content-Type": "application/json" },
-    });
-
-    return parseInt(await res.text());
+    try {
+      const res = await fetch("/addSound", {
+        method: "POST",
+        body: JSON.stringify(soundProps),
+        headers: { "Content-Type": "application/json" },
+      });
+      return parseInt(await res.text());
+    } catch (_) {
+      return -1;
+    }
   },
   playSound: (sound) => {
     fetch("/playSound", {
       method: "POST",
       body: sound.toString(),
       headers: { "Content-Type": "application/json" },
-    });
+    }).catch(() => {});
   },
   addFetchAsset: async (path, fetchAddr) => {
-    await fetch("/addFetchAsset", {
-      method: "POST",
-      body: JSON.stringify({ path, fetchAddr }),
-      headers: { "Content-Type": "application/json" },
-    });
+    try {
+      await fetch("/addFetchAsset", {
+        method: "POST",
+        body: JSON.stringify({ path, fetchAddr }),
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (_) {}
   },
 };
 
 fetch("/begin", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-});
+}).catch(() => {});
+
+function startPinging() {
+  pingInterval = setInterval(() => {
+    fetch("/ping")
+      .then((res) => {
+        if (!res.ok && !isFinished) {
+          stopSimulation();
+          showStoppedOverlay();
+          waitForNext();
+        }
+      })
+      .catch(() => {
+        if (!isFinished) {
+          stopSimulation();
+          showStoppedOverlay();
+          waitForNext();
+        }
+      });
+  }, 300);
+}
 
 function errorHandler(err) {
   console.error(err);
@@ -311,21 +365,27 @@ function errorHandler(err) {
     method: "POST",
     body: err.message,
     headers: { "Content-Type": "application/json" },
-  });
+  }).catch(() => {});
 
+  stopSimulation();
   waitForNext();
 }
 
 runInFrame(code, { sim }, errorHandler).then((val) => {
   window.simFrame = val;
   console.log(sim.onUpdate);
+
+  startPinging();
+
   if (sim.onUpdate) {
     interval = setInterval(() => {
       sim.onUpdate();
 
       if (SHOULD_RECORD) {
         canvas.toBlob(async (blob) => {
-          await fetch("/frame", { method: "POST", body: blob });
+          try {
+            await fetch("/frame", { method: "POST", body: blob });
+          } catch (_) {}
         }, "image/png");
       }
 
@@ -336,8 +396,11 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
 
 function waitForNext() {
   setInterval(() => {
-    fetch("/ping").then(() => {
-      location.reload();
-    });
+    fetch("/ping")
+      .then(() => {
+        location.reload();
+      })
+      .catch(() => {});
   }, 300);
 }
+

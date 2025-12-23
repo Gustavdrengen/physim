@@ -12,15 +12,14 @@ These are the steps for implementing a feature:
 
 # Code styling
 
-This is how code should be styled:
- 1. Very minimal code comments.
- 2. Document everything, that is exposed to the user of the library, like functions and classes, but not internal things or flattened modules.
-
+See the code styling guidelines in `STYLE.md`
 If you see code, where these principles are not being complied with, you should ask the user for permission to fix it.
 
 # General Instructions
 
-- See `docs/bin/md` for documentation
+- See `docs/bin/md` for documentation.
 - See `STRUCTURE.md` for a detailed project structure.
+- See `README.md` for information about the project.
+- See `DEVELOPMENT` for information about the development process.
 - Look in `../sandbox.d.ts` for an environment description.
 - Always read the relevant files for a task.

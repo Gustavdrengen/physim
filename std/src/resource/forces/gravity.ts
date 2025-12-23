@@ -34,5 +34,5 @@ export function initGravityForce(physics: Physics, G: number): void {
     }
   };
 
-  physics.registerForce(physics.mass, gravityForce);
+  physics.registerForce(physics.mass, gravityForce, 0);
 }

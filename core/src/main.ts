@@ -4,7 +4,7 @@ import { checkTscInstalled, installTscIfAllowed } from "./tsc.ts";
 import { setGlobalErrorHandler, unwrap } from "./err.ts";
 import { run } from "./run.ts";
 import { dirname, extname, fromFileUrl, join } from "@std/path";
-import { contentType } from "https://deno.land/std@0.201.0/media_types/mod.ts";
+import { contentType } from "@std/media-types";
 
 setGlobalErrorHandler();
 

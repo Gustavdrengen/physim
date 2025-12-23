@@ -46,18 +46,17 @@ export function initBodyDisplayComponent(
   const bodyDisplay = new Component<BodyDisplayData>();
 
   display.registerDrawComponent([bodyDisplay, bodyComponent], (entity, [data, body]) => {
-    const { color, fill, lineWidth = 1 } = data;
-    const entityPos = entity.pos;
-    // assuming 0 rotation for now
-    const entityRotation = 0;
+    const { color, fill = true, lineWidth = 1 } = data;
+    const pos = entity.pos;
+    const rot = body.rotation;
 
     const transformedVertices: Vec2[] = body.vertices.map((v: Vec2) => {
-      const cos = Math.cos(entityRotation);
-      const sin = Math.sin(entityRotation);
+      const cos = Math.cos(rot);
+      const sin = Math.sin(rot);
       const rotatedX = v.x * cos - v.y * sin;
       const rotatedY = v.x * sin + v.y * cos;
 
-      return new Vec2(rotatedX + entityPos.x, rotatedY + entityPos.y);
+      return new Vec2(rotatedX + pos.x, rotatedY + pos.y);
     });
 
     polygon(transformedVertices, color, fill, lineWidth);
