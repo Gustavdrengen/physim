@@ -7,11 +7,11 @@ export class Vec2 {
   /**
    * The x component of the vector.
    */
-  readonly x: number;
+  x: number;
   /**
    * The y component of the vector.
    */
-  readonly y: number;
+  y: number;
 
   /**
    * Creates a new Vec2.
