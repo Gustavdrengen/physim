@@ -6,8 +6,6 @@ import { CollisionEvent } from "./events";
 import { Body, BodyPart } from "../../body/body";
 import { Physics } from "../../../base/physics";
 
-const RAPIER_FIXED_DT = 1 / 60;
-
 export type DefaultCollisionProperties = {
   bodyType?: 'dynamic' | 'static' | 'kinematicPositionBased' | 'kinematicVelocityBased';
   mass?: number;
@@ -22,7 +20,7 @@ export class RapierWorldManager {
   private _rapierWorld: RAPIER.World | null = null;
   private _eventQueue: RAPIER.EventQueue | null = null;
   private _entityToRapierMap: Map<Entity, { rigidBody: RAPIER.RigidBody, colliders: RAPIER.Collider[] }> = new Map();
-  private _rapierHandleToEntityMap: Map<number, Entity> = new Map();
+  private _colliderHandleToEntityMap: Map<number, Entity> = new Map();
   private _physics: Physics;
   private _bodyComponent: Component<Body>;
 
@@ -32,8 +30,7 @@ export class RapierWorldManager {
   }
 
   async init(): Promise<void> {
-    await RAPIER.init()
-    console.log("INITIALIZED")
+    await RAPIER.init();
     this._eventQueue = new RAPIER.EventQueue(true);
     this._rapierWorld = new RAPIER.World(new RAPIER.Vector2(0, 0));
   }
@@ -62,12 +59,11 @@ export class RapierWorldManager {
       for (const desc of colliderDescs) {
         const collider = this._rapierWorld.createCollider(desc, rigidBody);
         colliders.push(collider);
-        this._rapierHandleToEntityMap.set(collider.handle, entity);
+        this._colliderHandleToEntityMap.set(collider.handle, entity);
       }
     }
 
     this._entityToRapierMap.set(entity, { rigidBody, colliders });
-    this._rapierHandleToEntityMap.set(rigidBody.handle, entity);
   }
 
   removeEntity(entity: Entity): void {
@@ -78,9 +74,8 @@ export class RapierWorldManager {
       }
       this._rapierWorld.removeRigidBody(rapierObjects.rigidBody);
       this._entityToRapierMap.delete(entity);
-      this._rapierHandleToEntityMap.delete(rapierObjects.rigidBody.handle);
       rapierObjects.colliders.forEach(collider => {
-        this._rapierHandleToEntityMap.delete(collider.handle);
+        this._colliderHandleToEntityMap.delete(collider.handle);
       });
     }
   }
@@ -92,9 +87,8 @@ export class RapierWorldManager {
     const events: CollisionEvent[] = [];
     this._eventQueue.drainCollisionEvents((handle1: number, handle2: number, started: boolean) => {
       if (started) {
-        const entity1 = this._rapierHandleToEntityMap.get(handle1);
-        const entity2 = this._rapierHandleToEntityMap.get(handle2);
-
+        const entity1 = this._colliderHandleToEntityMap.get(handle1);
+        const entity2 = this._colliderHandleToEntityMap.get(handle2);
         if (entity1 && entity2) {
           events.push({ entityA: entity1, entityB: entity2 });
         }
@@ -105,10 +99,6 @@ export class RapierWorldManager {
 
   private createRigidBody(entity: Entity, body: Body, defaultProps: DefaultCollisionProperties): RAPIER.RigidBody {
     let rigidBodyDesc: RAPIER.RigidBodyDesc;
-
-    const position = entity.pos;
-    const velocity = this._physics.velocity.get(entity) || new Vec2(0, 0);
-    const rotation = body.rotation;
 
     switch (defaultProps.bodyType) {
       case 'static':
@@ -126,11 +116,18 @@ export class RapierWorldManager {
         break;
     }
 
-    rigidBodyDesc.setTranslation(position.x, position.y);
-    rigidBodyDesc.setRotation(rotation);
-    rigidBodyDesc.setLinvel(velocity.x, velocity.y);
+    rigidBodyDesc.setTranslation(entity.pos.x, entity.pos.y);
+    rigidBodyDesc.setRotation(body.rotation);
 
-    return this._rapierWorld!.createRigidBody(rigidBodyDesc);
+    const rigidBody = this._rapierWorld!.createRigidBody(rigidBodyDesc);
+
+    const mass = this._physics.mass.get(entity) ?? defaultProps.mass ?? 0;
+    if (mass > 0 && defaultProps.bodyType !== 'static') {
+      const inertia = this.computeApproximateInertiaForBody(body, mass);
+      rigidBody.setAdditionalMassProperties(mass, new RAPIER.Vector2(0, 0), inertia, true);
+    }
+
+    return rigidBody;
   }
 
   private createColliderDescsForPart(part: BodyPart, defaultProps: DefaultCollisionProperties): RAPIER.ColliderDesc[] {
@@ -158,23 +155,17 @@ export class RapierWorldManager {
       case "polygon": {
         const vertices = shape.vertices.flatMap((v: Vec2) => [v.x, v.y]);
         const desc = RAPIER.ColliderDesc.convexHull(new Float32Array(vertices));
-        if (desc) {
-          desc.setTranslation(position.x, position.y);
-          desc.setRotation(rotation);
-          applyProps(desc);
-          descs.push(desc);
-        } else {
-          throw new Error("Failed to create polygon collider.");
-        }
+        if (!desc) throw new Error("Failed to create polygon collider.");
+        desc.setTranslation(position.x, position.y);
+        desc.setRotation(rotation);
+        applyProps(desc);
+        descs.push(desc);
         break;
       }
       case "ring": {
         const segments = 16;
         const { innerRadius, outerRadius } = shape;
-
-        if (outerRadius <= innerRadius) {
-          throw new Error("ring.outerRadius must be greater than innerRadius");
-        }
+        if (outerRadius <= innerRadius) throw new Error("ring.outerRadius must be greater than innerRadius");
 
         const height = outerRadius - innerRadius;
         const midRadius = (outerRadius + innerRadius) / 2;
@@ -194,22 +185,17 @@ export class RapierWorldManager {
           const segmentCenterX = midRadius * Math.cos(segmentAngle);
           const segmentCenterY = midRadius * Math.sin(segmentAngle);
 
-          const rotatedSegmentCenterX = segmentCenterX * cosR - segmentCenterY * sinR;
-          const rotatedSegmentCenterY = segmentCenterX * sinR + segmentCenterY * cosR;
+          const rotatedX = segmentCenterX * cosR - segmentCenterY * sinR;
+          const rotatedY = segmentCenterX * sinR + segmentCenterY * cosR;
 
-          const finalPosX = position.x + rotatedSegmentCenterX;
-          const finalPosY = position.y + rotatedSegmentCenterY;
-          const finalRot = rotation + segmentAngle + Math.PI / 2;
-
-          desc.setTranslation(finalPosX, finalPosY);
-          desc.setRotation(finalRot);
+          desc.setTranslation(position.x + rotatedX, position.y + rotatedY);
+          desc.setRotation(rotation + segmentAngle + Math.PI / 2);
 
           applyProps(desc);
           descs.push(desc);
         }
         break;
       }
-
       default:
         throw new Error(`Unsupported shape type: ${(shape as any).type}`);
     }
@@ -217,42 +203,92 @@ export class RapierWorldManager {
     return descs;
   }
 
-  syncEntityToRigidBody(entity: Entity): void {
-    const rapierObjects = this._entityToRapierMap.get(entity);
-    const bodyComponent = entity.getComp(this._bodyComponent);
-
-    if (rapierObjects && bodyComponent) {
-      const translation = rapierObjects.rigidBody.translation();
-      const linvel = rapierObjects.rigidBody.linvel();
-      const rotation = rapierObjects.rigidBody.rotation();
-
-      bodyComponent.rotation = rotation;
-
-      const entityVelocity = this._physics.velocity.get(entity);
-      if (entityVelocity) {
-        (this._physics.velocity as Component<Vec2>).set(entity, new Vec2(linvel.x, linvel.y));
-      } else {
-        (this._physics.velocity as Component<Vec2>).set(entity, new Vec2(linvel.x, linvel.y));
-      }
-    }
-  }
-
   syncRigidBodyToEntity(entity: Entity): void {
     const rapierObjects = this._entityToRapierMap.get(entity);
     const bodyComponent = entity.getComp(this._bodyComponent);
+    if (!rapierObjects || !bodyComponent) return;
 
-    if (rapierObjects && bodyComponent) {
-      const entityVelocity = this._physics.velocity.get(entity) || new Vec2(0, 0);
-      const mass = this._physics.mass.get(entity) || 0;
+    const vel = this._physics.velocity.get(entity) || new Vec2(0, 0);
 
-      rapierObjects.rigidBody.setTranslation(new RAPIER.Vector2(entity.pos.x, entity.pos.y), true);
-      rapierObjects.rigidBody.setLinvel(new RAPIER.Vector2(entityVelocity.x, entityVelocity.y), true);
-      rapierObjects.rigidBody.setRotation(bodyComponent.rotation, true);
-      rapierObjects.rigidBody.setAdditionalMassProperties(mass, new RAPIER.Vector2(0, 0), mass, true)
-    }
+    rapierObjects.rigidBody.setTranslation(new RAPIER.Vector2(entity.pos.x, entity.pos.y), true);
+    rapierObjects.rigidBody.setLinvel(new RAPIER.Vector2(vel.x, vel.y), true);
+    rapierObjects.rigidBody.setRotation(bodyComponent.rotation, true);
+  }
+
+  syncEntityToRigidBody(entity: Entity): void {
+    const rapierObjects = this._entityToRapierMap.get(entity);
+    const bodyComponent = entity.getComp(this._bodyComponent);
+    if (!rapierObjects || !bodyComponent) return;
+
+    const linvel = rapierObjects.rigidBody.linvel();
+    const rotation = rapierObjects.rigidBody.rotation();
+
+    (this._physics.velocity as Component<Vec2>).set(entity, new Vec2(linvel.x, linvel.y));
+    bodyComponent.rotation = rotation;
   }
 
   getEntities(): Entity[] {
     return Array.from(this._entityToRapierMap.keys());
   }
+
+  private computeApproximateInertiaForBody(body: Body, totalMass: number): number {
+    let totalArea = 0;
+    const areas: number[] = [];
+
+    for (const part of body.parts) {
+      let area = 0;
+      if (part.shape.type === 'circle') {
+        area = Math.PI * part.shape.radius * part.shape.radius;
+      } else if (part.shape.type === 'polygon') {
+        const verts = part.shape.vertices;
+        let a = 0;
+        for (let i = 0; i < verts.length; i++) {
+          const j = (i + 1) % verts.length;
+          a += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+        }
+        area = Math.abs(a) / 2;
+      } else if (part.shape.type === 'ring') {
+        area = Math.PI * (part.shape.outerRadius ** 2 - part.shape.innerRadius ** 2);
+      }
+      areas.push(area);
+      totalArea += area;
+    }
+
+    if (totalArea === 0) return 0;
+
+    let inertia = 0;
+
+    for (let i = 0; i < body.parts.length; i++) {
+      const part = body.parts[i];
+      const massPart = totalMass * (areas[i] / totalArea);
+
+      let I = 0;
+      if (part.shape.type === 'circle') {
+        I = 0.5 * massPart * part.shape.radius * part.shape.radius;
+      } else if (part.shape.type === 'polygon') {
+        const verts = part.shape.vertices;
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const v of verts) {
+          minX = Math.min(minX, v.x);
+          maxX = Math.max(maxX, v.x);
+          minY = Math.min(minY, v.y);
+          maxY = Math.max(maxY, v.y);
+        }
+        const w = maxX - minX;
+        const h = maxY - minY;
+        I = (massPart * (w * w + h * h)) / 12;
+      } else if (part.shape.type === 'ring') {
+        const R = part.shape.outerRadius;
+        const r = part.shape.innerRadius;
+        I = massPart * (R * R + r * r) / 2;
+      }
+
+      const px = part.position.x;
+      const py = part.position.y;
+      inertia += I + massPart * (px * px + py * py);
+    }
+
+    return inertia;
+  }
 }
+
