@@ -9,7 +9,13 @@ export type Shape = Circle | Polygon | Ring;
  * A circle shape.
  */
 export interface Circle {
+  /**
+   * The type of the shape.
+   */
   type: "circle";
+  /**
+   * The radius of the circle.
+   */
   radius: number;
 }
 
@@ -17,6 +23,9 @@ export interface Circle {
  * A polygon shape.
  */
 export interface Polygon {
+  /**
+   * The type of the shape.
+   */
   type: "polygon";
   /**
    * The vertices of the polygon in local space.
@@ -28,8 +37,17 @@ export interface Polygon {
  * A ring shape
  */
 export interface Ring {
+  /**
+   * The type of the shape.
+   */
   type: "ring";
+  /**
+   * The inner radius of the ring.
+   */
   innerRadius: number;
+  /**
+   * The outer radius of the ring.
+   */
   outerRadius: number;
 }
 

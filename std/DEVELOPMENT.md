@@ -8,6 +8,7 @@ This is how a feature should be implemented:
 4. Optimize and improve the feature implementation
 5. Confirm that no problems arose from the feature implementation
   - Use the graph generation script for file-dependency graph
+  - Use the documentation check script to check for missing docstrings
 
 Once in a while this should be done:
 

@@ -8,8 +8,17 @@ import { Shape } from "./shape.ts";
  * with a local position and rotation.
  */
 export interface BodyPart {
+  /**
+   * The geometric shape of this part.
+   */
   shape: Shape;
+  /**
+   * The position of this part relative to the center of the parent body.
+   */
   position: Vec2;
+  /**
+   * The rotation of this part in radians, relative to the parent body's rotation.
+   */
   rotation: number;
 }
 
@@ -18,12 +27,37 @@ export interface BodyPart {
  * It can be composed of multiple parts. The vertices and AABB are in local space.
  */
 export class Body {
+  /**
+   * An array of `BodyPart` objects that compose this body.
+   */
   readonly parts: readonly BodyPart[];
   // TODO: I think this is unused
+  /**
+   * The combined vertices of all parts in local space.
+   * @readonly
+   */
   readonly vertices: readonly Vec2[];
-  readonly aabb: { min: Vec2; max: Vec2 };
+  /**
+   * The axis-aligned bounding box (AABB) of the body in local space.
+   * This box completely encloses the body.
+   */
+  readonly aabb: {
+    /** The minimum corner (bottom-left) of the AABB. */
+    min: Vec2;
+    /** The maximum corner (top-right) of the AABB. */
+    max: Vec2;
+  };
+  /**
+   * The overall rotation of the body in radians.
+   */
   rotation: number;
 
+  /**
+   * Creates a new Body instance.
+   *
+   * @param parts An array of `BodyPart` objects that compose this body.
+   * @param initialRotation The initial rotation of the body in radians.
+   */
   constructor(parts: BodyPart[], initialRotation: number = 0) {
     this.parts = parts;
     this.rotation = initialRotation;
@@ -43,6 +77,7 @@ export class Body {
    * The shape will be centered at the body's origin.
    *
    * @param shape The shape to create the body from.
+   * @param initialRotation The initial rotation of the body in radians.
    * @returns A new Body instance.
    */
   static fromShape(shape: Shape, initialRotation: number = 0): Body {
