@@ -42,6 +42,11 @@ export class Display {
     comps: Component<T[number]>[],
     drawFunc: (entity: Entity, data: T) => void
   ): void;
+  /**
+   * Registers a draw function for a single component.
+   * @param comp The component to register.
+   * @param drawFunc The function to call to draw the component.
+   */
   registerDrawComponent<T>(
     comp: Component<T>,
     drawFunc: (entity: Entity, data: T) => void

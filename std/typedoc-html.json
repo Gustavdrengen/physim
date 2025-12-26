@@ -7,5 +7,6 @@
   "customCss": "docsStyle.css",
   "name": "Physim Standard Library",
   "out": "docs/bin/html",
-  "readme": "README.md"
+  "readme": "README.md",
+  "excludeInternal": true
 }

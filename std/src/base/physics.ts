@@ -92,6 +92,12 @@ export class Physics {
     force: (entity: Entity, data: T) => void,
     priority?: number,
   ): void;
+  /**
+   * Registers a force to be applied to entities.
+   * @param comp The component that the force is associated with.
+   * @param force The function that applies the force.
+   * @param priority The priority of the force.
+   */
   registerForce<T>(
     comp: Component<T>,
     force: (entity: Entity, data: T) => void,

@@ -38,6 +38,9 @@ export class Camera {
    */
   target: Entity | Entity[] | null;
 
+  /**
+   * Creates a new Camera instance.
+   */
   constructor() {
     this.position = Vec2.zero();
     this.zoom = 1;

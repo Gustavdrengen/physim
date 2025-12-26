@@ -2,7 +2,9 @@
  - Testing
    - Implementing tests
    - Updating development cycle
+   - Give AI access to it for things like example gen
  - Tools for helping spot problems
+ - Std styling guidelines for documentation examples
  - Complete core
    - Error handeling
      - Pretty errors (when not raw)

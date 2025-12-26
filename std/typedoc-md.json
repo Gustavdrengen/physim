@@ -10,5 +10,6 @@
   "theme": "markdown",
   "out": "docs/bin/md",
   "name": "Physim Standard Library",
-  "readme": "README.md"
+  "readme": "README.md",
+  "excludeInternal": true
 }

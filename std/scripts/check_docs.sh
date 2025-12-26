@@ -1,0 +1,24 @@
+npx typedoc                                                     \
+  --validation.notDocumented true                               \
+  --treatWarningsAsErrors                                       \
+  --excludeInternal                                             \
+  --entryPointStrategy expand                                   \
+  --emit none                                                   \
+  --name validation                                             \
+    --requiredToBeDocumented Module                             \
+    --requiredToBeDocumented Namespace                          \
+    --requiredToBeDocumented Enum                               \
+    --requiredToBeDocumented EnumMember                         \
+    --requiredToBeDocumented Variable                           \
+    --requiredToBeDocumented Function                           \
+    --requiredToBeDocumented Class                              \
+    --requiredToBeDocumented Interface                          \
+    --requiredToBeDocumented Constructor                        \
+    --requiredToBeDocumented Property                           \
+    --requiredToBeDocumented Method                             \
+    --requiredToBeDocumented CallSignature                      \
+    --requiredToBeDocumented IndexSignature                     \
+    --requiredToBeDocumented ConstructorSignature               \
+    --requiredToBeDocumented Parameter                          \
+    --requiredToBeDocumented TypeAlias                          \
+  src/public                                                    \

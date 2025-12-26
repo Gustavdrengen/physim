@@ -6,7 +6,9 @@
 
 ## 2. Documentation
 - All exported/public entities must have TSDoc comments.
-- Internal/private entities should not have TSDoc.  
+- Internal/private entities should not have TSDoc comments.  
+- If a piece of documentation could make sence both on a module level, and a function/class level, put it on the module level.
+- Documentation should never contain implementation details or any information about what the function does internally.
 
 ## 3. Code Style
 - 2 space indentaton.
