@@ -1,6 +1,10 @@
 deno.lock
 package-lock.json
 node_modules
+
+build/
+*.egg-info/
+
 out.mp4
 std/docs/bin
 std/feature_reports
