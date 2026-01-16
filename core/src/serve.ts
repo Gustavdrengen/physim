@@ -3,8 +3,6 @@ import { AudioPlayer } from "./audio.ts";
 import { fail, failed, Failure, InputFailureTag, Result, SystemFailureTag } from "./err.ts";
 import { AssetManager } from "./assets.ts";
 
-const ac = new AbortController();
-
 const PORT = 8080;
 
 const scriptDir = dirname(fromFileUrl(import.meta.url));
@@ -82,7 +80,10 @@ export async function runServer(
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
 ): Promise<Result<undefined>> {
+  let server: Deno.HttpServer<Deno.NetAddr>;
+
   let started = false;
+  let pingNexted = false;
 
   let frame = 0;
   const logs: string[] = [];
@@ -98,10 +99,8 @@ export async function runServer(
   let ret;
 
   function endAndFail(failure: Failure) {
-    setTimeout(() => {
-      ret = failure;
-      ac.abort();
-    }, 10);
+    ret = failure;
+    server.shutdown();
   }
 
   setTimeout(async () => {
@@ -113,8 +112,7 @@ export async function runServer(
     }
   }, 2000);
 
-  await Deno.serve({
-    signal: ac.signal,
+  server = Deno.serve({
     hostname: "127.0.0.1",
     port: PORT,
     onListen({ port, hostname }) {
@@ -145,7 +143,10 @@ export async function runServer(
           console.info("Simulation started");
         }
         started = true;
-        return new Response("Ok", { status: 200 });
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/pingNext" && !pingNexted) {
+        pingNexted = true;
+        return new Response(null, { status: 200 });
       } else {
         return new Response("Not Found", { status: 404 });
       }
@@ -169,16 +170,16 @@ export async function runServer(
       );
       return new Response(null, { status: 200 });
     } else if (url.pathname === "/finish") {
-      if (raw) {
-        logs.forEach((log) => {
-          console.log(log);
-        });
-      } else {
-        console.info("Simulation finished");
-      }
       setTimeout(() => {
-        ac.abort();
-      }, 10);
+        if (raw) {
+          logs.forEach((log) => {
+            console.log(log);
+          });
+        } else {
+          console.info("Simulation finished");
+        }
+        server.shutdown();
+      }, 100);
 
       return new Response(null, { status: 200 });
     } else if (url.pathname === "/frame") {
@@ -217,7 +218,7 @@ export async function runServer(
     } else {
       return new Response("Not Found", { status: 404 });
     }
-  }).finished;
+  });
 
   return ret;
 }

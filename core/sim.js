@@ -396,11 +396,12 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
 
 function waitForNext() {
   setInterval(() => {
-    fetch("/ping")
-      .then(() => {
-        location.reload();
+    fetch("/pingNext")
+      .then((res) => {
+        if (res.status == 200) {
+          location.reload();
+        }
       })
       .catch(() => {});
   }, 300);
 }
-

@@ -108,6 +108,16 @@ const cmd = new Command()
       console.log(`Serving documentation at http://localhost:${PORT}/`);
       serveDirectory(docsDirPath, PORT);
     }
+  }).command("install-python", "Provides instructions for installing the Physim python package")
+  .action(() => {
+    const scriptDir = dirname(fromFileUrl(import.meta.url));
+    const pythonPackagePath = join(scriptDir, "..", "..", "python-package");
+    console.log(`The python package is located at: ${pythonPackagePath}`);
+    console.log("In can be installed on most systems using pip:");
+    console.log(`pip install ${pythonPackagePath}`);
+    console.log("It can be updated using:");
+    console.log(`pip uninstall physim && pip install ${pythonPackagePath}`);
+    console.log("Installation methods may vary based on your system and python environment.");
   });
 
 await cmd.parse(Deno.args);
