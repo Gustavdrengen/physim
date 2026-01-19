@@ -1,9 +1,8 @@
 """
-Low-level wrapper for running physim scripts.
+Python wrapper for running physim scripts.
 """
-
-import subprocess
 from dataclasses import dataclass
+from ._internal import _run_physim_command
 
 
 @dataclass
@@ -36,25 +35,9 @@ def run_script(filepath: str, raw: bool = False) -> PhysimResult:
     Returns:
         PhysimResult containing exit code and output
     """
-    cmd = ["physim", "run"]
+    args = ["run"]
     if raw:
-        cmd.append("--raw")
-    cmd.append(filepath)
-
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        return PhysimResult(
-            exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr
-        )
-    except FileNotFoundError:
-        # physim command not found
-        return PhysimResult(
-            exit_code=-1,
-            stdout="",
-            stderr="physim command not found. Is it installed and in PATH?",
-        )
-    except Exception as e:
-        # Other unexpected errors
-        return PhysimResult(
-            exit_code=-1, stdout="", stderr=f"Unexpected error running physim: {e}"
-        )
+        args.append("--raw")
+    args.append(filepath)
+    exit_code, stdout, stderr = _run_physim_command(args)
+    return PhysimResult(exit_code=exit_code, stdout=stdout, stderr=stderr)
