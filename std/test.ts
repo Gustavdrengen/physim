@@ -151,8 +151,6 @@ export function expect(actual: any): Assertions {
  * Simple synchronous test runner.
  */
 export function test(name: string, fn: () => void): void {
-  sim.log(JSON.stringify({ type: "test_start", name }));
-
   try {
     fn(); // run the test
     sim.log(JSON.stringify({ type: "test_pass", name }));
@@ -172,8 +170,6 @@ export async function testAsync(
   name: string,
   fn: () => void | Promise<void>
 ): Promise<void> {
-  sim.log(JSON.stringify({ type: "test_start", name }));
-
   try {
     await fn(); // await async function if it returns a promise
     sim.log(JSON.stringify({ type: "test_pass", name }));

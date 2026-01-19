@@ -3,7 +3,7 @@
 This is how a feature should be implemented:
 
 1. Outline the features public API
-2. Create a test for the feature (not yet)
+2. Create a test for the feature
 3. Implement the feature
 4. Optimize and improve the feature implementation
 5. Confirm that no problems arose from the feature implementation
