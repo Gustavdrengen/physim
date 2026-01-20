@@ -1,7 +1,7 @@
 import { Command } from "@cliffy/command";
 import { init } from "./init.ts";
 import { checkTscInstalled, installTscIfAllowed } from "./tsc.ts";
-import { setGlobalErrorHandler, unwrap } from "./err.ts";
+import { enableRawMode, setGlobalErrorHandler, unwrap } from "./err.ts";
 import { run } from "./run.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { genDocs } from "./docs.ts";
@@ -25,6 +25,9 @@ const cmd = new Command()
   .option("--raw", "Only prints raw logs if the simulation finishes")
   .option("-r --record <outfile>", "Record the simulation and save it as an mp4 in outfile.")
   .action(async ({ raw, record }, entrypoint) => {
+    if (raw) {
+      enableRawMode();
+    }
     unwrap(await run(entrypoint, !!raw, record));
   })
   .command("init", "Adds typescript configuration to the current directory")

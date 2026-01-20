@@ -15,3 +15,4 @@
 
 export * from "../base/draw/color.ts";
 export * from "../base/draw/shapes.ts";
+export * from "../base/draw/text.ts";
