@@ -2,9 +2,28 @@ const EX_UNAVAILABLE = 69;
 const EX_SOFTWARE = 70;
 const EX_DATAERR = 65;
 
+let rawMode = false;
+
+export function enableRawMode() {
+  rawMode = true;
+}
+
+function error(tag: string, err: string, code: number) {
+  if (rawMode) {
+    console.error(`[${tag}] ${err}`);
+  } else {
+    console.error(
+      `%c[${tag}]%c ${err}`,
+      "background-color: red; font-weight: bold;",
+      "color: red;",
+    );
+  }
+
+  Deno.exit(code);
+}
+
 function errorHandler(err: Error) {
-  console.error("Unexpected internal error:", err);
-  Deno.exit(EX_SOFTWARE);
+  error("UNEXPECTED", err.message, EX_SOFTWARE);
 }
 
 export function setGlobalErrorHandler() {
@@ -44,15 +63,16 @@ export function unwrap<T>(result: Result<T>): T {
       result.tag as SystemFailureTag,
     );
 
-    console.error(`[${result.tag}] ${result.reason}`);
-
+    let code;
     if (isInputFailure) {
-      Deno.exit(EX_DATAERR);
+      code = EX_DATAERR;
     } else if (isSystemFailure) {
-      Deno.exit(EX_UNAVAILABLE);
+      code = EX_UNAVAILABLE;
     } else {
       throw Error("bruh wtf");
     }
+
+    error(result.tag, result.reason, code);
   }
 
   return result as T;

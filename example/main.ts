@@ -8,6 +8,7 @@ import { initGravityForce } from "physim/forces/gravity"
 import { initCollisionForce } from "physim/forces/collision"
 import { log } from "physim/logging"
 import { Entity } from "physim/ecs"
+import * as Draw from "physim/draw"
 
 const camera = new Camera();
 camera.zoom = 2;
@@ -52,8 +53,9 @@ log("Starting simulation...");
 sim.onUpdate = () => {
   physics.update();
   display.draw(camera);
+  Draw.text(new Vec2(500, 200), "My Cool simulation")
 
-  /*if (sim.frame == 60 * 5) {
+  if (sim.frame == 60 * 5) {
     sim.finish();
-  }*/
+  }
 };

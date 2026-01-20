@@ -7,7 +7,6 @@
  - Std styling guidelines for documentation examples
  - Complete core
    - Error handeling
-     - Pretty errors (when not raw)
      - New error system everywhere
      - Better controls
    - Dependency management system:
@@ -24,3 +23,10 @@
    - Its own "mass" component
    - Custom attraction logic
  - More things
+   - Instrument tone generation
+     - Song playing with tones
+   - Rings with holes
+   - On collide event
+   - Particles
+   - Trail effects
+   - Camera shake
