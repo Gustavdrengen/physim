@@ -14,7 +14,11 @@
  * // Setup physics and components
  * const physics = new Physics();
  * const bodyComponent = initBodyComponent();
- * const collisionEventComponent = await initCollisionForce(physics, bodyComponent);
+ * const collisionForce = await initCollisionForce(physics, bodyComponent);
+ *
+ * collisionForce.addCollisionCallback((event) => {
+ *  console.log(`Collision between ${event.entityA.id} and ${event.entityB.id}`);
+ * });
  *
  * // Create two entities with bodies
  * const entityA = new Entity(new Vec2(0, 0));
@@ -31,21 +35,6 @@
  *
  * // Run the physics simulation for one step
  * physics.step(1 / 60);
- *
- * // Check for collision events
- * const eventsA = entityA.get(collisionEventComponent);
- * if (eventsA) {
- *   for (const event of eventsA) {
- *     console.log(`Entity A collided with Entity ${event.entityB.id}`);
- *   }
- * }
- *
- * const eventsB = entityB.get(collisionEventComponent);
- * if (eventsB) {
- *   for (const event of eventsB) {
- *     console.log(`Entity B collided with Entity ${event.entityA.id}`);
- *   }
- * }
  * ```
  */
 import { Physics } from "../../../base/physics";
@@ -60,6 +49,25 @@ import { CollisionSystem } from "./system";
 import { Body } from "../../body/body";
 
 /**
+ * A function that is called when a collision occurs.
+ *
+ * @param event The collision event.
+ */
+export type CollisionCallback = (event: CollisionEvent) => void;
+
+/**
+ * The return type of `initCollisionForce`.
+ */
+export type CollisionForce = {
+  /**
+   * Adds a callback function that will be called when a collision occurs.
+   *
+   * @param callback The callback function.
+   */
+  addCollisionCallback: (callback: CollisionCallback) => void;
+};
+
+/**
  * Initializes the collision detection and response system.
  * This function sets up the necessary components and systems to handle collisions
  * between entities with `Body` components.
@@ -67,13 +75,13 @@ import { Body } from "../../body/body";
  * @param physics The main physics instance.
  * @param bodyComponent The component that stores the body data for entities.
  * @param defaultCollisionProperties Default properties for colliders created for entities.
- * @returns A promise that resolves to a component containing an array of `CollisionEvent`s for each frame.
+ * @returns A promise that resolves to an object with a function to add a collision callback.
  */
 export async function initCollisionForce(
   physics: Physics,
   bodyComponent: Component<Body>,
   defaultCollisionProperties: DefaultCollisionProperties = {}
-): Promise<Component<CollisionEvent[]>> {
+): Promise<CollisionForce> {
   const rapierWorldManager = new RapierWorldManager(physics, bodyComponent);
   await rapierWorldManager.init();
 
@@ -99,7 +107,11 @@ export async function initCollisionForce(
     -1
   );
 
-  return collisionEventComponent;
+  return {
+    addCollisionCallback: (callback: CollisionCallback) => {
+      collisionSystem.addCollisionCallback(callback);
+    },
+  };
 }
 
 export { CollisionEvent };

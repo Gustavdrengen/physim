@@ -81,7 +81,7 @@ export class RapierWorldManager {
   }
 
   getCollisionEvents(): CollisionEvent[] {
-    if (!this._eventQueue) {
+    if (!this._eventQueue || !this._rapierWorld) {
       throw new Error("RapierWorldManager not initialized. Call init() first.");
     }
     const events: CollisionEvent[] = [];
@@ -90,7 +90,36 @@ export class RapierWorldManager {
         const entity1 = this._colliderHandleToEntityMap.get(handle1);
         const entity2 = this._colliderHandleToEntityMap.get(handle2);
         if (entity1 && entity2) {
-          events.push({ entityA: entity1, entityB: entity2 });
+          const collider1 = this._rapierWorld!.getCollider(handle1);
+          const collider2 = this._rapierWorld!.getCollider(handle2);
+
+          if (collider1 && collider2) {
+            let eventAdded = false;
+            this._rapierWorld!.contactPair(collider1, collider2, (manifold) => {
+              if (manifold.numContacts() > 0) {
+                const p = manifold.localContactPoint1(0)
+                if (p) {
+                  const rot = collider1.rotation();
+                  const x = p.x * Math.cos(rot) - p.y * Math.sin(rot);
+                  const y = p.x * Math.sin(rot) + p.y * Math.cos(rot);
+                  const pos = new Vec2(x, y).add(
+                    new Vec2(
+                      collider1.translation().x,
+                      collider1.translation().y,
+                    ),
+                  );
+                  events.push({ entityA: entity1, entityB: entity2, position: pos });
+                  eventAdded = true;
+                }
+              }
+            });
+
+            if (!eventAdded) {
+              events.push({ entityA: entity1, entityB: entity2, position: entity1.pos });
+            }
+          } else {
+            events.push({ entityA: entity1, entityB: entity2, position: entity1.pos });
+          }
         }
       }
     });
@@ -136,6 +165,7 @@ export class RapierWorldManager {
 
     const applyProps = (desc: RAPIER.ColliderDesc) => {
       desc.setDensity(0);
+      desc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
       if (defaultProps.friction !== undefined) desc.setFriction(defaultProps.friction);
       if (defaultProps.restitution !== undefined) desc.setRestitution(defaultProps.restitution);
       if (defaultProps.sensor !== undefined) desc.setSensor(defaultProps.sensor);
