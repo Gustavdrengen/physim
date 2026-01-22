@@ -8,6 +8,7 @@ import { initGravityForce } from "physim/forces/gravity"
 import { initCollisionForce } from "physim/forces/collision"
 import { log } from "physim/logging"
 import { Entity } from "physim/ecs"
+import { ParticleSystem, ParticleEmissionOptions } from "physim/particles"
 import * as Draw from "physim/draw"
 
 const camera = new Camera();
@@ -17,8 +18,29 @@ const display = new Display();
 const bodyComponent = initBodyComponent();
 const bodyDisplayComponent = initBodyDisplayComponent(display, bodyComponent);
 initGravityForce(physics, 6)
-await initCollisionForce(physics, bodyComponent, {
+const collisionForce = await initCollisionForce(physics, bodyComponent, {
   restitution: 0.1
+})
+const particleSystem = new ParticleSystem()
+
+collisionForce.addCollisionCallback((event) => {
+  particleSystem.emit({
+    position: event.position,
+    initialVelocity: {
+      min: new Vec2(-6, -6),
+      max: new Vec2(6, 6)
+    },
+    color: {
+      start: Color.fromHex("#ff0000"),
+      end: Color.fromHex("#00ff00")
+    },
+    numParticles: 50,
+    particleLifetime: {
+      min: 60 * 2,
+      max: 60 * 5
+    },
+    body: Body.fromShape(createRectangle(5, 1)),
+  })
 })
 
 const ring = new Entity(new Vec2(50, 50))
@@ -53,6 +75,8 @@ log("Starting simulation...");
 sim.onUpdate = () => {
   physics.update();
   display.draw(camera);
+  particleSystem.update()
+  particleSystem.draw(camera);
   Draw.text(new Vec2(500, 200), "My Cool simulation")
 
   if (sim.frame == 60 * 5) {

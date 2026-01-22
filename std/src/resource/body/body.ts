@@ -2,6 +2,8 @@
 import { Vec2 } from "../../base/vec.ts";
 import { Component } from "../../base/entity.ts";
 import { Shape } from "./shape.ts";
+import { Color } from "../../base/draw/color.ts";
+import { polygon } from "../../base/draw/shapes.ts";
 
 /**
  * Represents a part of a composite body, associating a shape
@@ -70,6 +72,29 @@ export class Body {
 
     this.vertices = allVertices;
     this.aabb = Body.calculateAABB(this.vertices);
+  }
+
+  /**
+   * Draws the body on a canvas.
+   * @param pos The position of the body.
+   * @param color The color to draw the body with.
+   * @param fill Whether to fill the body.
+   * @param lineWidth The width of the line if not filled.
+   * @param scale The scale of the body.
+   */
+  public draw(pos: Vec2, color: Color, fill: boolean = true, lineWidth: number = 1, scale: number = 1) {
+    const rot = this.rotation;
+    const transformedVertices: Vec2[] = this.vertices.map((v: Vec2) => {
+      const scaledV = v.scale(scale);
+      const cos = Math.cos(rot);
+      const sin = Math.sin(rot);
+      const rotatedX = scaledV.x * cos - scaledV.y * sin;
+      const rotatedY = scaledV.x * sin + scaledV.y * cos;
+
+      return new Vec2(rotatedX + pos.x, rotatedY + pos.y);
+    });
+
+    polygon(transformedVertices, color, fill, lineWidth);
   }
 
   /**

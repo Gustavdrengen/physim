@@ -1,8 +1,12 @@
 import { Entity, Component } from "../../../base/entity";
 import { Physics } from "../../../base/physics";
-import { DefaultCollisionProperties, RapierWorldManager } from "./rapier_world_manager";
+import {
+  DefaultCollisionProperties,
+  RapierWorldManager,
+} from "./rapier_world_manager";
 import { CollisionEvent } from "./events";
 import { Body } from "../../body/body";
+import { CollisionCallback } from "./mod";
 
 export class CollisionSystem {
   private _worldManager: RapierWorldManager;
@@ -12,6 +16,7 @@ export class CollisionSystem {
   private _lastUpdateFrameId: number = -1;
   private _currentFrameId: number = 0;
   private _entitiesWithCollisionEvents: Set<Entity> = new Set();
+  private _collisionCallbacks: CollisionCallback[] = [];
 
   constructor(
     worldManager: RapierWorldManager,
@@ -64,11 +69,19 @@ export class CollisionSystem {
         }
         entityBEvents.push(event);
         this._entitiesWithCollisionEvents.add(event.entityB);
+
+        for (const callback of this._collisionCallbacks) {
+          callback(event);
+        }
       }
     }
   }
 
   incrementFrameId(): void {
     this._currentFrameId++;
+  }
+
+  addCollisionCallback(callback: CollisionCallback): void {
+    this._collisionCallbacks.push(callback);
   }
 }
