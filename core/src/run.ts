@@ -4,6 +4,7 @@ import { Result } from "./err.ts";
 import { runServer } from "./serve.ts";
 import { AssetManager } from "./assets.ts";
 import { AudioPlayer } from "./audio.ts";
+import * as print from "./print.ts";
 
 export async function compileVideo(tempDirName: string, outfile: string) {
   const command = new Deno.Command("ffmpeg", {
@@ -53,7 +54,7 @@ export async function run(
     outfile,
     tempDirName,
     !!raw,
-    record != undefined,
+    record !== undefined,
     assetManager,
     audioPlayer,
   );
@@ -63,14 +64,14 @@ export async function run(
     return runResult;
   }
 
-  if (record != undefined) {
+  if (record !== undefined) {
     if (!raw) {
-      console.log("Generating video...");
+      print.info("Generating video...");
     }
 
     const result = await compileVideo(tempDirName, record);
 
-    if (result.code != 0) {
+    if (result.code !== 0) {
       // TODO: Handle properly
       console.error("FFMPEG ERROR:", result.stderr.toString());
     }

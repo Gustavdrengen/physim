@@ -10,6 +10,7 @@ import { log } from "physim/logging"
 import { Entity } from "physim/ecs"
 import { ParticleSystem, ParticleEmissionOptions } from "physim/particles"
 import * as Draw from "physim/draw"
+import { createFireEffect } from "physim/effects/particles"
 
 const camera = new Camera();
 camera.zoom = 2;
@@ -24,23 +25,9 @@ const collisionForce = await initCollisionForce(physics, bodyComponent, {
 const particleSystem = new ParticleSystem()
 
 collisionForce.addCollisionCallback((event) => {
-  particleSystem.emit({
-    position: event.position,
-    initialVelocity: {
-      min: new Vec2(-6, -6),
-      max: new Vec2(6, 6)
-    },
-    color: {
-      start: Color.fromHex("#ff0000"),
-      end: Color.fromHex("#00ff00")
-    },
-    numParticles: 50,
-    particleLifetime: {
-      min: 60 * 2,
-      max: 60 * 5
-    },
-    body: Body.fromShape(createRectangle(5, 1)),
-  })
+  particleSystem.emit(createFireEffect({
+    position: event.position
+  }))
 })
 
 const ring = new Entity(new Vec2(50, 50))

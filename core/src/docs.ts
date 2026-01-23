@@ -1,5 +1,6 @@
 import { dirname, extname, fromFileUrl, join } from "@std/path";
 import { contentType } from "@std/media-types";
+import * as print from "./print.ts";
 
 const scriptDir = dirname(fromFileUrl(import.meta.url));
 const stdDirPath = join(scriptDir, "..", "..", "std");
@@ -64,7 +65,7 @@ export async function genDocs(
     // html docs is for advanced docs intended for humans
     await runWithOptions("typedoc-html.json");
     if (!printMdPath) {
-      console.log(`Saved html documentation to ${join(docsBinDirPath, "html")}`);
+      print.raw(`Saved html documentation to ${join(docsBinDirPath, "html")}`);
     }
   }
 
@@ -72,19 +73,19 @@ export async function genDocs(
     // markdown docs is for plain docs intended for pure-text consumption (like llm's). It should still contain all info
     await runWithOptions("typedoc-md.json");
     if (!printMdPath) {
-      console.log(`Saved markdown documentation to ${join(docsBinDirPath, "md")}`);
+      print.raw(`Saved markdown documentation to ${join(docsBinDirPath, "md")}`);
     }
   }
 
   if (serve) {
     const PORT = 6767;
     if (!printMdPath) {
-      console.log(`Serving documentation at http://localhost:${PORT}/`);
+      print.raw(`Serving documentation at http://localhost:${PORT}/`);
     }
     serveDirectory(docsDirPath, PORT);
   }
 
   if (printMdPath) {
-    console.log(join(docsBinDirPath, "md"));
+    print.raw(join(docsBinDirPath, "md"));
   }
 }
