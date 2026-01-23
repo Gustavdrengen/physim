@@ -164,7 +164,7 @@ function showOverlay({ id, title, message, color, centered = false }) {
     height: "100vh",
     background: color,
     color: "white",
-    zIndex: "999999",
+    zIndex: "5",
     fontFamily: "monospace",
     boxSizing: "border-box",
   });
@@ -264,11 +264,11 @@ window.addEventListener("resize", fixCanvasDisplay);
 fixCanvasDisplay();
 
 function stopSimulation() {
-  if (interval != null) {
+  if (interval !== null) {
     clearInterval(interval);
     interval = null;
   }
-  if (pingInterval != null) {
+  if (pingInterval !== null) {
     clearInterval(pingInterval);
     pingInterval = null;
   }
@@ -276,7 +276,7 @@ function stopSimulation() {
 
 const sim = {
   log: (...args) => {
-    console.log(...args);
+    writeToTerminal(args.join("\t"));
     fetch("/log", {
       method: "POST",
       keepalive: true,
@@ -373,7 +373,6 @@ function errorHandler(err) {
 
 runInFrame(code, { sim }, errorHandler).then((val) => {
   window.simFrame = val;
-  console.log(sim.onUpdate);
 
   startPinging();
 
@@ -398,10 +397,49 @@ function waitForNext() {
   setInterval(() => {
     fetch("/pingNext")
       .then((res) => {
-        if (res.status == 200) {
+        if (res.status === 200) {
           location.reload();
         }
       })
       .catch(() => {});
   }, 300);
 }
+
+const navbar = document.getElementById("navbar");
+const showNavBtn = document.getElementById("showNavBtn");
+const hideNavBtn = document.getElementById("hideNavBtn");
+const terminal = document.getElementById("terminal");
+const terminalBtn = document.getElementById("terminalBtn");
+const closeTerminalBtn = document.getElementById("closeTerminalBtn");
+const stopBtn = document.getElementById("stopBtn");
+const terminalBody = document.getElementById("terminalBody");
+
+function toggleTerminal() {
+  terminal.classList.toggle("open");
+}
+
+function toggleNavbar() {
+  navbar.classList.toggle("hidden");
+  showNavBtn.classList.toggle("visible");
+}
+
+function writeToTerminal(text) {
+  const line = document.createElement("div");
+  line.className = "terminal-line";
+  line.textContent = `> ${text}`;
+  terminalBody.appendChild(line);
+  terminalBody.scrollTop = terminalBody.scrollHeight;
+  console.log(text);
+}
+
+function handleStop() {
+  stopSimulation();
+  showStoppedOverlay();
+  waitForNext();
+}
+
+terminalBtn.addEventListener("click", toggleTerminal);
+closeTerminalBtn.addEventListener("click", toggleTerminal);
+hideNavBtn.addEventListener("click", toggleNavbar);
+showNavBtn.addEventListener("click", toggleNavbar);
+stopBtn.addEventListener("click", handleStop);

@@ -1,17 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Physim</title>
-  <style>
-    CSS
-  </style>
-</head>
-<body>
-  <canvas id="sim" width="1920" height="1080"></canvas>
-  <script type="module">
-    //JS
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physim</title>
+    <style>
+      CSS
+    </style>
+  </head>
+  <body>
+    <canvas id="sim" width="1920" height="1080"></canvas>
+
+    <nav class="navbar" id="navbar">
+      <div class="nav-content">
+        <button class="stop-btn" id="stopBtn">
+          <div class="stop-icon"></div>
+        </button>
+        <button class="terminal-btn" id="terminalBtn">
+          <span class="terminal-icon">▶</span>
+        </button>
+        <button class="hide-nav-btn" id="hideNavBtn">
+          <span class="hide-icon">×</span>
+        </button>
+      </div>
+    </nav>
+
+    <button class="show-nav-btn" id="showNavBtn">
+      <span>☰</span>
+    </button>
+
+    <div class="terminal-container" id="terminal">
+      <div class="terminal-header">
+        <span class="terminal-title">Terminal</span>
+        <button class="close-btn" id="closeTerminalBtn">×</button>
+      </div>
+      <div class="terminal-body" id="terminalBody"></div>
+    </div>
+
+    <script type="module">
+      //JS
+    </script>
+  </body>
 </html>
