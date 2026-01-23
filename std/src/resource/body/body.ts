@@ -1,4 +1,3 @@
-
 import { Vec2 } from "../../base/vec.ts";
 import { Component } from "../../base/entity.ts";
 import { Shape } from "./shape.ts";
@@ -33,12 +32,11 @@ export class Body {
    * An array of `BodyPart` objects that compose this body.
    */
   readonly parts: readonly BodyPart[];
-  // TODO: I think this is unused
   /**
-   * The combined vertices of all parts in local space.
+   * The combined vertices of all parts in local space, grouped by polygon.
    * @readonly
    */
-  readonly vertices: readonly Vec2[];
+  readonly vertices: readonly (readonly Vec2[])[];
   /**
    * The axis-aligned bounding box (AABB) of the body in local space.
    * This box completely encloses the body.
@@ -64,14 +62,14 @@ export class Body {
     this.parts = parts;
     this.rotation = initialRotation;
 
-    const allVertices: Vec2[] = [];
+    const allVertices: Vec2[][] = [];
     for (const part of parts) {
       const partVertices = Body.calculatePartVertices(part);
       allVertices.push(...partVertices);
     }
 
     this.vertices = allVertices;
-    this.aabb = Body.calculateAABB(this.vertices);
+    this.aabb = Body.calculateAABB(this.vertices.flat());
   }
 
   /**
@@ -84,17 +82,18 @@ export class Body {
    */
   public draw(pos: Vec2, color: Color, fill: boolean = true, lineWidth: number = 1, scale: number = 1) {
     const rot = this.rotation;
-    const transformedVertices: Vec2[] = this.vertices.map((v: Vec2) => {
-      const scaledV = v.scale(scale);
-      const cos = Math.cos(rot);
-      const sin = Math.sin(rot);
-      const rotatedX = scaledV.x * cos - scaledV.y * sin;
-      const rotatedY = scaledV.x * sin + scaledV.y * cos;
+    for (const poly of this.vertices) {
+      const transformedVertices: Vec2[] = poly.map((v: Vec2) => {
+        const scaledV = v.scale(scale);
+        const cos = Math.cos(rot);
+        const sin = Math.sin(rot);
+        const rotatedX = scaledV.x * cos - scaledV.y * sin;
+        const rotatedY = scaledV.x * sin + scaledV.y * cos;
 
-      return new Vec2(rotatedX + pos.x, rotatedY + pos.y);
-    });
-
-    polygon(transformedVertices, color, fill, lineWidth);
+        return new Vec2(rotatedX + pos.x, rotatedY + pos.y);
+      });
+      polygon(transformedVertices, color, fill, lineWidth);
+    }
   }
 
   /**
@@ -115,13 +114,39 @@ export class Body {
     ], initialRotation);
   }
 
-  private static calculatePartVertices(part: BodyPart): Vec2[] {
+  private static createRingSegment(
+    startAngle: number,
+    endAngle: number,
+    innerRadius: number,
+    outerRadius: number,
+  ): Vec2[] {
+    const vertices: Vec2[] = [];
+    const segments = Math.ceil((endAngle - startAngle) / (Math.PI / 16)); // 32 segments for a full circle
+
+    const angleStep = (endAngle - startAngle) / segments;
+
+    // Outer arc
+    for (let i = 0; i <= segments; i++) {
+      const angle = startAngle + i * angleStep;
+      vertices.push(new Vec2(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius));
+    }
+
+    // Inner arc (reversed)
+    for (let i = segments; i >= 0; i--) {
+      const angle = startAngle + i * angleStep;
+      vertices.push(new Vec2(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius));
+    }
+
+    return vertices;
+  }
+
+  private static calculatePartVertices(part: BodyPart): Vec2[][] {
     const { shape, position, rotation } = part;
-    let baseVertices: Vec2[];
+    let basePolygons: Vec2[][];
 
     if (shape.type === "circle") {
       // Approximate circle with 32 vertices for general vertex handling
-      baseVertices = [];
+      const baseVertices: Vec2[] = [];
       for (let i = 0; i < 32; i++) {
         const angle = (i / 32) * 2 * Math.PI;
         baseVertices.push(
@@ -131,42 +156,55 @@ export class Body {
           )
         );
       }
+      basePolygons = [baseVertices];
     } else if (shape.type === "ring") {
-      baseVertices = [];
+      const { innerRadius, outerRadius, gaps } = shape;
+      basePolygons = [];
 
-      const segments = 128;
-      const outerR = shape.outerRadius;
-      const innerR = shape.innerRadius;
+      if (outerRadius > innerRadius) {
+        const sortedGaps = [...gaps].sort((a, b) => a.startAngle - b.startAngle);
+        let currentAngle = 0;
 
-      for (let i = 0; i < segments; i++) {
-        const angle = (i / segments) * Math.PI * 2;
-        baseVertices.push(new Vec2(
-          Math.cos(angle) * outerR,
-          Math.sin(angle) * outerR
-        ));
+        for (const gap of sortedGaps) {
+          if (gap.startAngle > currentAngle) {
+            basePolygons.push(
+              Body.createRingSegment(
+                currentAngle,
+                gap.startAngle,
+                innerRadius,
+                outerRadius
+              )
+            );
+          }
+          currentAngle = gap.startAngle + gap.size;
+        }
+
+        if (currentAngle < 2 * Math.PI) {
+          basePolygons.push(
+            Body.createRingSegment(
+              currentAngle,
+              2 * Math.PI,
+              innerRadius,
+              outerRadius
+            )
+          );
+        }
       }
-
-      for (let i = segments - 1; i >= 0; i--) {
-        const angle = (i / segments) * Math.PI * 2;
-        baseVertices.push(new Vec2(
-          Math.cos(angle) * innerR,
-          Math.sin(angle) * innerR
-        ));
-      }
-
     } else if (shape.type === "polygon") {
-      baseVertices = shape.vertices;
+      basePolygons = [shape.vertices];
     } else {
-      baseVertices = [];
+      basePolygons = [];
     }
 
     const cos = Math.cos(rotation);
     const sin = Math.sin(rotation);
 
-    return baseVertices.map((v) =>
-      new Vec2(
-        v.x * cos - v.y * sin + position.x,
-        v.x * sin + v.y * cos + position.y
+    return basePolygons.map((poly) =>
+      poly.map((v) =>
+        new Vec2(
+          v.x * cos - v.y * sin + position.x,
+          v.x * sin + v.y * cos + position.y
+        )
       )
     );
   }

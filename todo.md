@@ -1,30 +1,29 @@
 # Todo:
- - Testing
-   - Implementing tests
-   - Updating development cycle
-   - Give AI access to it for things like example gen
- - Tools for helping spot problems
- - Std styling guidelines for documentation examples
- - Complete core
-   - Error handeling
-     - New error system everywhere
-     - Better controls
-   - Dependency management system:
-     - tsc
-     - deno
-     - typedoc
-     - typedoc-plugin-markdown
-     - ffmpeg
- - Forces taking components as input and returning their own versions if not specified
- - Linking components (dynamic)
- - Fields
- - Better controlled collision system
- - More advanced gravity
-   - Its own "mass" component
-   - Custom attraction logic
- - More things
-   - Instrument tone generation
-     - Song playing with tones
-   - Rings with holes
-   - Trail effects
-   - Camera shake
+
+- Testing
+  - Implementing tests
+  - Updating development cycle
+  - Give AI access to it for things like example gen
+- Tools for helping spot problems
+- Std styling guidelines for documentation examples
+- Complete core
+  - Error handeling
+    - New error system everywhere
+    - Better controls
+  - Dependency management system:
+    - tsc
+    - deno
+    - typedoc
+    - typedoc-plugin-markdown
+    - ffmpeg
+- Forces taking components as input and returning their own versions if not specified
+- Linking components (dynamic)
+- Fields
+- Better controlled collision system
+- More advanced gravity
+  - Its own "mass" component
+  - Custom attraction logic
+- More things
+  - Instrument tone generation
+    - Song playing with tones
+  - Rings with holes

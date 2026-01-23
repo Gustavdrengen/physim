@@ -129,4 +129,14 @@ export class Vec2 {
   angle(): number {
     return Math.atan2(this.y, this.x);
   }
+
+  /**
+   * Creates a random vector with a given magnitude.
+   * @param magnitude The magnitude of the vector.
+   * @returns The random vector.
+   */
+  static random(magnitude: number): Vec2 {
+    const angle = Math.random() * 2 * Math.PI;
+    return new Vec2(Math.cos(angle) * magnitude, Math.sin(angle) * magnitude);
+  }
 }
