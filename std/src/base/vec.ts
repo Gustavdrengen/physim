@@ -120,4 +120,13 @@ export class Vec2 {
 
     return sum.scale(1 / vectors.length);
   }
+
+  /**
+   * Calculates the angle of the vector in radians.
+   *
+   * @returns The angle of the vector in radians.
+   */
+  angle(): number {
+    return Math.atan2(this.y, this.x);
+  }
 }

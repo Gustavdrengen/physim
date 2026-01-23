@@ -2,6 +2,7 @@ import { Vec2 } from "../vec";
 import { Color } from "../draw/color";
 import { Particle, ParticleEmissionOptions } from "./particle";
 import { Camera } from "../camera";
+import { Body } from "../../resource/body/body"; 
 
 /**
  * A system for creating and managing particles.
@@ -13,7 +14,7 @@ export class ParticleSystem {
   /**
    * Creates a new particle system.
    */
-  constructor() {}
+  constructor() { }
 
   /**
    * Updates the state of all active particles.
@@ -35,7 +36,7 @@ export class ParticleSystem {
 
       const lifeRatio = p.age / p.lifetime;
       p.scale = p.startScale + (p.endScale - p.startScale) * lifeRatio;
-      
+
       const r = p.startColor.r + (p.endColor.r - p.startColor.r) * lifeRatio;
       const g = p.startColor.g + (p.endColor.g - p.startColor.g) * lifeRatio;
       const b = p.startColor.b + (p.endColor.b - p.startColor.b) * lifeRatio;
@@ -66,7 +67,7 @@ export class ParticleSystem {
       const p = this.particlePool.pop() || {} as Particle;
 
       p.age = 0;
-      p.lifetime = options.particleLifetime.min + 
+      p.lifetime = options.particleLifetime.min +
         Math.random() * (options.particleLifetime.max - options.particleLifetime.min);
 
       const jitter = options.positionJitter || 0;
@@ -74,11 +75,13 @@ export class ParticleSystem {
       const jitterY = (Math.random() - 0.5) * jitter;
       p.position = options.position.add(new Vec2(jitterX, jitterY));
 
-      const velX = options.initialVelocity.min.x + 
-        Math.random() * (options.initialVelocity.max.x - options.initialVelocity.min.x);
-      const velY = options.initialVelocity.min.y + 
-        Math.random() * (options.initialVelocity.max.y - options.initialVelocity.min.y);
-      p.velocity = new Vec2(velX, velY);
+      const randomAngle = Math.random() * Math.PI * 2;
+      const randomMagnitude = options.initialVelocity.min +
+        Math.random() * (options.initialVelocity.max - options.initialVelocity.min);
+      p.velocity = new Vec2(
+        Math.cos(randomAngle) * randomMagnitude,
+        Math.sin(randomAngle) * randomMagnitude,
+      );
 
       p.acceleration = options.acceleration || new Vec2(0, 0);
 
@@ -92,7 +95,11 @@ export class ParticleSystem {
       }
       p.scale = p.startScale;
 
-      p.body = options.body;
+      if (options.orientToDirection) {
+        p.body = new Body([...options.body.parts], p.velocity.angle());
+      } else {
+        p.body = new Body([...options.body.parts], options.body.rotation);
+      }
 
       p.startColor = options.color.start;
       p.endColor = options.color.end;

@@ -26,7 +26,5 @@
    - Instrument tone generation
      - Song playing with tones
    - Rings with holes
-   - On collide event
-   - Particles
    - Trail effects
    - Camera shake

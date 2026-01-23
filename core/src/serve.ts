@@ -2,6 +2,7 @@ import { dirname, fromFileUrl, join } from "@std/path";
 import { AudioPlayer } from "./audio.ts";
 import { fail, failed, Failure, InputFailureTag, Result, SystemFailureTag } from "./err.ts";
 import { AssetManager } from "./assets.ts";
+import * as print from "./print.ts";
 
 const PORT = 8080;
 
@@ -117,7 +118,7 @@ export async function runServer(
     port: PORT,
     onListen({ port, hostname }) {
       if (!raw) {
-        console.log(`Server started at http://${hostname}:${port}/`);
+        print.info(`Server started at http://${hostname}:${port}/`);
       }
     },
   }, async (req) => {
@@ -140,7 +141,7 @@ export async function runServer(
     if (!started) {
       if (url.pathname === "/begin") {
         if (!raw) {
-          console.info("Simulation started");
+          print.info("Simulation started");
         }
         started = true;
         return new Response(null, { status: 200 });
@@ -160,7 +161,7 @@ export async function runServer(
         if (raw) {
           logs.push(await req.text());
         } else {
-          console.log("[LOG]:", await req.text());
+          print.log(await req.text());
         }
       }
       return new Response("Logged", { status: 200 });
@@ -173,10 +174,10 @@ export async function runServer(
       setTimeout(() => {
         if (raw) {
           logs.forEach((log) => {
-            console.log(log);
+            print.raw(log);
           });
         } else {
-          console.info("Simulation finished");
+          print.info("Simulation finished");
         }
         server.shutdown();
       }, 100);

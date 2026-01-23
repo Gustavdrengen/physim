@@ -5,6 +5,7 @@ import { enableRawMode, setGlobalErrorHandler, unwrap } from "./err.ts";
 import { run } from "./run.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { genDocs } from "./docs.ts";
+import * as print from "./print.ts";
 
 setGlobalErrorHandler();
 
@@ -33,7 +34,7 @@ const cmd = new Command()
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {
     await init();
-    console.log("Generated tsconfig.json");
+    print.raw("Generated tsconfig.json");
   })
   .command("docs", "Generates and/or serves the standard library documentation.")
   .option("-s --serve", "Host the documentation locally.")
@@ -49,12 +50,12 @@ const cmd = new Command()
   .action(() => {
     const scriptDir = dirname(fromFileUrl(import.meta.url));
     const pythonPackagePath = join(scriptDir, "..", "..", "python-package");
-    console.log(`The python package is located at: ${pythonPackagePath}`);
-    console.log("In can be installed on most systems using pip:");
-    console.log(`pip install ${pythonPackagePath}`);
-    console.log("It can be updated using:");
-    console.log(`pip uninstall physim && pip install ${pythonPackagePath}`);
-    console.log("Installation methods may vary based on your system and python environment.");
+    print.raw(`The python package is located at: ${pythonPackagePath}`);
+    print.raw("In can be installed on most systems using pip:");
+    print.raw(`pip install ${pythonPackagePath}`);
+    print.raw("It can be updated using:");
+    print.raw(`pip uninstall physim && pip install ${pythonPackagePath}`);
+    print.raw("Installation methods may vary based on your system and python environment.");
   });
 
 await cmd.parse(Deno.args);

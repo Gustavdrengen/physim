@@ -38,13 +38,16 @@ export interface ParticleEmissionOptions {
   /** The lifetime of particles in frames. */
   particleLifetime: { min: number, max: number };
   /** The initial velocity range for particles. */
-  initialVelocity: { min: Vec2, max: Vec2 };
-  /** The start and end scale of particles, or a single number for a constant scale. Defaults to 1. */
-  scale?: { start: number, end: number } | number;
-  /** The start and end color of particles. */
-  color: { start: Color, end: Color };
-  /** A constant acceleration to apply to particles (e.g., for gravity). */
+  initialVelocity: {
+    min: number;
+    max: number;
+  };
   acceleration?: Vec2;
-  /** The body to use for the particles. */
+  scale?: { start: number; end: number } | number;
   body: Body;
+  color: {
+    start: Color;
+    end: Color;
+  };
+  orientToDirection?: boolean;
 }
