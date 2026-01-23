@@ -36,6 +36,7 @@ collisionForce.addCollisionCallback((event) => {
       position: event.position,
     }),
   );
+  camera.shake(20, 10);
 });
 
 const ring = new Entity(new Vec2(50, 50));
@@ -67,8 +68,16 @@ rect3.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
 rect3.addComp(bodyDisplayComponent, { color: new Color(20, 50, 250) });
 rect3.addComp(physics.acceleration, new Vec2(20, -10));
 
+const ringBody = Body.fromShape(
+  createRing(200, 300, [
+    { startAngle: 1, size: 0.5 },
+    { startAngle: 4, size: 0.2 },
+  ]),
+  3,
+);
+
 ring.addComp(physics.mass, 100);
-ring.addComp(bodyComponent, Body.fromShape(createRing(200, 300)));
+ring.addComp(bodyComponent, ringBody);
 ring.addComp(bodyDisplayComponent, { color: new Color(250, 250, 30) });
 
 camera.follow([rect1, rect2, rect3]);
@@ -80,7 +89,8 @@ sim.onUpdate = () => {
   display.draw(camera);
   particleSystem.update();
   particleSystem.draw(camera);
-  Draw.text(new Vec2(500, 200), "My Cool simulation");
+  Draw.text(new Vec2(500, 200), "SIX SEVEN");
+  ringBody.rotation += 0.01;
 
   if (sim.frame == 60 * 5) {
     sim.finish();

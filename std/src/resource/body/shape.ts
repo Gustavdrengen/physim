@@ -49,6 +49,13 @@ export interface Ring {
    * The outer radius of the ring.
    */
   outerRadius: number;
+  /**
+   * An array of gaps in the ring.
+   */
+  gaps: {
+    startAngle: number;
+    size: number;
+  }[];
 }
 
 /**
@@ -66,11 +73,16 @@ export function createCircle(radius: number): Circle {
  *
  * @param innerRadius The inner radius of the ring.
  * @param outerRadius The outer radius of the ring.
+ * @param gaps An array of gaps in the ring.
  * @returns A new ring shape.
  *
  */
-export function createRing(innerRadius: number, outerRadius: number): Ring {
-  return { type: "ring", innerRadius, outerRadius };
+export function createRing(
+  innerRadius: number,
+  outerRadius: number,
+  gaps: { startAngle: number; size: number }[] = [],
+): Ring {
+  return { type: "ring", innerRadius, outerRadius, gaps };
 }
 
 /**
