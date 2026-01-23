@@ -2,7 +2,9 @@ import { Vec2 } from "../vec";
 import { Color } from "../draw/color";
 import { Particle, ParticleEmissionOptions } from "./particle";
 import { Camera } from "../camera";
-import { Body } from "../../resource/body/body"; 
+import { Body } from "../../resource/body/body";
+import { Component, Entity } from "../entity";
+import { TrailOptions } from "./trail";
 
 /**
  * A system for creating and managing particles.
@@ -12,12 +14,21 @@ export class ParticleSystem {
   private particlePool: Particle[] = [];
 
   /**
-   * Creates a new particle system.
+   * A component that can be added to entities to create a particle trail.
+   * The particle system instance will automatically handle emitting particles
+   * for any entity that has this component.
    */
-  constructor() { }
+  public readonly trailComponent: Component<TrailOptions | TrailOptions[]>;
 
   /**
-   * Updates the state of all active particles.
+   * Creates a new particle system.
+   */
+  constructor() {
+    this.trailComponent = new Component<TrailOptions | TrailOptions[]>();
+  }
+
+  /**
+   * Updates the state of all active particles and emits new particles from trails.
    * This should be called once per frame.
    */
   public update(): void {
@@ -43,6 +54,33 @@ export class ParticleSystem {
       const a = p.startColor.a + (p.endColor.a - p.startColor.a) * lifeRatio;
       p.color = new Color(r, g, b, a);
     }
+
+    for (const [entity, trailData] of this.trailComponent.entries()) {
+      const trails = Array.isArray(trailData) ? trailData : [trailData];
+      for (const trail of trails) {
+        trail._frameCounter = (trail._frameCounter ?? 0) + 1;
+        if (trail._frameCounter >= trail.interval) {
+          trail._frameCounter = 0;
+          this.emit({
+            numParticles: 1,
+            position: entity.pos,
+            positionJitter: trail.positionJitter,
+            particleLifetime: {
+              min: trail.particleLifetime,
+              max: trail.particleLifetime,
+            },
+            initialVelocity: { min: 0, max: 0 },
+            acceleration: trail.acceleration
+              ? new Vec2(trail.acceleration.x, trail.acceleration.y)
+              : undefined,
+            scale: trail.scale,
+            body: trail.body,
+            color: trail.color,
+            orientToDirection: trail.orientToDirection,
+          });
+        }
+      }
+    }
   }
 
   /**
@@ -67,7 +105,8 @@ export class ParticleSystem {
       const p = this.particlePool.pop() || {} as Particle;
 
       p.age = 0;
-      p.lifetime = options.particleLifetime.min +
+      p.lifetime =
+        options.particleLifetime.min +
         Math.random() * (options.particleLifetime.max - options.particleLifetime.min);
 
       const jitter = options.positionJitter || 0;
@@ -76,17 +115,18 @@ export class ParticleSystem {
       p.position = options.position.add(new Vec2(jitterX, jitterY));
 
       const randomAngle = Math.random() * Math.PI * 2;
-      const randomMagnitude = options.initialVelocity.min +
+      const randomMagnitude =
+        options.initialVelocity.min +
         Math.random() * (options.initialVelocity.max - options.initialVelocity.min);
       p.velocity = new Vec2(
         Math.cos(randomAngle) * randomMagnitude,
-        Math.sin(randomAngle) * randomMagnitude,
+        Math.sin(randomAngle) * randomMagnitude
       );
 
       p.acceleration = options.acceleration || new Vec2(0, 0);
 
       const scale = options.scale ?? 1;
-      if (typeof scale === 'number') {
+      if (typeof scale === "number") {
         p.startScale = scale;
         p.endScale = scale;
       } else {
@@ -109,3 +149,6 @@ export class ParticleSystem {
     }
   }
 }
+
+declare const sim: any;
+
