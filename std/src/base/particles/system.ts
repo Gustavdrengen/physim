@@ -36,12 +36,6 @@ export class ParticleSystem {
       const p = this.activeParticles[i];
       p.age++;
 
-      if (p.age >= p.lifetime) {
-        this.particlePool.push(p);
-        this.activeParticles.splice(i, 1);
-        continue;
-      }
-
       p.velocity = p.velocity.add(p.acceleration);
       p.position = p.position.add(p.velocity);
 
@@ -53,6 +47,12 @@ export class ParticleSystem {
       const b = p.startColor.b + (p.endColor.b - p.startColor.b) * lifeRatio;
       const a = p.startColor.a + (p.endColor.a - p.startColor.a) * lifeRatio;
       p.color = new Color(r, g, b, a);
+
+      if (p.age >= p.lifetime) {
+        this.particlePool.push(p);
+        this.activeParticles.splice(i, 1);
+        continue;
+      }
     }
 
     for (const [entity, trailData] of this.trailComponent.entries()) {

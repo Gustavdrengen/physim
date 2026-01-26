@@ -1,4 +1,5 @@
-import { test, testAsync, expect, finish } from "../test.ts";
+import { test, testAsync, expect, finish, getPixelColor } from "../test.ts";
+import { Color } from "../src/base/draw/color.ts";
 
 // Basic equality tests
 test("toBe - strict equality", () => {
@@ -77,6 +78,56 @@ testAsync("async operation", async () => {
 testAsync("async with timeout", async () => {
   await new Promise(resolve => setTimeout(resolve, 10));
   expect(true).toBeTruthy();
+});
+
+// Example of instantiating values outside test blocks
+const commonValue = 100;
+const commonObject = { key: "value" };
+
+test("should use commonValue instantiated outside the test block", () => {
+  expect(commonValue).toBe(100);
+});
+
+test("should use commonObject instantiated outside the test block", () => {
+  expect(commonObject.key).toBe("value");
+});
+
+// Example of pixel color testing: check if a pixel is transparent black by default
+test("pixel at (10, 10) should be transparent black by default", () => {
+  const pixelColor = getPixelColor(10, 10);
+  expect(pixelColor).toEqual(new Color(0, 0, 0, 0));
+});
+
+// toBeCloseTo tests
+test("toBeCloseTo - numbers", () => {
+  expect(3.14159).toBeCloseTo(3.14);
+  expect(3.14159).toBeCloseTo(3.141, 2);
+  expect(1.0).toBeCloseTo(1.000001);
+});
+
+// 'not' modifier tests
+test("not.toBe", () => {
+  expect(1).not.toBe(2);
+  expect("hello").not.toBe("world");
+});
+
+test("not.toEqual", () => {
+  expect({ a: 1 }).not.toEqual({ a: 2 });
+});
+
+test("not.toContain", () => {
+  expect([1, 2, 3]).not.toContain(4);
+});
+
+// toBeGreaterThan and toBeLessThan tests
+test("toBeGreaterThan", () => {
+  expect(10).toBeGreaterThan(5);
+  expect(10).not.toBeGreaterThan(15);
+});
+
+test("toBeLessThan", () => {
+  expect(5).toBeLessThan(10);
+  expect(10).not.toBeLessThan(5);
 });
 
 finish();

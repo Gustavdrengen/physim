@@ -1,10 +1,16 @@
 import { dirname, fromFileUrl, join } from "@std/path";
+import { getAvailablePort } from "@std/net";
 import { AudioPlayer } from "./audio.ts";
-import { fail, failed, Failure, InputFailureTag, Result, SystemFailureTag } from "./err.ts";
+import {
+  fail,
+  failed,
+  Failure,
+  InputFailureTag,
+  Result,
+  SystemFailureTag,
+} from "./err.ts";
 import { AssetManager } from "./assets.ts";
 import * as print from "./print.ts";
-
-const PORT = 8080;
 
 const scriptDir = dirname(fromFileUrl(import.meta.url));
 const htmlPath = join(scriptDir, "..", "sim.html");
@@ -14,14 +20,19 @@ const cssPath = join(scriptDir, "..", "sim.css");
 const htmlContentRaw = await Deno.readTextFile(htmlPath);
 const jsContent = await Deno.readTextFile(jsPath);
 const cssContent = await Deno.readTextFile(cssPath);
-let htmlContent = htmlContentRaw.replace("//JS", jsContent).replace("CSS", cssContent);
+let htmlContent = htmlContentRaw
+  .replace("//JS", jsContent)
+  .replace("CSS", cssContent);
 
 export async function openUrl(url: string): Promise<Result<undefined>> {
   try {
     new URL(url);
   } catch {
     if (!/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(url)) {
-      return fail(SystemFailureTag.OpenFailure, `Invalid URL or missing scheme: ${String(url)}`);
+      return fail(
+        SystemFailureTag.OpenFailure,
+        `Invalid URL or missing scheme: ${String(url)}`,
+      );
     }
   }
 
@@ -104,122 +115,136 @@ export async function runServer(
     server.shutdown();
   }
 
+  let servePort: number;
+
   setTimeout(async () => {
     if (!started) {
-      const e = await openUrl(`http://127.0.0.1:${PORT}/`);
+      const e = await openUrl(`http://127.0.0.1:${servePort}/`);
       if (e) {
         endAndFail(e);
       }
     }
   }, 2000);
 
-  server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: PORT,
-    onListen({ port, hostname }) {
-      if (!raw) {
-        print.info(`Server started at http://${hostname}:${port}/`);
-      }
-    },
-  }, async (req) => {
-    const url = new URL(req.url);
-
-    if (url.pathname === "/") {
-      return new Response(htmlContent, {
-        headers: { "Content-Type": "text/html" },
-      });
-    } else if (url.pathname === "/bundle.js") {
-      return new Response(simCode, {
-        headers: { "Content-Type": "text/javascript" },
-      });
-    } else if (url.pathname === "/out.js.map") {
-      return new Response(await Deno.readFile(bundle + ".map"), {
-        headers: { "Content-Type": "text/javascript" },
-      });
-    }
-
-    if (!started) {
-      if (url.pathname === "/begin") {
+  server = Deno.serve(
+    {
+      hostname: "127.0.0.1",
+      port: getAvailablePort({ preferredPort: 8800 }),
+      onListen({ port, hostname }) {
+        servePort = port;
         if (!raw) {
-          print.info("Simulation started");
+          print.info(`Server started at http://${hostname}:${port}/`);
         }
-        started = true;
+      },
+    },
+    async (req) => {
+      const url = new URL(req.url);
+
+      if (url.pathname === "/") {
+        return new Response(htmlContent, {
+          headers: { "Content-Type": "text/html" },
+        });
+      } else if (url.pathname === "/bundle.js") {
+        return new Response(simCode, {
+          headers: { "Content-Type": "text/javascript" },
+        });
+      } else if (url.pathname === "/out.js.map") {
+        return new Response(await Deno.readFile(bundle + ".map"), {
+          headers: { "Content-Type": "text/javascript" },
+        });
+      }
+
+      if (!started) {
+        if (url.pathname === "/begin") {
+          if (!raw) {
+            print.info("Simulation started");
+          }
+          started = true;
+          return new Response(null, { status: 200 });
+        } else if (url.pathname === "/pingNext" && !pingNexted) {
+          pingNexted = true;
+          return new Response(null, { status: 200 });
+        } else {
+          return new Response("Not Found", { status: 404 });
+        }
+      }
+
+      if (url.pathname === "/begin") {
+        endAndFail(
+          fail(
+            SystemFailureTag.MultibleClientsFailure,
+            "Multible clients detected.",
+          ),
+        );
         return new Response(null, { status: 200 });
-      } else if (url.pathname === "/pingNext" && !pingNexted) {
-        pingNexted = true;
+      } else if (url.pathname === "/log") {
+        if (req.body) {
+          if (raw) {
+            logs.push(await req.text());
+          } else {
+            print.log(await req.text());
+          }
+        }
+        return new Response("Logged", { status: 200 });
+      } else if (url.pathname === "/err") {
+        endAndFail(
+          fail(
+            InputFailureTag.RuntimeFailure,
+            req.body ? await req.text() : "Unknown error",
+          ),
+        );
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/finish") {
+        setTimeout(() => {
+          if (raw) {
+            logs.forEach((log) => {
+              print.raw(log);
+            });
+          } else {
+            print.info("Simulation finished");
+          }
+          server.shutdown();
+        }, 100);
+
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/frame") {
+        if (record) {
+          const body = await req.arrayBuffer();
+          await Deno.writeFile(
+            `${tempDirName}/frame${String(++frame).padStart(5, "0")}.png`,
+            new Uint8Array(body),
+          );
+        }
+
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/ping") {
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/addSound") {
+        const sound = await req.json();
+        const id = audioPlayer.addSound(sound);
+        if (failed(id)) {
+          endAndFail(id as Failure);
+        }
+        return new Response(id.toString(), { status: 200 });
+      } else if (url.pathname === "/playSound") {
+        const id = parseInt(await req.text());
+        const r = audioPlayer.playSound(id, frame);
+        if (r) {
+          endAndFail(r);
+        }
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/addFetchAsset") {
+        const data = await req.json();
+        const r = await assetManager.addFetchAsset(data.path, data.fetchAddr);
+        if (r) {
+          endAndFail(r);
+        }
         return new Response(null, { status: 200 });
       } else {
         return new Response("Not Found", { status: 404 });
       }
-    }
-
-    if (url.pathname === "/begin") {
-      endAndFail(fail(SystemFailureTag.MultibleClientsFailure, "Multible clients detected."));
-      return new Response(null, { status: 200 });
-    } else if (url.pathname === "/log") {
-      if (req.body) {
-        if (raw) {
-          logs.push(await req.text());
-        } else {
-          print.log(await req.text());
-        }
-      }
-      return new Response("Logged", { status: 200 });
-    } else if (url.pathname === "/err") {
-      endAndFail(
-        fail(InputFailureTag.RuntimeFailure, req.body ? await req.text() : "Unknown error"),
-      );
-      return new Response(null, { status: 200 });
-    } else if (url.pathname === "/finish") {
-      setTimeout(() => {
-        if (raw) {
-          logs.forEach((log) => {
-            print.raw(log);
-          });
-        } else {
-          print.info("Simulation finished");
-        }
-        server.shutdown();
-      }, 100);
-
-      return new Response(null, { status: 200 });
-    } else if (url.pathname === "/frame") {
-      if (record) {
-        const body = await req.arrayBuffer();
-        await Deno.writeFile(
-          `${tempDirName}/frame${String(++frame).padStart(5, "0")}.png`,
-          new Uint8Array(body),
-        );
-      }
-
-      return new Response(null, { status: 200 });
-    } else if (url.pathname === "/ping") {
-      return new Response(null, { status: 200 });
-    } else if (url.pathname === "/addSound") {
-      const sound = await req.json();
-      const id = audioPlayer.addSound(sound);
-      if (failed(id)) {
-        endAndFail(id as Failure);
-      }
-      return new Response(id.toString(), { status: 200 });
-    } else if (url.pathname === "/playSound") {
-      const id = parseInt(await req.text());
-      const r = audioPlayer.playSound(id, frame);
-      if (r) {
-        endAndFail(r);
-      }
-      return new Response(null, { status: 200 });
-    } else if (url.pathname === "/addFetchAsset") {
-      const data = await req.json();
-      const r = await assetManager.addFetchAsset(data.path, data.fetchAddr);
-      if (r) {
-        endAndFail(r);
-      }
-      return new Response(null, { status: 200 });
-    } else {
-      return new Response("Not Found", { status: 404 });
-    }
-  });
+    },
+  );
 
   return ret;
 }
