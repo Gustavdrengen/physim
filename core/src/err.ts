@@ -42,15 +42,23 @@ export enum InputFailureTag {
 }
 
 export enum SystemFailureTag {
+  DependencyFailure = "DEPENDENCY_FAILURE",
   CantOpenFileFailure = "CANT_OPEN_FILE_FAILURE",
   MultibleClientsFailure = "MULTIBLE_CLIENTS_FAILURE",
   OpenFailure = "OPEN_FAILURE",
   FfmpegFailure = "FFMPEG_FAILURE",
 }
 
-export type Failure = { _isFailure: true; tag: InputFailureTag | SystemFailureTag; reason: string };
+export type Failure = {
+  _isFailure: true;
+  tag: InputFailureTag | SystemFailureTag;
+  reason: string;
+};
 
-export function fail(tag: InputFailureTag | SystemFailureTag, reason: string): Failure {
+export function fail(
+  tag: InputFailureTag | SystemFailureTag,
+  reason: string,
+): Failure {
   return { _isFailure: true, tag, reason };
 }
 
@@ -58,7 +66,9 @@ export type Result<T> = T | Failure;
 
 export function unwrap<T>(result: Result<T>): T {
   if (typeof result === "object" && result !== null && "_isFailure" in result) {
-    const isInputFailure = Object.values(InputFailureTag).includes(result.tag as InputFailureTag);
+    const isInputFailure = Object.values(InputFailureTag).includes(
+      result.tag as InputFailureTag,
+    );
     const isSystemFailure = Object.values(SystemFailureTag).includes(
       result.tag as SystemFailureTag,
     );
@@ -79,5 +89,7 @@ export function unwrap<T>(result: Result<T>): T {
 }
 
 export function failed<T>(result: Result<T>): boolean {
-  return typeof result === "object" && result !== null && "_isFailure" in result;
+  return (
+    typeof result === "object" && result !== null && "_isFailure" in result
+  );
 }
