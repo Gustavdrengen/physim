@@ -19,26 +19,6 @@ async function run(cmd: string, args: string[] = [], cwd?: string) {
   };
 }
 
-export async function checkTscInstalled(): Promise<boolean> {
-  try {
-    const result = await run("tsc", ["--version"]);
-    return result.success;
-  } catch (_) {
-    return false;
-  }
-}
-
-export async function installTscIfAllowed(): Promise<boolean> {
-  const allowed = confirm(
-    `"tsc" is not installed. Install TypeScript globally via "npm i -g typescript"?`,
-  );
-  if (!allowed) return false;
-
-  const install = await run("npm", ["install", "-g", "typescript"]);
-  console.log(install.stdout || install.stderr);
-  return install.success;
-}
-
 export async function typeCheck(
   entrypoint: string,
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {

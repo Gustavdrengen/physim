@@ -5,7 +5,7 @@
 - Tools for helping spot problems
 - Std styling guidelines for documentation examples
 - Complete core
-  - New error system everywhere
+  - New error system everywhere, including other commands
   - Dependency management system:
     - tsc
     - deno
