@@ -2,14 +2,10 @@
 
 - Testing
   - Implementing tests
-  - Updating development cycle
-  - Give AI access to it for things like example gen
 - Tools for helping spot problems
 - Std styling guidelines for documentation examples
 - Complete core
-  - Error handeling
-    - New error system everywhere
-    - Better controls
+  - New error system everywhere
   - Dependency management system:
     - tsc
     - deno
@@ -26,4 +22,3 @@
 - More things
   - Instrument tone generation
     - Song playing with tones
-  - Rings with holes

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,7 +45,7 @@ def discover_tests(directory: str = "tests") -> List[str]:
     if not test_dir.exists():
         return []
 
-    return sorted([str(f) for f in test_dir.glob("*.test.ts")])
+    return sorted([str(f) for f in test_dir.glob("**/*.test.ts")])
 
 
 def parse_test_messages(stdout: str) -> List[TestMessage]:
@@ -93,84 +94,95 @@ class TestDisplay:
     def __init__(self, test_files: List[str]):
         self.test_files = test_files
         self.results: dict[str, TestResult] = {}
-        self.file_line_map: dict[str, int] = {}
+        self.lines_printed = 0
+        self.lock = threading.Lock()
 
     def print_initial(self):
-        print(f"\n{YELLOW}Running {len(self.test_files)} test files...{RESET}\n")
-        for i, filepath in enumerate(self.test_files):
-            print(f"{WAITING} {filepath}")
-            self.file_line_map[filepath] = i
+        with self.lock:
+            print(f"\n{YELLOW}Running {len(self.test_files)} test files...{RESET}\n")
+            for filepath in self.test_files:
+                print(f"{WAITING} {filepath}")
+            self.lines_printed = len(self.test_files)
+            sys.stdout.flush()
+
+    def redraw(self):
+        # This method should be called within a lock
+        if self.lines_printed > 0:
+            # Move cursor up to the start of the dynamic area
+            print(f"\033[{self.lines_printed}A", end="")
+
+        # Erase from cursor to end of screen
+        print("\033[J", end="")
+
+        new_lines_printed = 0
+        for filepath in self.test_files:
+            result = self.results.get(filepath)
+
+            if not result:
+                print(f"{WAITING} {filepath}")
+                new_lines_printed += 1
+                continue
+
+            if result.system_error:
+                file_status = ERROR
+                color = RED
+            else:
+                passed = all(t.type == "test_pass" for t in result.tests)
+                file_status = PASS if passed and result.tests else FAIL
+                color = GREEN if file_status == PASS else RED
+
+            print(f"{file_status} {color}{filepath}{RESET}")
+            new_lines_printed += 1
+
+        self.lines_printed = new_lines_printed
+        sys.stdout.flush()
 
     def update_test(self, filepath: str, result: TestResult):
-        self.results[filepath] = result
-        start_line = self.file_line_map[filepath]
-
-        # Move cursor to file line (add 3 for the header lines)
-        print(f"\033[{len(self.test_files) - start_line}A\033[0G", end="")
-
-        # Determine file status
-        if result.system_error:
-            file_status = ERROR
-            color = RED
-        else:
-            passed = all(t.type == "test_pass" for t in result.tests)
-            file_status = PASS if passed and result.tests else FAIL
-            color = GREEN if file_status == PASS else RED
-
-        # Clear and print file status
-        print(f"\033[2K{file_status} {color}{filepath}{RESET}")
-
-        # Print each test
-        for test in result.tests:
-            status = PASS if test.type == "test_pass" else FAIL
-            print(f"  {status} {test.name}")
-
-        # Move cursor back down
-        remaining = len(self.test_files) - start_line - 1
-        if remaining > 0:
-            print(f"\033[{remaining}B\033[0G", end="", flush=True)
+        with self.lock:
+            self.results[filepath] = result
+            self.redraw()
 
     def finish(self):
-        # Ensure we're at the bottom
-        print()
+        with self.lock:
+            print()  # Ensure we're on a new line
 
-        total_tests = 0
-        passed_tests = 0
-        failed_tests = 0
-        system_errors = 0
+            total_tests = 0
+            passed_tests = 0
+            failed_tests = 0
+            system_errors = 0
 
-        for result in self.results.values():
-            if result.system_error:
-                system_errors += 1
-            else:
-                for test in result.tests:
-                    total_tests += 1
-                    if test.type == "test_pass":
-                        passed_tests += 1
-                    else:
-                        failed_tests += 1
+            for result in self.results.values():
+                if result.system_error:
+                    system_errors += 1
+                else:
+                    for test in result.tests:
+                        total_tests += 1
+                        if test.type == "test_pass":
+                            passed_tests += 1
+                        else:
+                            failed_tests += 1
 
-        print(f"\n{GRAY}{'─' * 60}{RESET}")
-        print(
-            f"{GREEN}{passed_tests} passed{RESET}, {RED}{failed_tests} failed{RESET}, {total_tests} total"
-        )
-        if system_errors > 0:
-            print(f"{RED}{system_errors} system errors{RESET}")
+            print(f"\n{GRAY}{'─' * 60}{RESET}")
+            print(
+                f"{GREEN}{passed_tests} passed{RESET}, {RED}{failed_tests} failed{RESET}, {total_tests} total"
+            )
+            if system_errors > 0:
+                print(f"{RED}{system_errors} system errors{RESET}")
 
-        for filepath, result in self.results.items():
-            if result.system_error:
-                print(f"\n{RED}System Error in {filepath}:{RESET}")
-                print(f"{GRAY}{result.system_error}{RESET}")
-            else:
-                failed = [t for t in result.tests if t.type == "test_fail"]
-                if failed:
-                    print(f"\n{RED}Failed tests in {filepath}:{RESET}")
-                    for test in failed:
-                        print(f"  {FAIL} {test.name}")
-                        if test.error:
-                            print(f"    {GRAY}{test.error}{RESET}")
+            for filepath, result in self.results.items():
+                if result.system_error:
+                    print(f"\n{RED}System Error in {filepath}:{RESET}")
+                    print(f"{GRAY}{result.system_error}{RESET}")
+                else:
+                    failed = [t for t in result.tests if t.type == "test_fail"]
+                    if failed:
+                        print(f"\n{RED}Failed tests in {filepath}:{RESET}")
+                        for test in failed:
+                            print(f"  {FAIL} {test.name}")
+                            if test.error:
+                                print(f"    {GRAY}{test.error.strip()}{RESET}")
 
-        return failed_tests + system_errors
+            return failed_tests + system_errors
 
 
 def main():

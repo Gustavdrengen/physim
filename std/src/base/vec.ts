@@ -84,6 +84,15 @@ export class Vec2 {
   }
 
   /**
+   * Creates a new Vec2 with the same x and y components.
+   *
+   * @returns A new Vec2 with the same x and y components.
+   */
+  clone(): Vec2 {
+    return new Vec2(this.x, this.y);
+  }
+
+  /**
    * Creates a new Vec2 with all components set to zero.
    *
    * @returns A new Vec2 with all components set to zero.
