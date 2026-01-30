@@ -135,9 +135,10 @@ export class Physics {
 
       if (entitiesWithAllComps) {
         for (const entity of entitiesWithAllComps) {
-          const data = componentsArray.length === 1
-            ? componentsArray[0].get(entity)
-            : componentsArray.map((c) => c.get(entity));
+          const data =
+            componentsArray.length === 1
+              ? componentsArray[0].get(entity)
+              : componentsArray.map((c) => c.get(entity));
           forceFunc(entity, data);
         }
       }

@@ -27,4 +27,6 @@
  * ```
  */
 
-export * from "../base/particles/mod";
+export * from "../base/particles/system";
+export * from "../base/particles/particle";
+
