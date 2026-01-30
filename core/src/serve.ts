@@ -221,7 +221,7 @@ export async function runServer(
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/addSound") {
         const sound = await req.json();
-        const id = audioPlayer.addSound(sound);
+        const id = await audioPlayer.addSound(sound);
         if (failed(id)) {
           endAndFail(id as Failure);
         }
@@ -246,5 +246,6 @@ export async function runServer(
     },
   );
 
+  await server.finished;
   return ret;
 }

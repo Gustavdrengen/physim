@@ -1,5 +1,6 @@
 # Todo:
 
+- Cache (claude)
 - Testing
   - Implementing tests
 - Tools for helping spot problems

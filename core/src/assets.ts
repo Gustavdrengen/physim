@@ -1,21 +1,11 @@
 import { extname, join } from "@std/path";
-import { fail, failed, InputFailureTag, Result } from "./err.ts";
-
-export async function idk(src: string, dest: string) {
-  if (src.startsWith("http://") || src.startsWith("https://")) {
-    const res = await fetch(src);
-    if (!res.ok) {
-      throw new Error(`Failed to download ${src}: ${res.status} ${res.statusText}`);
-    }
-
-    const arrayBuffer = await res.arrayBuffer();
-    const uint8 = new Uint8Array(arrayBuffer);
-
-    await Deno.writeFile(dest, uint8);
-  } else {
-    await Deno.copyFile(src, dest);
-  }
-}
+import {
+  fail,
+  failed,
+  InputFailureTag,
+  Result,
+  SystemFailureTag,
+} from "./err.ts";
 
 export class AssetManager {
   simDir: string;
@@ -28,15 +18,32 @@ export class AssetManager {
     this.tempDir = tempDir;
   }
 
-  async addFetchAsset(path: string, fetchAddr: string): Promise<Result<undefined>> {
-    const res = await fetch(fetchAddr);
+  async addFetchAsset(
+    path: string,
+    fetchAddr: string,
+  ): Promise<Result<undefined>> {
+    let res;
+    try {
+      res = await fetch(fetchAddr);
+    } catch (e) {
+      return fail(
+        SystemFailureTag.NetworkFailure,
+        `Network error while fetching asset from ${fetchAddr}: ${e}`,
+      );
+    }
 
     if (!res.ok || !res.body) {
-      return fail(InputFailureTag.AssetFetchFailure, "Failed to download file.");
+      return fail(
+        InputFailureTag.AssetFetchFailure,
+        "Failed to download file.",
+      );
     }
 
     const data = new Uint8Array(await res.arrayBuffer());
-    const savePath = join(this.tempDir, `asset_${this.id}${extname(fetchAddr)}`);
+    const savePath = join(
+      this.tempDir,
+      `asset_${this.id}${extname(fetchAddr)}`,
+    );
     await Deno.writeFile(savePath, data);
     this.redirects.set(path, savePath);
   }

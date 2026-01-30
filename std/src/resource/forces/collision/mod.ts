@@ -41,7 +41,7 @@ export type CollisionForce = {
 export async function initCollisionForce(
   physics: Physics,
   bodyComponent: Component<Body>,
-  defaultCollisionProperties: DefaultCollisionProperties = {}
+  defaultCollisionProperties: DefaultCollisionProperties = {},
 ): Promise<CollisionForce> {
   const rapierWorldManager = new RapierWorldManager(physics, bodyComponent);
   await rapierWorldManager.init();
@@ -52,7 +52,7 @@ export async function initCollisionForce(
     rapierWorldManager,
     collisionEventComponent,
     defaultCollisionProperties,
-    physics
+    physics,
   );
 
   physics.registerForce(
@@ -65,7 +65,7 @@ export async function initCollisionForce(
       collisionSystem.incrementFrameId();
       collisionSystem.update(entity);
     },
-    -1
+    -1,
   );
 
   return {

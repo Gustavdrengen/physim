@@ -22,7 +22,7 @@ export class CollisionSystem {
     worldManager: RapierWorldManager,
     collisionEventComponent: Component<CollisionEvent[]>,
     defaultCollisionProperties: DefaultCollisionProperties,
-    physics: Physics
+    physics: Physics,
   ) {
     this._worldManager = worldManager;
     this._collisionEventComponent = collisionEventComponent;

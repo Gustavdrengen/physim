@@ -1,14 +1,14 @@
-import { Display, Camera } from "physim/display";
+import { Camera, Display } from "physim/display";
 import { Physics } from "physim/physics";
 import { Vec2 } from "physim/vec";
 import { initBodyDisplayComponent } from "physim/graphics";
 import { Color } from "physim/draw";
 import {
   Body,
-  initBodyComponent,
+  createCircle,
   createRectangle,
   createRing,
-  createCircle,
+  initBodyComponent,
 } from "physim/bodies";
 import { initGravityForce } from "physim/forces/gravity";
 import { initCollisionForce } from "physim/forces/collision";
@@ -17,6 +17,8 @@ import { Entity } from "physim/ecs";
 import { ParticleSystem } from "physim/particles";
 import * as Draw from "physim/draw";
 import { createFireEffect } from "physim/effects/particles";
+import { NoteSeries } from "physim/audio";
+import { fetchAsset } from "physim/assets";
 
 const camera = new Camera();
 camera.zoom = 2;
@@ -30,6 +32,46 @@ const collisionForce = await initCollisionForce(physics, bodyComponent, {
 });
 const particleSystem = new ParticleSystem();
 
+const notes = new NoteSeries(
+  [
+    "E5",
+    "D#5",
+    "E5",
+    "D#5",
+    "E5",
+    "B4",
+    "D5",
+    "C5",
+    "A4",
+    "C5",
+    "E5",
+    "A4",
+    "B4",
+    "E5",
+    "G#4",
+    "B4",
+    "C5",
+    "E5",
+    "E5",
+    "D#5",
+    "E5",
+    "D#5",
+    "E5",
+    "B4",
+    "D5",
+    "C5",
+    "A4",
+    "C5",
+    "E5",
+    "A4",
+  ],
+  fetchAsset(
+    "https://musical-artifacts.com/artifacts/4819/School_Piano_2024.sf2",
+  ),
+);
+
+await notes.init();
+
 collisionForce.addCollisionCallback((event) => {
   particleSystem.emit(
     createFireEffect({
@@ -37,6 +79,7 @@ collisionForce.addCollisionCallback((event) => {
     }),
   );
   camera.shake(20, 10);
+  notes.playNext();
 });
 
 const ring = new Entity(new Vec2(50, 50));
