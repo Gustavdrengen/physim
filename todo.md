@@ -1,18 +1,11 @@
 # Todo:
 
-- Cache (claude)
 - Testing
   - Implementing tests
-- Tools for helping spot problems
 - Std styling guidelines for documentation examples
 - Complete core
   - New error system everywhere, including other commands
-  - Dependency management system:
-    - tsc
-    - deno
-    - typedoc
-    - typedoc-plugin-markdown
-    - ffmpeg
+  - Dependency management system version control
 - Forces taking components as input and returning their own versions if not specified
 - Linking components (dynamic)
 - Fields
@@ -21,5 +14,3 @@
   - Its own "mass" component
   - Custom attraction logic
 - More things
-  - Instrument tone generation
-    - Song playing with tones

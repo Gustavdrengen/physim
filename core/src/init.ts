@@ -28,8 +28,5 @@ const tsconfig = {
 };
 
 export async function init() {
-  await Deno.writeTextFile(
-    outputTsconfig,
-    JSON.stringify(tsconfig, null, 2),
-  );
+  await Deno.writeTextFile(outputTsconfig, JSON.stringify(tsconfig, null, 2));
 }

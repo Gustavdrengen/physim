@@ -2,14 +2,10 @@ const EX_UNAVAILABLE = 69;
 const EX_SOFTWARE = 70;
 const EX_DATAERR = 65;
 
-let rawMode = false;
-
-export function enableRawMode() {
-  rawMode = true;
-}
+import { isRawModeEnabled } from "./print.ts";
 
 function error(tag: string, err: string, code: number) {
-  if (rawMode) {
+  if (isRawModeEnabled()) {
     console.error(`[${tag}] ${err}`);
   } else {
     console.error(

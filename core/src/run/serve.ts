@@ -1,6 +1,6 @@
 import { dirname, fromFileUrl, join } from "@std/path";
 import { getAvailablePort } from "@std/net";
-import { AudioPlayer } from "./audio.ts";
+import { AudioPlayer } from "./audio/mod.ts";
 import {
   fail,
   failed,
@@ -8,14 +8,14 @@ import {
   InputFailureTag,
   Result,
   SystemFailureTag,
-} from "./err.ts";
+} from "../err.ts";
 import { AssetManager } from "./assets.ts";
-import * as print from "./print.ts";
+import * as print from "../print.ts";
 
-const scriptDir = dirname(fromFileUrl(import.meta.url));
-const htmlPath = join(scriptDir, "..", "sim.html");
-const jsPath = join(scriptDir, "..", "sim.js");
-const cssPath = join(scriptDir, "..", "sim.css");
+const coreDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
+const htmlPath = join(coreDir, "sim.html");
+const jsPath = join(coreDir, "sim.js");
+const cssPath = join(coreDir, "sim.css");
 
 const htmlContentRaw = await Deno.readTextFile(htmlPath);
 const jsContent = await Deno.readTextFile(jsPath);
@@ -87,7 +87,6 @@ export async function openUrl(url: string): Promise<Result<undefined>> {
 export async function runServer(
   bundle: string,
   tempDirName: string,
-  raw: boolean,
   record: boolean,
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
@@ -132,9 +131,7 @@ export async function runServer(
       port: getAvailablePort({ preferredPort: 8800 }),
       onListen({ port, hostname }) {
         servePort = port;
-        if (!raw) {
-          print.info(`Server started at http://${hostname}:${port}/`);
-        }
+        print.info(`Server started at http://${hostname}:${port}/`);
       },
     },
     async (req) => {
@@ -156,9 +153,7 @@ export async function runServer(
 
       if (!started) {
         if (url.pathname === "/begin") {
-          if (!raw) {
-            print.info("Simulation started");
-          }
+          print.info("Simulation started");
           started = true;
           return new Response(null, { status: 200 });
         } else if (url.pathname === "/pingNext" && !pingNexted) {
@@ -179,11 +174,7 @@ export async function runServer(
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/log") {
         if (req.body) {
-          if (raw) {
-            logs.push(await req.text());
-          } else {
-            print.log(await req.text());
-          }
+          print.log(await req.text());
         }
         return new Response("Logged", { status: 200 });
       } else if (url.pathname === "/err") {
@@ -196,13 +187,10 @@ export async function runServer(
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/finish") {
         setTimeout(() => {
-          if (raw) {
-            logs.forEach((log) => {
-              print.raw(log);
-            });
-          } else {
-            print.info("Simulation finished");
-          }
+          logs.forEach((log) => {
+            print.raw(log);
+          });
+          print.info("Simulation finished");
           server.shutdown();
         }, 100);
 

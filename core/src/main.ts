@@ -1,11 +1,18 @@
 import { Command } from "@cliffy/command";
 import { init } from "./init.ts";
-import { enableRawMode, fail, setGlobalErrorHandler, SystemFailureTag, unwrap } from "./err.ts";
-import { run } from "./run.ts";
+import {
+  fail,
+  setGlobalErrorHandler,
+  SystemFailureTag,
+  unwrap,
+} from "./err.ts";
+import { run } from "./run/mod.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { genDocs } from "./docs.ts";
 import * as print from "./print.ts";
+import { enableRawMode as enablePrintRawMode } from "./print.ts";
 import { checkAllDependencies, manageDependenciesTUI } from "./deps.ts";
+import { printCacheStats } from "./cache.ts";
 
 setGlobalErrorHandler();
 
@@ -33,9 +40,9 @@ const cmd = new Command()
   )
   .action(async ({ raw, record }, entrypoint) => {
     if (raw) {
-      enableRawMode();
+      enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, !!raw, record));
+    unwrap(await run(entrypoint, record));
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {
@@ -75,6 +82,10 @@ const cmd = new Command()
   .command("deps", "Manage project dependencies")
   .action(async () => {
     await manageDependenciesTUI();
+  })
+  .command("cache", "Prints information about the resource cache")
+  .action(() => {
+    printCacheStats();
   });
 
 await cmd.parse(Deno.args);

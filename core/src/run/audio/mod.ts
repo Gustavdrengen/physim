@@ -1,7 +1,9 @@
-import { AssetManager } from "./assets.ts";
-import { addAudioToMp4, playMP3, synthMidi } from "./audioProcessing.ts";
+import { AssetManager } from "../assets.ts";
+import { playMP3 } from "./playback.ts";
+import { addAudioToMp4 } from "./mp4.ts";
+import { synthMidi } from "./midi.ts";
 import { join } from "@std/path";
-import { fail, failed, InputFailureTag, Result } from "./err.ts";
+import { fail, failed, InputFailureTag, Result } from "../../err.ts";
 
 type SoundProps = {
   src: string;

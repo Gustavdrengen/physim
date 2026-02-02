@@ -1,5 +1,6 @@
 import { Confirm, prompt, Select } from "@cliffy/prompt";
 import * as print from "./print.ts";
+import { join } from "@std/path";
 
 const decoder = new TextDecoder();
 
@@ -45,7 +46,8 @@ export const dependencies: Dependency[] = [
     checkArgs: ["--version"],
     installCommand: "manual", // Deno installation is usually system-specific
     installMethod: "manual",
-    manualInstallInstructions: "Please install Deno manually from https://deno.land/#installation",
+    manualInstallInstructions:
+      "Please install Deno manually from https://deno.land/#installation",
   },
   {
     name: "typedoc",
@@ -77,8 +79,15 @@ export const dependencies: Dependency[] = [
 export async function checkDependency(dep: Dependency): Promise<boolean> {
   if (dep.name === "typedoc-plugin-markdown") {
     // Special check for npm global packages
-    const result = await run(dep.checkCommand, dep.checkArgs);
-    return result.stdout.includes("typedoc-plugin-markdown");
+    try {
+      const npmRootResult = await run("npm", ["root", "-g"]);
+      if (!npmRootResult.success) return false;
+      const npmRoot = npmRootResult.stdout.trim();
+      await Deno.stat(join(npmRoot, dep.name));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
   try {
     const result = await run(dep.checkCommand, dep.checkArgs);
@@ -98,11 +107,9 @@ export async function installDependency(dep: Dependency): Promise<boolean> {
   const result = await prompt([
     {
       name: "confirm",
-      message: `"${dep.name}" is not installed. Install it via "${dep.installCommand} ${
-        dep.installArgs?.join(
-          " ",
-        )
-      }"?`,
+      message: `"${dep.name}" is not installed. Install it via "${dep.installCommand} ${dep.installArgs?.join(
+        " ",
+      )}"?`,
       type: Confirm,
       default: true,
     },
@@ -122,23 +129,26 @@ export async function installDependency(dep: Dependency): Promise<boolean> {
 }
 
 export async function checkAllDependencies(): Promise<boolean> {
+  const results = await Promise.all(dependencies.map(checkDependency));
+
   let allInstalled = true;
-  for (const dep of dependencies) {
-    const installed = await checkDependency(dep);
-    if (!installed) {
-      console.error(`Dependency "${dep.name}" is not installed.`);
+  for (let i = 0; i < results.length; i++) {
+    if (!results[i]) {
+      console.error(`Dependency "${dependencies[i].name}" is not installed.`);
       allInstalled = false;
     }
   }
+
   return allInstalled;
 }
 
 export async function manageDependenciesTUI(): Promise<void> {
   print.raw("\n--- Dependency Manager ---");
-  for (const dep of dependencies) {
-    const installed = await checkDependency(dep);
-    const status = installed ? "✅ Installed" : "❌ Not Installed";
-    print.raw(`- ${dep.name}: ${status}`);
+  const installedStatuses = await Promise.all(dependencies.map(checkDependency));
+
+  for (let i = 0; i < dependencies.length; i++) {
+    const status = installedStatuses[i] ? "✅ Installed" : "❌ Not Installed";
+    print.raw(`- ${dependencies[i].name}: ${status}`);
   }
 
   const result = await prompt([
@@ -156,10 +166,9 @@ export async function manageDependenciesTUI(): Promise<void> {
 
   switch (result.action) {
     case "install_missing":
-      for (const dep of dependencies) {
-        const installed = await checkDependency(dep);
-        if (!installed) {
-          await installDependency(dep);
+      for (let i = 0; i < dependencies.length; i++) {
+        if (!installedStatuses[i]) {
+          await installDependency(dependencies[i]);
         }
       }
       break;

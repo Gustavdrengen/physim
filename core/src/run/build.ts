@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { typeCheck } from "./tsc.ts";
-import { fail, InputFailureTag, Result } from "./err.ts";
+import { fail, InputFailureTag, Result } from "../err.ts";
 const scriptDir = dirname(fromFileUrl(import.meta.url));
 
 const aliasPlugin = {
@@ -10,7 +10,16 @@ const aliasPlugin = {
     build.onResolve({ filter: /^physim(\/.*)?$/ }, (args: any) => {
       // physim/<subpath> -> src/public/<subpath>.ts
       const subpath = args.path.replace(/^physim\//, ""); // e.g. "x" or "foo/bar"
-      const target = join(scriptDir, "..", "..", "std", "src", "public", `${subpath}.ts`);
+      const target = join(
+        scriptDir,
+        "..",
+        "..",
+        "..",
+        "std",
+        "src",
+        "public",
+        `${subpath}.ts`,
+      );
 
       return { path: target };
     });
