@@ -24,6 +24,7 @@ export function fetchAsset(url: string): FetchAsset {
 }
 
 const fetchAssets = new Map<string, string>();
+const fetchingPromises = new Map<string, Promise<void>>();
 let id = 0;
 
 /**
@@ -37,11 +38,13 @@ export async function resolveAssetPath(asset: Asset): Promise<string> {
   if (typeof asset === "string") {
     return asset;
   } else if (asset._isFetchAsset) {
+    console.log(`try get ${asset.url}`);
     if (!fetchAssets.has(asset.url)) {
       const name = "fetchasset_" + id++;
-      await sim.addFetchAsset(name, asset.url);
       fetchAssets.set(asset.url, name);
+      fetchingPromises.set(asset.url, sim.addFetchAsset(name, asset.url));
     }
+    await fetchingPromises.get(asset.url);
     return fetchAssets.get(asset.url)!;
   }
   throw new Error("Invalid asset type");

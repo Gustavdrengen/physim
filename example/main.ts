@@ -79,7 +79,6 @@ collisionForce.addCollisionCallback((event) => {
     }),
   );
   camera.shake(20, 10);
-  notes.playNext();
 });
 
 const ring = new Entity(new Vec2(50, 50));
@@ -135,7 +134,11 @@ sim.onUpdate = () => {
   Draw.text(new Vec2(500, 200), "SIX SEVEN");
   ringBody.rotation += 0.01;
 
+  if (sim.frame % 15 === 0) {
+    notes.playNext();
+  }
+
   if (sim.frame == 60 * 5) {
-    sim.finish();
+    //sim.finish();
   }
 };

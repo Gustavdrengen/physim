@@ -1,10 +1,11 @@
 import { dirname } from "@std/path";
 import { buildSimulation } from "./build.ts";
-import { Result } from "./err.ts";
+import { Result } from "../err.ts";
 import { runServer } from "./serve.ts";
 import { AssetManager } from "./assets.ts";
-import { AudioPlayer } from "./audio.ts";
-import * as print from "./print.ts";
+import { AudioPlayer } from "./audio/mod.ts";
+import { fail, InputFailureTag } from "../err.ts";
+import * as print from "../print.ts";
 
 export async function compileVideo(tempDirName: string, outfile: string) {
   const command = new Deno.Command("ffmpeg", {
@@ -36,9 +37,22 @@ export async function compileVideo(tempDirName: string, outfile: string) {
 
 export async function run(
   entrypoint: string,
-  raw: boolean,
   record: string | undefined,
 ): Promise<Result<undefined>> {
+  try {
+    if (!(await Deno.stat(entrypoint)).isFile) {
+      return fail(
+        InputFailureTag.EntryPointNotFoundFailure,
+        `Entrypoint not a file: ${entrypoint}`,
+      );
+    }
+  } catch {
+    return fail(
+      InputFailureTag.EntryPointNotFoundFailure,
+      `Entrypoint not found: ${entrypoint}`,
+    );
+  }
+
   const tempDirName = await Deno.makeTempDir();
   const outfile = `${tempDirName}/out.js`;
 
@@ -53,7 +67,6 @@ export async function run(
   const runResult = await runServer(
     outfile,
     tempDirName,
-    !!raw,
     record !== undefined,
     assetManager,
     audioPlayer,
@@ -65,9 +78,7 @@ export async function run(
   }
 
   if (record !== undefined) {
-    if (!raw) {
-      print.info("Generating video...");
-    }
+    print.info("Generating video...");
 
     const result = await compileVideo(tempDirName, record);
 

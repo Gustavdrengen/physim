@@ -5,7 +5,9 @@ import {
   InputFailureTag,
   Result,
   SystemFailureTag,
-} from "./err.ts";
+} from "../err.ts";
+import * as print from "../print.ts";
+import { fetchWithCache } from "../cache.ts";
 
 export class AssetManager {
   simDir: string;
@@ -24,7 +26,7 @@ export class AssetManager {
   ): Promise<Result<undefined>> {
     let res;
     try {
-      res = await fetch(fetchAddr);
+      res = await fetchWithCache(fetchAddr);
     } catch (e) {
       return fail(
         SystemFailureTag.NetworkFailure,
