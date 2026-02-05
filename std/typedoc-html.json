@@ -8,5 +8,6 @@
   "name": "Physim Standard Library",
   "out": "docs/bin/html",
   "readme": "README.md",
-  "excludeInternal": true
+  "excludeInternal": true,
+  "disableSources": true
 }

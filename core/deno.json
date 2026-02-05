@@ -8,6 +8,7 @@
     "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.8",
     "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.8",
     "@std/fs": "jsr:@std/fs@^1.0.22",
+    "@std/http": "jsr:@std/http@^1.0.24",
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/net": "jsr:@std/net@^1.0.6",
     "@std/path": "jsr:@std/path@^1.1.3",
