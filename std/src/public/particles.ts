@@ -1,6 +1,5 @@
 /**
- * @module
- * 
+ *
  * A system for creating and managing particles.
  *
  * @example
@@ -20,13 +19,13 @@
  *   size: 5, // Constant size
  *   color: { start: Color.fromHex("#ff0000"), end: Color.fromHex("#ffff00") },
  * });
- * 
+ *
  * sim.onUpdate = () => {
  *   particleSystem.updateAndRender();
  * }
  * ```
+ * @module
  */
 
 export * from "../base/particles/system";
 export * from "../base/particles/particle";
-

@@ -1,11 +1,6 @@
 import { Command } from "@cliffy/command";
 import { init } from "./init.ts";
-import {
-  fail,
-  setGlobalErrorHandler,
-  SystemFailureTag,
-  unwrap,
-} from "./err.ts";
+import { fail, setGlobalErrorHandler, SystemFailureTag, unwrap } from "./err.ts";
 import { run } from "./run/mod.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { genDocs } from "./docs.ts";
@@ -61,6 +56,12 @@ const cmd = new Command()
     "The only output of the command will be the path to the markdown documentation. Useful for automation.",
   )
   .action(async ({ serve, html, markdown, printMdPath }) => {
+    if (!html && !markdown && !serve) {
+      print.raw(
+        "No output format specified. Use --html, --markdown or --serve.",
+      );
+      Deno.exit(65);
+    }
     await genDocs(!!serve, !!html, !!markdown, !!printMdPath);
   })
   .command(
