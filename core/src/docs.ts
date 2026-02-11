@@ -1,6 +1,7 @@
 import { dirname, fromFileUrl, join } from "@std/path";
 import { serveDir } from "@std/http";
 import * as print from "./print.ts";
+import { openUrl } from "./open.ts";
 
 const PORT = 6767;
 
@@ -34,6 +35,7 @@ async function runWithOptions(opt: string) {
 
 export async function genDocs(
   serve: boolean,
+  open: boolean,
   html: boolean,
   markdown: boolean,
   printMdPath: boolean,
@@ -60,9 +62,12 @@ export async function genDocs(
 
   if (serve) {
     if (!printMdPath) {
-      print.raw(`Serving documentation`);
+      print.raw(`Serving documentation at http://127.0.0.1:${PORT}`);
     }
     serveDocs();
+    if (open) {
+      openUrl(`http://127.0.0.1:${PORT}`);
+    }
   }
 
   if (printMdPath) {

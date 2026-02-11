@@ -40,7 +40,7 @@ export class Display {
    */
   registerDrawComponent<T extends any[]>(
     comps: Component<T[number]>[],
-    drawFunc: (entity: Entity, data: T) => void
+    drawFunc: (entity: Entity, data: T) => void,
   ): void;
   /**
    * Registers a draw function for a single component.
@@ -49,17 +49,17 @@ export class Display {
    */
   registerDrawComponent<T>(
     comp: Component<T>,
-    drawFunc: (entity: Entity, data: T) => void
+    drawFunc: (entity: Entity, data: T) => void,
   ): void;
   registerDrawComponent<T>(
     comps: Component<T>[] | Component<T>,
-    drawFunc: (entity: Entity, data: T | T[]) => void
+    drawFunc: (entity: Entity, data: T | T[]) => void,
   ) {
     this.drawComponents.set(comps, drawFunc);
   }
 
   /**
-   * Draws all registered components.
+   * Clears the screen and draws all registered components.
    * @param camera The camera to use for rendering. If not provided, a default camera is used.
    */
   draw(camera?: Camera) {
@@ -80,7 +80,7 @@ export class Display {
 
     for (const [comps, drawFunc] of this.drawComponents) {
       const componentsArray = Array.isArray(comps) ? comps : [comps];
-      
+
       // Find entities that have all required components
       let entitiesWithAllComps: Set<Entity> | undefined;
 
@@ -88,15 +88,18 @@ export class Display {
         if (!entitiesWithAllComps) {
           entitiesWithAllComps = new Set(comp.keys());
         } else {
-          entitiesWithAllComps = new Set([...entitiesWithAllComps].filter(entity => comp.has(entity)));
+          entitiesWithAllComps = new Set(
+            [...entitiesWithAllComps].filter((entity) => comp.has(entity)),
+          );
         }
       }
 
       if (entitiesWithAllComps) {
         for (const entity of entitiesWithAllComps) {
-          const data = componentsArray.length === 1
-            ? componentsArray[0].get(entity)
-            : componentsArray.map(c => c.get(entity));
+          const data =
+            componentsArray.length === 1
+              ? componentsArray[0].get(entity)
+              : componentsArray.map((c) => c.get(entity));
           drawFunc(entity, data);
         }
       }

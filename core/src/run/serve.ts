@@ -1,6 +1,7 @@
 import { dirname, fromFileUrl, join } from "@std/path";
 import { getAvailablePort } from "@std/net";
 import { AudioPlayer } from "./audio/mod.ts";
+import { openUrl } from "../open.ts";
 import {
   fail,
   failed,
@@ -23,66 +24,6 @@ const cssContent = await Deno.readTextFile(cssPath);
 let htmlContent = htmlContentRaw
   .replace("//JS", jsContent)
   .replace("CSS", cssContent);
-
-export async function openUrl(url: string): Promise<Result<undefined>> {
-  try {
-    new URL(url);
-  } catch {
-    if (!/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(url)) {
-      return fail(
-        SystemFailureTag.OpenFailure,
-        `Invalid URL or missing scheme: ${String(url)}`,
-      );
-    }
-  }
-
-  const os = Deno.build.os;
-  let program: string;
-  let args: string[];
-
-  if (os === "windows") {
-    program = "cmd.exe";
-    args = ["/c", "start", "", url];
-  } else if (os === "darwin") {
-    program = "open";
-    args = [url];
-  } else {
-    let isWsl = false;
-    try {
-      if (Deno.env.get("WSL_DISTRO_NAME")) isWsl = true;
-      else {
-        const ver = await Deno.readTextFile("/proc/version");
-        if (/microsoft/i.test(ver)) isWsl = true;
-      }
-    } catch {
-      //
-    }
-
-    if (isWsl) {
-      program = "cmd.exe";
-      args = ["/c", "start", "", url];
-    } else {
-      program = "xdg-open";
-      args = [url];
-    }
-  }
-
-  try {
-    const proc = new Deno.Command(program, { args });
-    const { success, code, stderr } = await proc.output();
-
-    if (success) return;
-
-    const stderrText = new TextDecoder().decode(stderr).trim();
-    const msg = `Command exited with code ${code}${stderrText ? `: ${stderrText}` : ""}`;
-    return fail(SystemFailureTag.OpenFailure, msg);
-  } catch (err) {
-    return fail(
-      SystemFailureTag.OpenFailure,
-      `Failed to launch browser command (${program} ${args.join(" ")}): ${String(err)}`,
-    );
-  }
-}
 
 export async function runServer(
   bundle: string,
