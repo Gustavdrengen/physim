@@ -14,10 +14,10 @@ import { Entity, Component } from "physim/ecs";
 
 ## Core Concepts
 
--   **Entity-Component-System (ECS)**: Physim uses an ECS architecture where `Entity` objects are simple containers for `Component` data. Components store specific data (e.g., position, velocity, mass), and systems (like `Physics` or `Display`) operate on entities that possess the relevant components.
--   **Vec2**: A fundamental 2D vector class for all positional and directional calculations.
--   **Display & Camera**: Manages rendering entities to a canvas, with a `Camera` for controlling the view.
--   **Physics**: A system for applying forces and updating entity states based on physical properties.
+- **Entity-Component-System (ECS)**: Physim uses an ECS architecture where `Entity` objects are simple containers for `Component` data. Components store specific data (e.g., position, velocity, mass), and systems (like `Physics` or `Display`) operate on entities that possess the relevant components.
+- **Vec2**: A fundamental 2D vector class for all positional and directional calculations.
+- **Display & Camera**: Manages rendering entities to a canvas, with a `Camera` for controlling the view.
+- **Physics**: A system for applying forces and updating entity states based on physical properties.
 
 ## Example: Simple Gravity Simulation
 
@@ -31,7 +31,7 @@ import { Physics } from "physim/physics";
 import { initGravityForce } from "physim/forces";
 import { initBodyComponent, createCircle, Body } from "physim/bodies";
 import { initBodyDisplayComponent } from "physim/graphics";
-import { Color, clear } from "physim/draw";
+import { Color } from "physim/draw";
 
 // 1. Initialize core systems
 const display = new Display();
@@ -58,7 +58,6 @@ planet2.addComp(bodyComponent, Body.fromShape(createCircle(10)));
 planet2.addComp(bodyDisplay, { color: Color.fromString("red"), fill: true });
 
 sim.onUpdate = () => {
-  clear(Color.fromRGB(30, 30, 30)); // Clear background
   physics.update(); // Update all physics
   display.draw(camera); // Draw all entities
 };

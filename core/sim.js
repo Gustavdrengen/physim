@@ -17,14 +17,16 @@ function runInFrame(code, endowments = {}, onError) {
 
     const resolveOnce = settleOnce(outerResolve);
     const rejectOnce = settleOnce((reason) =>
-      outerReject(reason instanceof Error ? reason : new Error(reason))
+      outerReject(reason instanceof Error ? reason : new Error(reason)),
     );
 
     const callOnError = (err) => {
       if (typeof onError === "function") {
         try {
           onError(err);
-        } catch (_) {}
+        } catch {
+          //
+        }
       }
     };
 
@@ -50,12 +52,16 @@ function runInFrame(code, endowments = {}, onError) {
       if (userBlobUrl) {
         try {
           URL.revokeObjectURL(userBlobUrl);
-        } catch (_) {}
+        } catch {
+          //
+        }
       }
       if (wrapperBlobUrl) {
         try {
           URL.revokeObjectURL(wrapperBlobUrl);
-        } catch (_) {}
+        } catch {
+          //
+        }
       }
 
       const win = iframe.contentWindow;
@@ -66,12 +72,16 @@ function runInFrame(code, endowments = {}, onError) {
           delete win.__runInFrameDone;
           delete win.__runInFrameDoneResolve;
           delete win.__runInFrameDoneReject;
-        } catch (_) {}
+        } catch {
+          //
+        }
       }
 
       try {
         iframe.removeEventListener("load", onLoad);
-      } catch (_) {}
+      } catch {
+        //
+      }
     };
 
     const onLoad = () => {
@@ -85,7 +95,9 @@ function runInFrame(code, endowments = {}, onError) {
         Object.entries(endowments).forEach(([key, value]) => {
           try {
             win[key] = value;
-          } catch (_) {}
+          } catch {
+            //
+          }
         });
 
         let resolveInner, rejectInner;
@@ -328,7 +340,9 @@ const sim = {
         body: JSON.stringify({ path, fetchAddr }),
         headers: { "Content-Type": "application/json" },
       });
-    } catch (_) {}
+    } catch {
+      //
+    }
   },
 };
 
@@ -384,7 +398,9 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
         canvas.toBlob(async (blob) => {
           try {
             await fetch("/frame", { method: "POST", body: blob });
-          } catch (_) {}
+          } catch {
+            //
+          }
         }, "image/png");
       }
 

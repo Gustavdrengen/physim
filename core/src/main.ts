@@ -49,20 +49,19 @@ const cmd = new Command()
     "Generates and/or serves the standard library documentation.",
   )
   .option("-s --serve", "Host the documentation locally.")
+  .option("--open", "Open the documentation in a browser if served.")
   .option("--html", "Generate html documentation.")
   .option("--markdown", "Generate markdown documentation.")
   .option(
     "--print-md-path",
     "The only output of the command will be the path to the markdown documentation. Useful for automation.",
   )
-  .action(async ({ serve, html, markdown, printMdPath }) => {
-    if (!html && !markdown && !serve) {
-      print.raw(
-        "No output format specified. Use --html, --markdown or --serve.",
-      );
+  .action(async ({ serve, open, html, markdown, printMdPath }) => {
+    if (!html && !markdown && !serve && !printMdPath) {
+      print.raw("Use --html, --markdown, --serve or --print-md-path.");
       Deno.exit(65);
     }
-    await genDocs(!!serve, !!html, !!markdown, !!printMdPath);
+    await genDocs(!!serve, !!open, !!html, !!markdown, !!printMdPath);
   })
   .command(
     "install-python",
