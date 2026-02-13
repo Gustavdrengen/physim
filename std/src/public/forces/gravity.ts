@@ -4,11 +4,11 @@
  * @module
  * @example
  * ```ts
+ * import { Simulation } from "physim/simulation";
  * import { initGravityForce } from "physim/forces/gravity";
- * import { Physics } from "physim/physics";
  *
- * const physics = new Physics();
- * initGravityForce(physics, 9.8);
+ * const simulation = new Simulation();
+ * initGravityForce(simulation.physics, 9.8);
  * ```
  */
 export * from "../../resource/forces/gravity.ts";

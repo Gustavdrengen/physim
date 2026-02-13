@@ -3,23 +3,7 @@ import { Vec2 } from "./vec.ts";
 
 /**
  * The `Physics` class is responsible for updating entities based on forces.
- *
- * @example
- * ```ts
- * import { Physics } from "physim/physics";
- * import { Entity } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
- *
- * const physics = new Physics();
- *
- * const player = new Entity(new Vec2(0, 0));
- * player.addComp(physics.velocity, new Vec2(1, 0));
- *
- * sim.onUpdate = () => {
- *   physics.update();
- *   // player.pos is now (1, 0)
- * }
- * ```
+ * It manages the application of various forces (like velocity and acceleration) to entities that possess the relevant components.
  */
 export class Physics {
   private forces: Array<

@@ -25,8 +25,10 @@ type PointData = {
  * const display = new Display();
  * const pointDisplay = initPointDisplayComponent(display);
  *
- * const player = new Entity(new Vec2(0, 0));
- * player.addComp(pointDisplay, { color: Color.fromString("red"), radius: 10 });
+ * const player = Entity.create(
+ *   new Vec2(0, 0),
+ *   [[pointDisplay, { color: Color.fromString("red"), radius: 10 }]]
+ * );
  * ```
  */
 export function initPointDisplayComponent(

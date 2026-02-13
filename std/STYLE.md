@@ -15,8 +15,17 @@
 
 ### Documentation examples
 
-- Examples should always show only the required in a way that will make sense in a real use case and the recomended way to do something.
-- They should have comments explaining what they i happening.
+- Example code should be executable, but does not have to be a full demo.
+- Examples should always make sense in a real use case and use the recomended way to do something.
+- They should have comments explaining non-obvious code.
+
+#### Recomendations
+
+This is a list of recomendations examples should follow:
+
+- Always prefer simpler ways of doing thins. Exampels include:
+  - Using the `Simulation` class over `Physics` and `Display` separately.
+  - Using `Entity.create` over `new Entity` followed by `Entity.addComp`.
 
 ## 3. Code Style
 

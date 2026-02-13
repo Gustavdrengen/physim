@@ -2,22 +2,6 @@ import { Vec2 } from "./vec.ts";
 
 /**
  * An entity in the world.
- *
- * @example
- * ```ts
- * import { Entity, Component } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
- * import { log } from "physim/logging";
- *
- * const position = new Component<Vec2>();
- * const health = new Component<number>();
- *
- * const player = new Entity(new Vec2(0, 0));
- * player.addComp(position, new Vec2(10, 20));
- * player.addComp(health, 100);
- *
- * log(player.getComp(position)); // Vec2 { x: 10, y: 20 }
- * ```
  */
 export class Entity {
   /**
@@ -32,6 +16,24 @@ export class Entity {
    */
   constructor(pos: Vec2) {
     this.pos = pos;
+  }
+
+  /**
+   * Creates a new entity with the given components.
+   *
+   * @param pos The initial position of the entity.
+   * @param components An array of component-value pairs to add to the entity.
+   * @returns The new entity.
+   */
+  static create(
+    pos: Vec2,
+    components: [Component<any>, any][],
+  ): Entity {
+    const entity = new Entity(pos);
+    for (const [component, value] of components) {
+      entity.addComp(component, value);
+    }
+    return entity;
   }
 
   /**

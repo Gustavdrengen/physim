@@ -24,41 +24,45 @@ import { Entity, Component } from "physim/ecs";
 This example demonstrates how to set up a basic simulation with gravity, displaying two bodies attracting each other.
 
 ```typescript
-import { Display, Camera } from "physim/display";
-import { Entity, Component } from "physim/ecs";
+import { Simulation } from "physim/simulation";
+import { Entity } from "physim/ecs";
 import { Vec2 } from "physim/vec";
-import { Physics } from "physim/physics";
-import { initGravityForce } from "physim/forces";
+import { initGravityForce } from "physim/forces/gravity";
 import { initBodyComponent, createCircle, Body } from "physim/bodies";
 import { initBodyDisplayComponent } from "physim/graphics";
 import { Color } from "physim/draw";
 
-// 1. Initialize core systems
-const display = new Display();
-const camera = new Camera();
-const physics = new Physics();
+// 1. Initialize core simulation
+const simulation = new Simulation();
 
-// 2. Initialize components
+// 2. Initialize components and forces
 const bodyComponent = initBodyComponent();
-const bodyDisplay = initBodyDisplayComponent(display, bodyComponent);
+const bodyDisplayComponent = initBodyDisplayComponent(simulation.display, bodyComponent); // Register body drawing
+initGravityForce(simulation.physics, 50); // Adjust G for stronger/weaker gravity
 
-// 3. Configure physics forces
-initGravityForce(physics, 50); // Adjust G for stronger/weaker gravity
+// 3. Create entities
+const objectA = Entity.create(
+  new Vec2(200, 200),
+  [
+    [simulation.physics.mass, 1000],
+    [bodyComponent, Body.fromShape(createCircle(20))],
+    [simulation.physics.velocity, Vec2.zero()], // Initialize velocity
+    [simulation.physics.acceleration, Vec2.zero()], // Initialize acceleration
+    [bodyDisplayComponent, { color: Color.fromString("blue"), fill: true }]
+  ]
+);
 
-// 4. Create entities
-const planet1 = new Entity(new Vec2(200, 200));
-planet1.addComp(physics.mass, 1000);
-planet1.addComp(bodyComponent, Body.fromShape(createCircle(20)));
-planet1.addComp(bodyDisplay, { color: Color.fromString("blue"), fill: true });
+const objectB = Entity.create(
+  new Vec2(400, 200),
+  [
+    [simulation.physics.mass, 100],
+    [bodyComponent, Body.fromShape(createCircle(10))],
+    [simulation.physics.velocity, new Vec2(0, 2)], // Give it an initial velocity
+    [simulation.physics.acceleration, Vec2.zero()], // Initialize acceleration
+    [bodyDisplayComponent, { color: Color.fromString("red"), fill: true }]
+  ]
+);
 
-const planet2 = new Entity(new Vec2(400, 200));
-planet2.addComp(physics.mass, 100);
-planet2.addComp(physics.velocity, new Vec2(0, 2)); // Give it an initial velocity
-planet2.addComp(bodyComponent, Body.fromShape(createCircle(10)));
-planet2.addComp(bodyDisplay, { color: Color.fromString("red"), fill: true });
-
-sim.onUpdate = () => {
-  physics.update(); // Update all physics
-  display.draw(camera); // Draw all entities
-};
+// 4. Run the simulation
+simulation.run();
 ```
