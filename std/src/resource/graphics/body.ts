@@ -34,9 +34,13 @@ type BodyDisplayData = {
  *
  * const myBody = Body.fromShape(createRectangle(50, 50));
  *
- * const entity = new Entity(new Vec2(100, 100));
- * entity.addComp(bodyComponent, myBody);
- * entity.addComp(bodyDisplay, { color: Color.fromRGB(0, 255, 0), fill: true });
+ * const entity = Entity.create(
+ *   new Vec2(100, 100),
+ *   [
+ *     [bodyComponent, myBody],
+ *     [bodyDisplay, { color: Color.fromRGB(0, 255, 0), fill: true }]
+ *   ]
+ * );
  * ```
  */
 export function initBodyDisplayComponent(

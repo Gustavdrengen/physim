@@ -4,14 +4,14 @@
  * @module
  * @example
  * ```ts
+ * import { Simulation } from "physim/simulation";
  * import { initCollisionForce } from "physim/forces/collision";
- * import { Physics } from "physim/physics";
  * import { initBodyComponent } from "physim/bodies";
  *
- * const physics = new Physics();
+ * const simulation = new Simulation();
  * const bodyComponent = initBodyComponent();
  *
- * await initCollisionForce(physics, bodyComponent, {
+ * await initCollisionForce(simulation.physics, bodyComponent, {
  *  restitution: 0.1
  * });
  * ```

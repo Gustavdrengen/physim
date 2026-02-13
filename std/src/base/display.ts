@@ -8,22 +8,29 @@ import { Vec2 } from "./vec.ts";
  *
  * @example
  * ```ts
- * import { Display, Camera } from "physim/display";
- * import { Component, Entity } from "physim/ecs";
+ * import { Simulation } from "physim/simulation";
+ * import { Entity } from "physim/ecs";
  * import { Vec2 } from "physim/vec";
+ * import { circle } from "physim/draw";
  *
- * const display = new Display();
- * const camera = new Camera();
+ * const simulation = new Simulation();
  *
- * const position = new Component<Vec2>();
- *
- * display.registerDrawComponent(position, (entity, data) => {
- *   // Draw the entity
+ * // Use the physics velocity component for drawing
+ * simulation.display.registerDrawComponent(simulation.physics.velocity, (entity, vel) => {
+ *   // Custom drawing logic for entities with a velocity component
+ *   // For example, draw a circle at the entity's position, and a line indicating velocity
+ *   circle(entity.pos, 10, "blue", true);
+ *   // line(entity.pos, entity.pos.add(vel), "red", 2);
  * });
  *
- * sim.onUpdate = () => {
- *   display.draw(camera);
- * }
+ * // Create an entity with a velocity component
+ * const myEntity = Entity.create(
+ *   new Vec2(50, 50),
+ *   [[simulation.physics.velocity, new Vec2(10, 10)]]
+ * );
+ *
+ * // Run the simulation
+ * simulation.run();
  * ```
  */
 export class Display {

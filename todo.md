@@ -1,9 +1,6 @@
 # Todo:
 
-- Example fixing shit remove sim.onUpdate
-  - Recomendations
-  - Cycle
-- Entity.create
+- Example fixing shit remove sim.onUpdate and normal entiry creation.
 - Testing
   - Implementing tests
 - Complete core

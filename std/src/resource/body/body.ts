@@ -245,14 +245,12 @@ export class Body {
  *
  * const bodyComponent = initBodyComponent();
  *
- * const bodyData = new Body([{
- *   shape: createRectangle(10, 10),
- *   position: Vec2.zero(),
- *   rotation: 0
- * }]);
+ * const body = Body.fromShape(createRectangle(10, 10));
  *
- * const entity = new Entity(new Vec2(100, 100));
- * entity.addComp(bodyComponent, bodyData);
+ * const entity = Entity.create(
+ *   new Vec2(100, 100),
+ *   [[bodyComponent, body]]
+ * );
  * ```
  */
 export function initBodyComponent(): Component<Body> {
