@@ -21,9 +21,25 @@ export class Simulation {
   camera = new Camera();
 
   /**
-   * Creates a new Simulation instance.
+   * The current frame number of the simulation.
    */
-  constructor() { }
+  frame = 0;
+  private autoStopTime?: number;
+
+  /**
+   * The current simulation time in seconds.
+   */
+  get time(): number {
+    return this.frame / 60;
+  }
+
+  /**
+   * Creates a new Simulation instance.
+   * @param autoStopTime The number of seconds after which the simulation should automatically stop.
+   */
+  constructor(autoStopTime?: number) {
+    this.autoStopTime = autoStopTime;
+  }
 
   /**
    * Runs the simulation loop.
@@ -34,9 +50,22 @@ export class Simulation {
    */
   run(onUpdate: () => void = () => { }) {
     sim.onUpdate = () => {
+      this.frame++;
+      if (this.autoStopTime && this.time >= this.autoStopTime) {
+        this.finish();
+        return;
+      }
+
       this.physics.update();
       this.display.draw(this.camera);
       onUpdate();
     };
+  }
+
+  /**
+   * Stops the simulation.
+   */
+  finish() {
+    sim.finish();
   }
 }

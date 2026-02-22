@@ -30,10 +30,16 @@ export class RapierWorldManager {
   private _colliderHandleToEntityMap: Map<number, Entity> = new Map();
   private _physics: Physics;
   private _bodyComponent: Component<Body>;
+  private _staticComponent: Component<boolean>;
 
-  constructor(physics: Physics, bodyComponent: Component<Body>) {
+  constructor(
+    physics: Physics,
+    bodyComponent: Component<Body>,
+    staticComponent: Component<boolean>,
+  ) {
     this._physics = physics;
     this._bodyComponent = bodyComponent;
+    this._staticComponent = staticComponent;
   }
 
   async init(): Promise<void> {
@@ -162,20 +168,26 @@ export class RapierWorldManager {
   ): RAPIER.RigidBody {
     let rigidBodyDesc: RAPIER.RigidBodyDesc;
 
-    switch (defaultProps.bodyType) {
-      case "static":
-        rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
-        break;
-      case "kinematicPositionBased":
-        rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
-        break;
-      case "kinematicVelocityBased":
-        rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
-        break;
-      case "dynamic":
-      default:
-        rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-        break;
+    const isStatic = this._staticComponent.get(entity) ?? false;
+
+    if (isStatic) {
+      rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+    } else {
+      switch (defaultProps.bodyType) {
+        case "static":
+          rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+          break;
+        case "kinematicPositionBased":
+          rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
+          break;
+        case "kinematicVelocityBased":
+          rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
+          break;
+        case "dynamic":
+        default:
+          rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
+          break;
+      }
     }
 
     rigidBodyDesc.setTranslation(entity.pos.x, entity.pos.y);
@@ -184,7 +196,7 @@ export class RapierWorldManager {
     const rigidBody = this._rapierWorld!.createRigidBody(rigidBodyDesc);
 
     const mass = this._physics.mass.get(entity) ?? defaultProps.mass ?? 0;
-    if (mass > 0 && defaultProps.bodyType !== "static") {
+    if (mass > 0 && defaultProps.bodyType !== "static" && !isStatic) {
       const inertia = this.computeApproximateInertiaForBody(body, mass);
       rigidBody.setAdditionalMassProperties(
         mass,
@@ -315,13 +327,19 @@ export class RapierWorldManager {
     const bodyComponent = entity.getComp(this._bodyComponent);
     if (!rapierObjects || !bodyComponent) return;
 
-    const linvel = rapierObjects.rigidBody.linvel();
-    const rotation = rapierObjects.rigidBody.rotation();
+    if (rapierObjects.rigidBody.isFixed()) {
+      return;
+    }
 
-    (this._physics.velocity as Component<Vec2>).set(
-      entity,
-      new Vec2(linvel.x, linvel.y),
-    );
+    if (rapierObjects.rigidBody.isDynamic()) {
+      const linvel = rapierObjects.rigidBody.linvel();
+      (this._physics.velocity as Component<Vec2>).set(
+        entity,
+        new Vec2(linvel.x, linvel.y),
+      );
+    }
+
+    const rotation = rapierObjects.rigidBody.rotation();
     bodyComponent.rotation = rotation;
   }
 

@@ -26,6 +26,11 @@ export type CollisionForce = {
    * @param callback The callback function.
    */
   addCollisionCallback: (callback: CollisionCallback) => void;
+  /**
+   * A component that can be used to mark an entity as static.
+   * If an entity has this component, it will not be moved by the collision force.
+   */
+  staticComponent: Component<boolean>;
 };
 
 /**
@@ -36,14 +41,20 @@ export type CollisionForce = {
  * @param physics The main physics instance.
  * @param bodyComponent The component that stores the body data for entities.
  * @param defaultCollisionProperties Default properties for colliders created for entities.
- * @returns A promise that resolves to an object with a function to add a collision callback.
+ * @returns A promise that resolves to a `CollisionForce` object which contains a `staticComponent` and a function to add a collision callback.
  */
 export async function initCollisionForce(
   physics: Physics,
   bodyComponent: Component<Body>,
   defaultCollisionProperties: DefaultCollisionProperties = {},
 ): Promise<CollisionForce> {
-  const rapierWorldManager = new RapierWorldManager(physics, bodyComponent);
+  const staticComponent = new Component<boolean>();
+
+  const rapierWorldManager = new RapierWorldManager(
+    physics,
+    bodyComponent,
+    staticComponent,
+  );
   await rapierWorldManager.init();
 
   const collisionEventComponent = new Component<CollisionEvent[]>();
@@ -72,6 +83,7 @@ export async function initCollisionForce(
     addCollisionCallback: (callback: CollisionCallback) => {
       collisionSystem.addCollisionCallback(callback);
     },
+    staticComponent,
   };
 }
 

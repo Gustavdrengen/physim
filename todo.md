@@ -1,6 +1,7 @@
 # Todo:
 
-- Example fixing shit remove sim.onUpdate and normal entiry creation.
+- Stdlib sounds and instruments
+- Example fixing shit remove sim.onUpdate and normal entity creation.
 - Testing
   - Implementing tests
 - Complete core

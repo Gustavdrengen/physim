@@ -7,6 +7,9 @@
  * import { ParticleSystem } from "physim/particles";
  * import { Vec2 } from "physim/vec";
  * import { Color } from "physim/draw";
+ * import { Simulation } from "physim/simulation";
+ *
+ * const simulation = new Simulation();
  *
  * const particleSystem = new ParticleSystem();
  *
@@ -20,9 +23,9 @@
  *   color: { start: Color.fromHex("#ff0000"), end: Color.fromHex("#ffff00") },
  * });
  *
- * sim.onUpdate = () => {
+ * simulation.run(() => {
  *   particleSystem.updateAndRender();
- * }
+ * });
  * ```
  * @module
  */

@@ -27,7 +27,7 @@ const bodyDisplayComponent = initBodyDisplayComponent(
   bodyComponent,
 );
 initGravityForce(simulation.physics, 6);
-const collisionForce = await initCollisionForce(
+const { addCollisionCallback, staticComponent } = await initCollisionForce(
   simulation.physics,
   bodyComponent,
   {
@@ -76,7 +76,7 @@ const notes = new NoteSeries(
 
 await notes.init();
 
-collisionForce.addCollisionCallback((event) => {
+addCollisionCallback((event) => {
   particleSystem.emit(
     createFireEffect({
       position: event.position,
@@ -84,6 +84,13 @@ collisionForce.addCollisionCallback((event) => {
   );
   simulation.camera.shake(20, 10);
 });
+
+const blueBallBody = Body.fromShape(createCircle(20));
+const blueBall = Entity.create(new Vec2(100, 50), [
+  [bodyComponent, blueBallBody],
+  [simulation.physics.velocity, new Vec2(-2000, -1000)],
+  [bodyDisplayComponent, { color: Color.fromString("blue"), fill: true }],
+]);
 
 const ring = new Entity(new Vec2(50, 50));
 const rect1 = new Entity(new Vec2(10, 50));
@@ -93,7 +100,7 @@ const rect3 = new Entity(new Vec2(130, 200));
 rect1.addComp(simulation.physics.mass, 10);
 rect1.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
 rect1.addComp(bodyDisplayComponent, { color: new Color(250, 50, 100) });
-rect1.addComp(simulation.physics.acceleration, new Vec2(10, 10));
+rect1.addComp(simulation.physics.acceleration, new Vec2(500, 1000));
 rect1.addComp(particleSystem.trailComponent, {
   interval: 60 * 0.5,
   body: Body.fromShape(createCircle(5)),
@@ -107,12 +114,12 @@ rect1.addComp(particleSystem.trailComponent, {
 rect2.addComp(simulation.physics.mass, 10);
 rect2.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
 rect2.addComp(bodyDisplayComponent, { color: new Color(20, 250, 100) });
-rect2.addComp(simulation.physics.acceleration, new Vec2(-10, 20));
+rect2.addComp(simulation.physics.acceleration, new Vec2(-1000, 2000));
 
 rect3.addComp(simulation.physics.mass, 10);
 rect3.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
 rect3.addComp(bodyDisplayComponent, { color: new Color(20, 50, 250) });
-rect3.addComp(simulation.physics.acceleration, new Vec2(20, -10));
+rect3.addComp(simulation.physics.acceleration, new Vec2(2000, -1000));
 
 const ringBody = Body.fromShape(
   createRing(200, 300, [
@@ -125,8 +132,9 @@ const ringBody = Body.fromShape(
 ring.addComp(simulation.physics.mass, 100);
 ring.addComp(bodyComponent, ringBody);
 ring.addComp(bodyDisplayComponent, { color: new Color(250, 250, 30) });
+ring.addComp(staticComponent, true);
 
-simulation.camera.follow([rect1, rect2, rect3]);
+//simulation.camera.follow([rect1, rect2, rect3]);
 
 log("Starting simulation...", 67);
 
@@ -136,11 +144,11 @@ simulation.run(() => {
   Draw.text(new Vec2(500, 200), "SIX SEVEN");
   ringBody.rotation += 0.01;
 
-  if (sim.frame % 15 === 0) {
+  if (simulation.frame % 15 === 0) {
     notes.playNext();
   }
 
-  if (sim.frame == 60 * 5) {
+  if (simulation.frame == 60 * 5) {
     //sim.finish();
   }
 });

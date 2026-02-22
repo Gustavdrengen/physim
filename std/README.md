@@ -32,37 +32,39 @@ import { initBodyComponent, createCircle, Body } from "physim/bodies";
 import { initBodyDisplayComponent } from "physim/graphics";
 import { Color } from "physim/draw";
 
-// 1. Initialize core simulation
+// 1. Initialize the simulation
 const simulation = new Simulation();
 
 // 2. Initialize components and forces
 const bodyComponent = initBodyComponent();
-const bodyDisplayComponent = initBodyDisplayComponent(simulation.display, bodyComponent); // Register body drawing
+const bodyDisplayComponent = initBodyDisplayComponent(
+  simulation.display,
+  bodyComponent,
+); // Register body drawing
 initGravityForce(simulation.physics, 50); // Adjust G for stronger/weaker gravity
 
 // 3. Create entities
-const objectA = Entity.create(
-  new Vec2(200, 200),
-  [
-    [simulation.physics.mass, 1000],
-    [bodyComponent, Body.fromShape(createCircle(20))],
-    [simulation.physics.velocity, Vec2.zero()], // Initialize velocity
-    [simulation.physics.acceleration, Vec2.zero()], // Initialize acceleration
-    [bodyDisplayComponent, { color: Color.fromString("blue"), fill: true }]
-  ]
-);
+const objectA = Entity.create(new Vec2(100, 200), [
+  [simulation.physics.mass, 1000],
+  [bodyComponent, Body.fromShape(createCircle(20))],
+  [simulation.physics.velocity, Vec2.zero()], // Initialize velocity
+  [simulation.physics.acceleration, Vec2.zero()], // Initialize acceleration
+  [bodyDisplayComponent, { color: Color.fromString("blue"), fill: true }],
+]);
 
-const objectB = Entity.create(
-  new Vec2(400, 200),
-  [
-    [simulation.physics.mass, 100],
-    [bodyComponent, Body.fromShape(createCircle(10))],
-    [simulation.physics.velocity, new Vec2(0, 2)], // Give it an initial velocity
-    [simulation.physics.acceleration, Vec2.zero()], // Initialize acceleration
-    [bodyDisplayComponent, { color: Color.fromString("red"), fill: true }]
-  ]
-);
+const objectB = Entity.create(new Vec2(-400, -200), [
+  [simulation.physics.mass, 100],
+  [bodyComponent, Body.fromShape(createCircle(10))],
+  [simulation.physics.velocity, new Vec2(0, 2)], // Give it an initial velocity
+  [simulation.physics.acceleration, Vec2.zero()], // Initialize acceleration
+  [bodyDisplayComponent, { color: Color.fromString("red"), fill: true }],
+]);
 
-// 4. Run the simulation
+// 4. Have the camera follow the objects (the camera is centered at 0, 0 by default)
+simulation.camera.follow([objectA, objectB]);
+
+// 5. Run the simulation
 simulation.run();
+
+// The simulation stops when the end of the script is reached AND the simulation is finished using simulation.finish()
 ```
