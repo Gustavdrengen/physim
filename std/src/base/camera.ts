@@ -1,4 +1,3 @@
-
 import { Entity } from "./entity.ts";
 import { Vec2 } from "./vec.ts";
 
@@ -92,42 +91,6 @@ export class Camera {
     } else {
       this.shakeOffset = Vec2.zero();
     }
-  }
-
-  /**
-   * Converts a point from world coordinates to screen coordinates.
-   * @param worldPos The position in world coordinates.
-   * @returns The position in screen coordinates.
-   */
-  worldToScreen(worldPos: Vec2): Vec2 {
-    const pos = this.position.add(this.shakeOffset);
-    const dx = worldPos.x - pos.x;
-    const dy = worldPos.y - pos.y;
-
-    const rotatedX =
-      dx * Math.cos(-this.rotation) - dy * Math.sin(-this.rotation);
-    const rotatedY =
-      dx * Math.sin(-this.rotation) + dy * Math.cos(-this.rotation);
-
-    return new Vec2(rotatedX * this.zoom, rotatedY * this.zoom);
-  }
-
-  /**
-   * Converts a point from screen coordinates to world coordinates.
-   * @param screenPos The position in screen coordinates.
-   * @returns The position in world coordinates.
-   */
-  screenToWorld(screenPos: Vec2): Vec2 {
-    const rotatedX = screenPos.x / this.zoom;
-    const rotatedY = screenPos.y / this.zoom;
-
-    const dx =
-      rotatedX * Math.cos(this.rotation) - rotatedY * Math.sin(this.rotation);
-    const dy =
-      rotatedX * Math.sin(this.rotation) + rotatedY * Math.cos(this.rotation);
-
-    const pos = this.position.add(this.shakeOffset);
-    return new Vec2(dx + pos.x, dy + pos.y);
   }
 
   /**

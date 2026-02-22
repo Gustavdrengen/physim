@@ -309,10 +309,10 @@ const sim = {
     waitForNext();
   },
   ctx: canvas.getContext("2d"),
-  frame: 0,
   resizeCanvas: (width, height) => {
     canvas.width = width;
     canvas.height = height;
+    fixCanvasDisplay();
   },
   addSound: async (soundProps) => {
     try {
@@ -403,9 +403,11 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
           }
         }, "image/png");
       }
-
-      sim.frame += 1;
     }, 1000 / 60);
+  } else {
+    stopSimulation();
+    showFinishOverlay();
+    waitForNext();
   }
 });
 

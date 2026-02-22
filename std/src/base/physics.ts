@@ -16,12 +16,14 @@ export class Physics {
 
   /**
    * The velocity component.
-   * If an entity has this component, it will be moved by its velocity every frame.
+   * If an entity has this component, it will be moved by its velocity.
+   * Velocity is expressed in units per second.
    */
   velocity: Component<Vec2> = new Component<Vec2>();
   /**
    * The acceleration component.
    * This component is used to accumulate forces on an entity.
+   * Acceleration is expressed in units per second squared.
    */
   acceleration: Component<Vec2> = new Component<Vec2>();
 
@@ -49,7 +51,7 @@ export class Physics {
     this.registerForce(
       this.velocity,
       (entity: Entity, vel: Vec2) => {
-        entity.pos = entity.pos.add(vel);
+        entity.pos = entity.pos.add(vel.scale(1 / 60));
       },
       2,
     );

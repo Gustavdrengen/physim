@@ -8,12 +8,20 @@
  * import { createRectangle, initBodyComponent, Body } from "physim/bodies";
  *
  * const bodyComponent = initBodyComponent();
+ * const bodyDisplay = initBodyDisplayComponent(
+ *  simulation.display,
+ *  bodyComponent,
+ * );
+ *
  *
  * const body = Body.fromShape(createRectangle(10, 10));
  *
  * const entity = Entity.create(
  *  new Vec2(100, 100),
- *  [[bodyComponent, body]]
+ *  [
+ *   [bodyComponent, body],
+ *   [bodyDisplay, { color: Color.fromRGB(0, 0, 255), fill: true }]
+ *  ]
  * );
  * ```
  *
