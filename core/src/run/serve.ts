@@ -12,6 +12,7 @@ import {
 } from "../err.ts";
 import { AssetManager } from "./assets.ts";
 import * as print from "../print.ts";
+import { openWebview } from "./webview.ts";
 
 const coreDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
 const htmlPath = join(coreDir, "sim.html");
@@ -31,6 +32,7 @@ export async function runServer(
   record: boolean,
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
+  useWebview: boolean,
 ): Promise<Result<undefined>> {
   let server: Deno.HttpServer<Deno.NetAddr>;
 
@@ -59,9 +61,35 @@ export async function runServer(
 
   setTimeout(async () => {
     if (!started) {
-      const e = await openUrl(`http://127.0.0.1:${servePort}/`);
-      if (e) {
-        endAndFail(e);
+      const url = `http://127.0.0.1:${servePort}/`;
+      if (useWebview) {
+        openWebview(url);
+        setTimeout(() => {
+          if (!started) {
+            endAndFail(
+              fail(
+                SystemFailureTag.OpenFailure,
+                "Failed to establish a connection with the webview.",
+              ),
+            );
+          }
+        }, 3000);
+      } else {
+        const e = await openUrl(url);
+        if (e) {
+          endAndFail(e);
+        } else {
+          setTimeout(() => {
+            if (!started) {
+              endAndFail(
+                fail(
+                  SystemFailureTag.OpenFailure,
+                  "Failed to establish a connection with the browser.",
+                ),
+              );
+            }
+          }, 5000);
+        }
       }
     }
   }, 2000);
