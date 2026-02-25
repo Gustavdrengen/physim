@@ -33,11 +33,12 @@ const cmd = new Command()
     "-r --record <outfile>",
     "Record the simulation and save it as an mp4 in outfile.",
   )
-  .action(async ({ raw, record }, entrypoint) => {
+  .option("-w --webview", "Run the simulation in a webview window.")
+  .action(async ({ raw, record, webview }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record));
+    unwrap(await run(entrypoint, record, webview));
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {

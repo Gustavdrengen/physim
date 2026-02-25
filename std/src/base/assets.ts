@@ -38,7 +38,6 @@ export async function resolveAssetPath(asset: Asset): Promise<string> {
   if (typeof asset === "string") {
     return asset;
   } else if (asset._isFetchAsset) {
-    console.log(`try get ${asset.url}`);
     if (!fetchAssets.has(asset.url)) {
       const name = "fetchasset_" + id++;
       fetchAssets.set(asset.url, name);

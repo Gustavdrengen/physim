@@ -36,6 +36,7 @@ const { addCollisionCallback, staticComponent } = await initCollisionForce(
 );
 const particleSystem = new ParticleSystem();
 
+log("pre fetch");
 const notes = new NoteSeries(
   [
     "E5",
@@ -73,8 +74,10 @@ const notes = new NoteSeries(
     "https://musical-artifacts.com/artifacts/4819/School_Piano_2024.sf2",
   ),
 );
+log("post fetch");
 
 await notes.init();
+log("notes inited");
 
 addCollisionCallback((event) => {
   particleSystem.emit(
@@ -98,7 +101,7 @@ const rect2 = new Entity(new Vec2(100, 100));
 const rect3 = new Entity(new Vec2(130, 200));
 
 rect1.addComp(simulation.physics.mass, 10);
-rect1.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
+rect1.addComp(bodyComponent, Body.fromShape(createCircle(20)));
 rect1.addComp(bodyDisplayComponent, { color: new Color(250, 50, 100) });
 rect1.addComp(simulation.physics.acceleration, new Vec2(500, 1000));
 rect1.addComp(particleSystem.trailComponent, {
@@ -129,10 +132,18 @@ const ringBody = Body.fromShape(
   3,
 );
 
-ring.addComp(simulation.physics.mass, 100);
+//ring.addComp(simulation.physics.mass, 100);
 ring.addComp(bodyComponent, ringBody);
 ring.addComp(bodyDisplayComponent, { color: new Color(250, 250, 30) });
 ring.addComp(staticComponent, true);
+
+const ringInnerRadius = 180;
+const ringOuterRadius = 200;
+const ringShape = createRing(ringInnerRadius, ringOuterRadius);
+const ringEntity = Entity.create(new Vec2(0, 0), [
+  [bodyComponent, Body.fromShape(ringShape)],
+  [bodyDisplayComponent, { color: Color.fromString("yellow"), fill: true }],
+]);
 
 //simulation.camera.follow([rect1, rect2, rect3]);
 

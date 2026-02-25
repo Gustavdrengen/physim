@@ -101,8 +101,12 @@ export class NoteSeries {
    * @param font The sound font to use for the notes.
    */
   constructor(notes: string[], font: Asset) {
+    const uniqueNoteCache = new Map<string, Promise<Sound>>();
     notes.forEach((note) => {
-      this.soundsPromises.push(Sound.fromNote(note, font));
+      if (!uniqueNoteCache.has(note)) {
+        uniqueNoteCache.set(note, Sound.fromNote(note, font));
+      }
+      this.soundsPromises.push(uniqueNoteCache.get(note)!);
     });
   }
 

@@ -38,6 +38,7 @@ export async function compileVideo(tempDirName: string, outfile: string) {
 export async function run(
   entrypoint: string,
   record: string | undefined,
+  useWebview: boolean,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -70,6 +71,7 @@ export async function run(
     record !== undefined,
     assetManager,
     audioPlayer,
+    useWebview,
   );
 
   if (runResult) {

@@ -30,12 +30,15 @@ import { Vec2 } from "physim/vec";
 import { initGravityForce } from "physim/forces/gravity";
 import { initBodyComponent, createCircle, Body } from "physim/bodies";
 import { initBodyDisplayComponent } from "physim/graphics";
-import { Color } from "physim/draw";
+import { Color, setCanvasSize } from "physim/draw";
 
-// 1. Initialize the simulation
+// 1. Set size of canvas
+setCanvasSize(1920, 1080);
+
+// 2. Initialize the simulation
 const simulation = new Simulation();
 
-// 2. Initialize components and forces
+// 3. Initialize components and forces
 const bodyComponent = initBodyComponent();
 const bodyDisplayComponent = initBodyDisplayComponent(
   simulation.display,
@@ -43,7 +46,7 @@ const bodyDisplayComponent = initBodyDisplayComponent(
 ); // Register body drawing
 initGravityForce(simulation.physics, 50); // Adjust G for stronger/weaker gravity
 
-// 3. Create entities
+// 4. Create entities
 const objectA = Entity.create(new Vec2(100, 200), [
   [simulation.physics.mass, 1000],
   [bodyComponent, Body.fromShape(createCircle(20))],
@@ -60,10 +63,10 @@ const objectB = Entity.create(new Vec2(-400, -200), [
   [bodyDisplayComponent, { color: Color.fromString("red"), fill: true }],
 ]);
 
-// 4. Have the camera follow the objects (the camera is centered at 0, 0 by default)
+// 5. Have the camera follow the objects (the camera is centered at 0, 0 by default)
 simulation.camera.follow([objectA, objectB]);
 
-// 5. Run the simulation
+// 6. Run the simulation
 simulation.run();
 
 // The simulation stops when the end of the script is reached AND the simulation is finished using simulation.finish()
