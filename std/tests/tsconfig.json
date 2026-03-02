@@ -9,8 +9,7 @@
       "dom"
     ],
     "types": [
-      "/home/theman/physim/sandbox.d.ts",
-      "/home/theman/physim/sound.d.ts"
+      "/home/theman/physim/sandbox.d.ts"
     ],
     "allowImportingTsExtensions": true,
     "baseUrl": "/",

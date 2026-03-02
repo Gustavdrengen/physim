@@ -35,9 +35,24 @@ export class Physics {
   mass: Component<number> = new Component<number>();
 
   /**
+   * Constant directional pull applied to all entities with a velocity component.
+   * This effectively acts as a uniform acceleration field (like gravity).
+   */
+  constantPull: Vec2 = new Vec2(0, 0);
+
+  /**
    * Creates a new `Physics` instance.
    */
   constructor() {
+    this.registerForce(
+      this.velocity,
+      (entity: Entity, vel: Vec2) => {
+        const velWithPull = vel.add(this.constantPull);
+        this.velocity.set(entity, velWithPull);
+      },
+      3,
+    );
+
     this.registerForce(
       this.acceleration,
       (entity: Entity, acc: Vec2) => {
@@ -57,27 +72,7 @@ export class Physics {
     );
   }
 
-  /**
-   * Registers a force to be applied to entities.
-   *
-   * The order in which forces are applied is determined by the `priority` argument.
-   * Forces with a lower `priority` are applied first.
-   *
-   * The default priority is 0.
-   *
-   * Here is the current order of the default forces:
-   * 1. Acceleration
-   * 2. Velocity
-   *
-   * @param comps The component or array of components that the force is associated with.
-   * @param force The function that applies the force.
-   * @param priority The priority of the force.
-   */
-  registerForce<T extends any[]>(
-    comps: Component<T[number]>[],
-    force: (entity: Entity, data: T) => void,
-    priority?: number,
-  ): void;
+
   /**
    * Registers a force to be applied to entities.
    * @param comp The component that the force is associated with.

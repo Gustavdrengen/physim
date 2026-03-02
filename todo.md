@@ -1,8 +1,10 @@
 # Todo:
 
-- Stdlib sounds and instruments
 - Testing
   - Implementing tests
+- Fix layer system
+- More things in the Simulation class
+- Stdlib sounds and instruments
 - Complete core
   - New error system everywhere, including other commands
   - Dependency management system version control

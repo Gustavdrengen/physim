@@ -88,7 +88,7 @@ export async function runServer(
                 ),
               );
             }
-          }, 5000);
+          }, 8000);
         }
       }
     }

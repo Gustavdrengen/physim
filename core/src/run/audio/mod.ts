@@ -25,7 +25,10 @@ export class AudioPlayer {
   }
 
   async addSound(props: SoundProps): Promise<Result<number>> {
-    const fileName = join(this.tmpDir, "sound_" + this.sounds.length + ".mp3");
+    const id = this.sounds.length;
+    this.sounds.push("");
+
+    const fileName = join(this.tmpDir, "sound_" + id + ".mp3");
 
     if (typeof props.src === "string") {
       const r = this.assetManager.copyAsset(props.src, fileName);
@@ -50,7 +53,8 @@ export class AudioPlayer {
       }
     }
 
-    return this.sounds.push(fileName) - 1;
+    this.sounds[id] = fileName;
+    return id;
   }
 
   playSound(id: number, frame: number): Result<undefined> {

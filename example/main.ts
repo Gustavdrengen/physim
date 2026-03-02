@@ -20,13 +20,13 @@ import { fetchAsset } from "physim/assets";
 import { Simulation } from "physim/simulation";
 
 const simulation = new Simulation();
+simulation.physics.constantPull = new Vec2(0, 10);
 simulation.camera.zoom = 2;
 const bodyComponent = initBodyComponent();
 const bodyDisplayComponent = initBodyDisplayComponent(
   simulation.display,
   bodyComponent,
 );
-initGravityForce(simulation.physics, 6);
 const { addCollisionCallback, staticComponent } = await initCollisionForce(
   simulation.physics,
   bodyComponent,
@@ -136,14 +136,6 @@ const ringBody = Body.fromShape(
 ring.addComp(bodyComponent, ringBody);
 ring.addComp(bodyDisplayComponent, { color: new Color(250, 250, 30) });
 ring.addComp(staticComponent, true);
-
-const ringInnerRadius = 180;
-const ringOuterRadius = 200;
-const ringShape = createRing(ringInnerRadius, ringOuterRadius);
-const ringEntity = Entity.create(new Vec2(0, 0), [
-  [bodyComponent, Body.fromShape(ringShape)],
-  [bodyDisplayComponent, { color: Color.fromString("yellow"), fill: true }],
-]);
 
 //simulation.camera.follow([rect1, rect2, rect3]);
 
