@@ -296,14 +296,14 @@ const sim = {
         .map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg)))
         .join("\t"),
       headers: { "Content-Type": "application/json" },
-    }).catch(() => {});
+    }).catch(() => { });
   },
   finish: () => {
     isFinished = true;
     fetch("/finish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-    }).catch(() => {});
+    }).catch(() => { });
     stopSimulation();
     showFinishOverlay();
     waitForNext();
@@ -331,7 +331,7 @@ const sim = {
       method: "POST",
       body: sound.toString(),
       headers: { "Content-Type": "application/json" },
-    }).catch(() => {});
+    }).catch(() => { });
   },
   addFetchAsset: async (path, fetchAddr) => {
     try {
@@ -349,7 +349,7 @@ const sim = {
 fetch("/begin", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-}).catch(() => {});
+}).catch(() => { });
 
 function startPinging() {
   pingInterval = setInterval(() => {
@@ -379,7 +379,7 @@ function errorHandler(err) {
     method: "POST",
     body: err.message,
     headers: { "Content-Type": "application/json" },
-  }).catch(() => {});
+  }).catch(() => { });
 
   stopSimulation();
   waitForNext();
@@ -419,7 +419,7 @@ function waitForNext() {
           location.reload();
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, 300);
 }
 
@@ -451,6 +451,10 @@ function writeToTerminal(text) {
 }
 
 function handleStop() {
+  fetch("/finish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  }).catch(() => { });
   stopSimulation();
   showStoppedOverlay();
   waitForNext();

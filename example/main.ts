@@ -20,7 +20,7 @@ import { fetchAsset } from "physim/assets";
 import { Simulation } from "physim/simulation";
 
 const simulation = new Simulation();
-simulation.physics.constantPull = new Vec2(0, 10);
+//simulation.physics.constantPull = new Vec2(0, 10);
 simulation.camera.zoom = 2;
 const bodyComponent = initBodyComponent();
 const bodyDisplayComponent = initBodyDisplayComponent(

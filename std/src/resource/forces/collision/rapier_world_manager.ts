@@ -312,14 +312,21 @@ export class RapierWorldManager {
     const bodyComponent = entity.getComp(this._bodyComponent);
     if (!rapierObjects || !bodyComponent) return;
 
-    const vel = this._physics.velocity.get(entity) || new Vec2(0, 0);
+    const rigidBody = rapierObjects.rigidBody;
 
-    rapierObjects.rigidBody.setTranslation(
-      new RAPIER.Vector2(entity.pos.x, entity.pos.y),
-      true,
-    );
-    rapierObjects.rigidBody.setLinvel(new RAPIER.Vector2(vel.x, vel.y), true);
-    rapierObjects.rigidBody.setRotation(bodyComponent.rotation, true);
+    // Only sync position/rotation for kinematic bodies (user-controlled)
+    // For dynamic bodies, Rapier controls position through simulation
+    if (rigidBody.isKinematic()) {
+      rigidBody.setTranslation(
+        new RAPIER.Vector2(entity.pos.x, entity.pos.y),
+        true,
+      );
+      rigidBody.setRotation(bodyComponent.rotation, true);
+    }
+
+    // Always sync velocity for all body types
+    const vel = this._physics.velocity.get(entity) || new Vec2(0, 0);
+    rigidBody.setLinvel(new RAPIER.Vector2(vel.x, vel.y), true);
   }
 
   syncEntityToRigidBody(entity: Entity): void {
@@ -327,19 +334,27 @@ export class RapierWorldManager {
     const bodyComponent = entity.getComp(this._bodyComponent);
     if (!rapierObjects || !bodyComponent) return;
 
-    if (rapierObjects.rigidBody.isFixed()) {
+    const rigidBody = rapierObjects.rigidBody;
+
+    if (rigidBody.isFixed()) {
       return;
     }
 
-    if (rapierObjects.rigidBody.isDynamic()) {
-      const linvel = rapierObjects.rigidBody.linvel();
+    // For dynamic bodies, read position from Rapier (authoritative simulation)
+    // This includes collision response - Rapier has already integrated position
+    if (rigidBody.isDynamic()) {
+      const pos = rigidBody.translation();
+      entity.pos.x = pos.x;
+      entity.pos.y = pos.y;
+
+      const linvel = rigidBody.linvel();
       (this._physics.velocity as Component<Vec2>).set(
         entity,
         new Vec2(linvel.x, linvel.y),
       );
     }
 
-    const rotation = rapierObjects.rigidBody.rotation();
+    const rotation = rigidBody.rotation();
     bodyComponent.rotation = rotation;
   }
 
