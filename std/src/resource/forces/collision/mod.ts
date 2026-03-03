@@ -40,7 +40,7 @@ export type CollisionForce = {
  *
  * @param physics The main physics instance.
  * @param bodyComponent The component that stores the body data for entities.
- * @param defaultCollisionProperties Default properties for colliders created for entities.
+ * @param defaultCollisionProperties Default properties for colliders. Note: restitution defaults to 1.0 (perfect bounce) unless specified.
  * @returns A promise that resolves to a `CollisionForce` object which contains a `staticComponent` and a function to add a collision callback.
  */
 export async function initCollisionForce(
@@ -69,6 +69,13 @@ export async function initCollisionForce(
   // Store original velocities for Rapier-managed entities to prevent double-integration
   const originalVelocities = new Map<Entity, Vec2>();
 
+  // Turn detection for batching collision steps
+  const originalUpdate = physics.update.bind(physics);
+  physics.update = () => {
+    originalUpdate();
+    collisionSystem.step();
+  };
+
   // Zero out velocity before integration (priority 1.5, after acceleration, before position integration)
   // This prevents the base physics integration from moving entities that Rapier already integrated
   physics.registerForce(
@@ -83,7 +90,7 @@ export async function initCollisionForce(
     1.5,
   );
 
-  // Restore velocity after integration (priority 2.5, after position integration, before constantPull)
+  // Restore velocity after integration (priority 2.5, after position integration)
   physics.registerForce(
     bodyComponent,
     (entity: Entity) => {
@@ -98,15 +105,12 @@ export async function initCollisionForce(
 
   physics.registerForce(
     bodyComponent,
-    (entity: Entity, body: Body) => {
+    (entity: Entity, _body: Body) => {
       if (!rapierWorldManager.getEntities().includes(entity)) {
         rapierWorldManager.addEntity(entity, defaultCollisionProperties);
       }
-
-      collisionSystem.incrementFrameId();
-      collisionSystem.update(entity);
     },
-    -1,
+    4,
   );
 
   return {
@@ -117,4 +121,4 @@ export async function initCollisionForce(
   };
 }
 
-export { CollisionEvent };
+export { CollisionEvent, DefaultCollisionProperties };

@@ -14,7 +14,7 @@
  * const bodyComponent = initBodyComponent();
  *
  * const { staticComponent } = await initCollisionForce(simulation.physics, bodyComponent, {
- *  restitution: 0.1
+ *  restitution: 0.5
  * });
  *
  * // Create a dynamic entity

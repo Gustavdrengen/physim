@@ -6,18 +6,28 @@ import { CollisionEvent } from "./events";
 import { Body, BodyPart } from "../../body/body";
 import { Physics } from "../../../base/physics";
 
+/**
+ * Default properties for colliders created for entities.
+ */
 export type DefaultCollisionProperties = {
-  bodyType?:
-    | "dynamic"
-    | "static"
-    | "kinematicPositionBased"
-    | "kinematicVelocityBased";
+  /**
+   * The default mass of bodies. If not provided, defaults to 1.0.
+   */
   mass?: number;
+  /**
+   * Friction coefficient. Defaults to 0.5.
+   */
   friction?: number;
+  /**
+   * Restitution (bounciness) coefficient.
+   * 0.0 = inelastic (no bounce), 1.0 = perfectly elastic (perfect bounce).
+   * Defaults to 1.0.
+   */
   restitution?: number;
+  /**
+   * If true, the colliders will only trigger events and not provide physical response.
+   */
   sensor?: boolean;
-  collisionGroups?: number;
-  solverGroups?: number;
 };
 
 export class RapierWorldManager {
@@ -46,6 +56,7 @@ export class RapierWorldManager {
     await RAPIER.init();
     this._eventQueue = new RAPIER.EventQueue(true);
     this._rapierWorld = new RAPIER.World(new RAPIER.Vector2(0, 0));
+    this._rapierWorld.numSolverIterations = 10;
   }
 
   step(): void {
@@ -173,21 +184,8 @@ export class RapierWorldManager {
     if (isStatic) {
       rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
     } else {
-      switch (defaultProps.bodyType) {
-        case "static":
-          rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
-          break;
-        case "kinematicPositionBased":
-          rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
-          break;
-        case "kinematicVelocityBased":
-          rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased();
-          break;
-        case "dynamic":
-        default:
-          rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-          break;
-      }
+      rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
+      rigidBodyDesc.setCcdEnabled(true);
     }
 
     rigidBodyDesc.setTranslation(entity.pos.x, entity.pos.y);
@@ -195,8 +193,8 @@ export class RapierWorldManager {
 
     const rigidBody = this._rapierWorld!.createRigidBody(rigidBodyDesc);
 
-    const mass = this._physics.mass.get(entity) ?? defaultProps.mass ?? 0;
-    if (mass > 0 && defaultProps.bodyType !== "static" && !isStatic) {
+    const mass = this._physics.mass.get(entity) ?? defaultProps.mass ?? 1.0;
+    if (!isStatic) {
       const inertia = this.computeApproximateInertiaForBody(body, mass);
       rigidBody.setAdditionalMassProperties(
         mass,
@@ -217,18 +215,12 @@ export class RapierWorldManager {
     const descs: RAPIER.ColliderDesc[] = [];
 
     const applyProps = (desc: RAPIER.ColliderDesc) => {
-      desc.setDensity(0);
       desc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
       if (defaultProps.friction !== undefined)
         desc.setFriction(defaultProps.friction);
-      if (defaultProps.restitution !== undefined)
-        desc.setRestitution(defaultProps.restitution);
+      desc.setRestitution(defaultProps.restitution ?? 1.0);
       if (defaultProps.sensor !== undefined)
         desc.setSensor(defaultProps.sensor);
-      if (defaultProps.collisionGroups !== undefined)
-        desc.setCollisionGroups(defaultProps.collisionGroups);
-      if (defaultProps.solverGroups !== undefined)
-        desc.setSolverGroups(defaultProps.solverGroups);
     };
 
     switch (shape.type) {
@@ -251,7 +243,7 @@ export class RapierWorldManager {
         break;
       }
       case "ring": {
-        const segments = 16;
+        const segments = 64;
         const { innerRadius, outerRadius, gaps } = shape;
         if (outerRadius <= innerRadius)
           throw new Error("ring.outerRadius must be greater than innerRadius");
@@ -314,15 +306,15 @@ export class RapierWorldManager {
 
     const rigidBody = rapierObjects.rigidBody;
 
-    // Only sync position/rotation for kinematic bodies (user-controlled)
-    // For dynamic bodies, Rapier controls position through simulation
-    if (rigidBody.isKinematic()) {
-      rigidBody.setTranslation(
-        new RAPIER.Vector2(entity.pos.x, entity.pos.y),
-        true,
-      );
-      rigidBody.setRotation(bodyComponent.rotation, true);
-    }
+    // Sync position/rotation to Rapier. 
+    // For kinematic bodies, this is how they move.
+    // For dynamic bodies, we sync to allow Rapier to resolve any penetration 
+    // introduced by base physics integration (like gravity) before the Rapier step.
+    rigidBody.setTranslation(
+      new RAPIER.Vector2(entity.pos.x, entity.pos.y),
+      true,
+    );
+    rigidBody.setRotation(bodyComponent.rotation, true);
 
     // Always sync velocity for all body types
     const vel = this._physics.velocity.get(entity) || new Vec2(0, 0);
