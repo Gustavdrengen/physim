@@ -31,7 +31,7 @@ const { addCollisionCallback, staticComponent } = await initCollisionForce(
   simulation.physics,
   bodyComponent,
   {
-    restitution: 0.1,
+    restitution: 1.0,
   },
 );
 const particleSystem = new ParticleSystem();
@@ -91,7 +91,7 @@ addCollisionCallback((event) => {
 const blueBallBody = Body.fromShape(createCircle(20));
 const blueBall = Entity.create(new Vec2(100, 50), [
   [bodyComponent, blueBallBody],
-  [simulation.physics.velocity, new Vec2(-2000, -1000)],
+  [simulation.physics.velocity, new Vec2(-200, -100)],
   [bodyDisplayComponent, { color: Color.fromString("blue"), fill: true }],
 ]);
 
@@ -103,7 +103,7 @@ const rect3 = new Entity(new Vec2(130, 200));
 rect1.addComp(simulation.physics.mass, 10);
 rect1.addComp(bodyComponent, Body.fromShape(createCircle(20)));
 rect1.addComp(bodyDisplayComponent, { color: new Color(250, 50, 100) });
-rect1.addComp(simulation.physics.acceleration, new Vec2(500, 1000));
+rect1.addComp(simulation.physics.acceleration, new Vec2(500, 100));
 rect1.addComp(particleSystem.trailComponent, {
   interval: 60 * 0.5,
   body: Body.fromShape(createCircle(5)),
@@ -117,12 +117,12 @@ rect1.addComp(particleSystem.trailComponent, {
 rect2.addComp(simulation.physics.mass, 10);
 rect2.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
 rect2.addComp(bodyDisplayComponent, { color: new Color(20, 250, 100) });
-rect2.addComp(simulation.physics.acceleration, new Vec2(-1000, 2000));
+rect2.addComp(simulation.physics.acceleration, new Vec2(-400, 200));
 
 rect3.addComp(simulation.physics.mass, 10);
 rect3.addComp(bodyComponent, Body.fromShape(createRectangle(20, 20)));
 rect3.addComp(bodyDisplayComponent, { color: new Color(20, 50, 250) });
-rect3.addComp(simulation.physics.acceleration, new Vec2(2000, -1000));
+rect3.addComp(simulation.physics.acceleration, new Vec2(200, -400));
 
 const ringBody = Body.fromShape(
   createRing(200, 300, [

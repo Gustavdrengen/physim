@@ -13,8 +13,6 @@ export class CollisionSystem {
   private _collisionEventComponent: Component<CollisionEvent[]>;
   private _defaultCollisionProperties: DefaultCollisionProperties;
   private _physics: Physics;
-  private _lastUpdateFrameId: number = -1;
-  private _currentFrameId: number = 0;
   private _entitiesWithCollisionEvents: Set<Entity> = new Set();
   private _collisionCallbacks: CollisionCallback[] = [];
 
@@ -30,55 +28,51 @@ export class CollisionSystem {
     this._physics = physics;
   }
 
-  update(entity: Entity): void {
-    if (this._lastUpdateFrameId !== this._currentFrameId) {
-      this._lastUpdateFrameId = this._currentFrameId;
-
-      for (const entityWithEvents of this._entitiesWithCollisionEvents) {
-        const events = this._collisionEventComponent.get(entityWithEvents);
-        if (events) {
-          events.length = 0;
-        }
-      }
-      this._entitiesWithCollisionEvents.clear();
-
-      for (const managedEntity of this._worldManager.getEntities()) {
-        this._worldManager.syncRigidBodyToEntity(managedEntity);
-      }
-
-      this._worldManager.step();
-
-      for (const managedEntity of this._worldManager.getEntities()) {
-        this._worldManager.syncEntityToRigidBody(managedEntity);
-      }
-
-      const newCollisionEvents = this._worldManager.getCollisionEvents();
-      for (const event of newCollisionEvents) {
-        let entityAEvents = this._collisionEventComponent.get(event.entityA);
-        if (!entityAEvents) {
-          entityAEvents = [];
-          this._collisionEventComponent.set(event.entityA, entityAEvents);
-        }
-        entityAEvents.push(event);
-        this._entitiesWithCollisionEvents.add(event.entityA);
-
-        let entityBEvents = this._collisionEventComponent.get(event.entityB);
-        if (!entityBEvents) {
-          entityBEvents = [];
-          this._collisionEventComponent.set(event.entityB, entityBEvents);
-        }
-        entityBEvents.push(event);
-        this._entitiesWithCollisionEvents.add(event.entityB);
-
-        for (const callback of this._collisionCallbacks) {
-          callback(event);
-        }
+  /**
+   * Performs the collision simulation step.
+   * This should be called once per physics update, after all other forces are integrated.
+   */
+  step(): void {
+    for (const entityWithEvents of this._entitiesWithCollisionEvents) {
+      const events = this._collisionEventComponent.get(entityWithEvents);
+      if (events) {
+        events.length = 0;
       }
     }
-  }
+    this._entitiesWithCollisionEvents.clear();
 
-  incrementFrameId(): void {
-    this._currentFrameId++;
+    for (const managedEntity of this._worldManager.getEntities()) {
+      this._worldManager.syncRigidBodyToEntity(managedEntity);
+    }
+
+    this._worldManager.step();
+
+    for (const managedEntity of this._worldManager.getEntities()) {
+      this._worldManager.syncEntityToRigidBody(managedEntity);
+    }
+
+    const newCollisionEvents = this._worldManager.getCollisionEvents();
+    for (const event of newCollisionEvents) {
+      let entityAEvents = this._collisionEventComponent.get(event.entityA);
+      if (!entityAEvents) {
+        entityAEvents = [];
+        this._collisionEventComponent.set(event.entityA, entityAEvents);
+      }
+      entityAEvents.push(event);
+      this._entitiesWithCollisionEvents.add(event.entityA);
+
+      let entityBEvents = this._collisionEventComponent.get(event.entityB);
+      if (!entityBEvents) {
+        entityBEvents = [];
+        this._collisionEventComponent.set(event.entityB, entityBEvents);
+      }
+      entityBEvents.push(event);
+      this._entitiesWithCollisionEvents.add(event.entityB);
+
+      for (const callback of this._collisionCallbacks) {
+        callback(event);
+      }
+    }
   }
 
   addCollisionCallback(callback: CollisionCallback): void {
