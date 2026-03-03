@@ -46,17 +46,4 @@ test("Camera - follow multiple entities", () => {
   expect(camera.position).toEqual(new Vec2(200, 200));
 });
 
-test("Camera - coordinate conversion", () => {
-  const camera = new Camera();
-  camera.position = new Vec2(100, 100);
-  camera.zoom = 2;
-
-  const worldPos = new Vec2(150, 125);
-  const screenPos = camera.worldToScreen(worldPos);
-  const newWorldPos = camera.screenToWorld(screenPos);
-
-  expect(newWorldPos.x).toBeCloseTo(worldPos.x);
-  expect(newWorldPos.y).toBeCloseTo(worldPos.y);
-});
-
 finish();

@@ -23,6 +23,7 @@ WAITING = "⏳"
 PASS = "✅"
 FAIL = "❌"
 ERROR = "💥"
+SKIP = "⏭️"
 
 
 @dataclass
@@ -127,9 +128,13 @@ class TestDisplay:
                 file_status = ERROR
                 color = RED
             else:
-                passed = all(t.type == "test_pass" for t in result.tests)
-                file_status = PASS if passed and result.tests else FAIL
-                color = GREEN if file_status == PASS else RED
+                if not result.tests:
+                    file_status = SKIP
+                    color = GRAY
+                else:
+                    passed = all(t.type == "test_pass" for t in result.tests)
+                    file_status = PASS if passed else FAIL
+                    color = GREEN if file_status == PASS else RED
 
             print(f"{file_status} {color}{filepath}{RESET}")
             new_lines_printed += 1

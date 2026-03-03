@@ -66,6 +66,36 @@ export async function initCollisionForce(
     physics,
   );
 
+  // Store original velocities for Rapier-managed entities to prevent double-integration
+  const originalVelocities = new Map<Entity, Vec2>();
+
+  // Zero out velocity before integration (priority 1.5, after acceleration, before position integration)
+  // This prevents the base physics integration from moving entities that Rapier already integrated
+  physics.registerForce(
+    bodyComponent,
+    (entity: Entity) => {
+      const vel = physics.velocity.get(entity);
+      if (vel) {
+        originalVelocities.set(entity, vel.clone());
+        physics.velocity.set(entity, new Vec2(0, 0));
+      }
+    },
+    1.5,
+  );
+
+  // Restore velocity after integration (priority 2.5, after position integration, before constantPull)
+  physics.registerForce(
+    bodyComponent,
+    (entity: Entity) => {
+      const originalVel = originalVelocities.get(entity);
+      if (originalVel) {
+        physics.velocity.set(entity, originalVel);
+        originalVelocities.delete(entity);
+      }
+    },
+    2.5,
+  );
+
   physics.registerForce(
     bodyComponent,
     (entity: Entity, body: Body) => {

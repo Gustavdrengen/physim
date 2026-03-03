@@ -25,7 +25,10 @@ class PhysimResult:
 
 
 def run_script(
-    filepath: str, raw: bool = False, video_output_path: str | None = None
+    filepath: str,
+    raw: bool = False,
+    video_output_path: str | None = None,
+    webview: bool = False,
 ) -> PhysimResult:
     """
     Run a physim script and capture its output.
@@ -34,6 +37,7 @@ def run_script(
         filepath: Path to the TypeScript file to run
         raw: Whether to use --raw flag for machine-parsable output
         video_output_path: Optional path to save a video of the simulation.
+        webview: Whether to run the simulation in a webview window.
 
     Returns:
         PhysimResult containing exit code and output
@@ -43,6 +47,8 @@ def run_script(
         args.append("--raw")
     if video_output_path:
         args.extend(["--record", video_output_path])
+    if webview:
+        args.append("--webview")
     args.append(filepath)
     exit_code, stdout, stderr = _run_physim_command(args)
     return PhysimResult(exit_code=exit_code, stdout=stdout, stderr=stderr)
