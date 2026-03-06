@@ -141,7 +141,7 @@ ring.addComp(staticComponent, true);
 
 log("Starting simulation...", 67);
 
-simulation.run(() => {
+await simulation.run(() => {
   particleSystem.update();
   particleSystem.draw(simulation.camera);
   Draw.text(new Vec2(500, 200), "SIX SEVEN");

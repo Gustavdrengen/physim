@@ -335,27 +335,14 @@ export function getPixelColor(x: number, y: number): Color {
 }
 
 /**
- * Simple synchronous test runner.
+ * Test runner.
  */
-export function test(name: string, fn: () => void): void {
-  try {
-    fn(); // run the test
-    sim.log(JSON.stringify({ type: "test_pass", name }));
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    sim.log(JSON.stringify({ type: "test_fail", name, error: errorMessage }));
-  }
-}
-
-/**
- * Asynchronous test runner.
- */
-export async function testAsync(
+export async function test(
   name: string,
   fn: () => void | Promise<void>,
 ): Promise<void> {
   try {
-    await fn(); // await async function if it returns a promise
+    await fn(); // await function if it returns a promise
     sim.log(JSON.stringify({ type: "test_pass", name }));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -363,9 +350,3 @@ export async function testAsync(
   }
 }
 
-/**
- * Should be called when all tests are done.
- */
-export function finish(): void {
-  sim.finish();
-}

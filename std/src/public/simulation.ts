@@ -29,7 +29,7 @@
  * );
  *
  * // Start the simulation.
- * simulation.run();
+ * await simulation.run();
  * ```
  */
 export * from "../base/simulation";

@@ -1,15 +1,15 @@
-import { test, expect, finish } from "../test.ts";
+import { test, expect } from "../test.ts";
 import { Entity, Component } from "../src/public/ecs.ts";
 import { Vec2 } from "../src/public/vec.ts";
 
-test("Entity constructor", () => {
+await test("Entity constructor", () => {
   const pos = new Vec2(10, 20);
   const entity = new Entity(pos);
   expect(entity.pos.x).toBe(10);
   expect(entity.pos.y).toBe(20);
 });
 
-test("Entity.addComp and Entity.getComp", () => {
+await test("Entity.addComp and Entity.getComp", () => {
   const pos = new Vec2(0, 0);
   const entity = new Entity(pos);
   const healthComponent = new Component<number>();
@@ -18,7 +18,7 @@ test("Entity.addComp and Entity.getComp", () => {
   expect(entity.getComp(healthComponent)).toBe(100);
 });
 
-test("Entity.getComp returns undefined for non-existent component", () => {
+await test("Entity.getComp returns undefined for non-existent component", () => {
   const pos = new Vec2(0, 0);
   const entity = new Entity(pos);
   const healthComponent = new Component<number>();
@@ -28,7 +28,7 @@ test("Entity.getComp returns undefined for non-existent component", () => {
   expect(entity.getComp(manaComponent)).toBeUndefined();
 });
 
-test("Entity.removeComp", () => {
+await test("Entity.removeComp", () => {
   const pos = new Vec2(0, 0);
   const entity = new Entity(pos);
   const healthComponent = new Component<number>();
@@ -40,7 +40,7 @@ test("Entity.removeComp", () => {
   expect(entity.getComp(healthComponent)).toBeUndefined();
 });
 
-test("Multiple components on a single entity", () => {
+await test("Multiple components on a single entity", () => {
   const pos = new Vec2(0, 0);
   const entity = new Entity(pos);
   const healthComponent = new Component<number>();
@@ -56,7 +56,7 @@ test("Multiple components on a single entity", () => {
   expect(entity.getComp(nameComponent)).toBe("Player1");
 });
 
-test("Single component on multiple entities", () => {
+await test("Single component on multiple entities", () => {
   const entity1 = new Entity(new Vec2(0, 0));
   const entity2 = new Entity(new Vec2(1, 1));
   const positionComponent = new Component<Vec2>();
@@ -70,7 +70,7 @@ test("Single component on multiple entities", () => {
   expect(entity2.getComp(positionComponent)?.y).toBe(20);
 });
 
-test("Component.set, Component.get, Component.delete directly", () => {
+await test("Component.set, Component.get, Component.delete directly", () => {
   const entity = new Entity(new Vec2(0, 0));
   const testComponent = new Component<string>();
 
@@ -80,5 +80,3 @@ test("Component.set, Component.get, Component.delete directly", () => {
   testComponent.delete(entity);
   expect(testComponent.get(entity)).toBeUndefined();
 });
-
-finish();

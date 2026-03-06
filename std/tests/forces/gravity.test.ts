@@ -1,10 +1,10 @@
-import { test, expect, finish } from "../../test.ts";
+import { test, expect } from "../../test.ts";
 import { initGravityForce } from "physim/forces/gravity";
 import { Physics } from "physim/physics";
 import { Entity } from "physim/ecs";
 import { Vec2 } from "physim/vec";
 
-test("initGravityForce - applies gravitational acceleration", () => {
+await test("initGravityForce - applies gravitational acceleration", () => {
   const physics = new Physics();
   const G = 10;
 
@@ -46,5 +46,3 @@ test("initGravityForce - applies gravitational acceleration", () => {
   expect(acc2!.x).toBeCloseTo(expectedAcc2.x);
   expect(acc2!.y).toBeCloseTo(expectedAcc2.y);
 });
-
-finish();

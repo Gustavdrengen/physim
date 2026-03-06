@@ -1,11 +1,11 @@
-import { testAsync, expect, finish } from "../../test.ts";
+import { test, expect } from "../../test.ts";
 import { initCollisionForce } from "physim/forces/collision";
 import { Physics } from "physim/physics";
 import { Entity } from "physim/ecs";
 import { Vec2 } from "physim/vec";
 import { initBodyComponent, Body, createCircle } from "physim/bodies";
 
-testAsync("initCollisionForce - collision callback", async () => {
+await test("initCollisionForce - collision callback", async () => {
   const physics = new Physics();
   const bodyComponent = initBodyComponent();
   const collisionForce = await initCollisionForce(physics, bodyComponent);
@@ -42,5 +42,3 @@ testAsync("initCollisionForce - collision callback", async () => {
     expect(entities).toContain(entity2);
   }
 });
-
-finish();

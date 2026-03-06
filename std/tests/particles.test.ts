@@ -1,17 +1,17 @@
-import { test, expect, finish } from "../test.ts";
+import { test, expect } from "../test.ts";
 import { ParticleSystem } from "physim/particles";
 import { Vec2 } from "physim/vec";
 import { Color } from "physim/draw";
 import { Body, createCircle } from "physim/bodies";
 import { Entity } from "physim/ecs";
 
-test("ParticleSystem - constructor", () => {
+await test("ParticleSystem - constructor", () => {
   const ps = new ParticleSystem();
   expect((ps as any).activeParticles.length).toBe(0);
   expect(ps.trailComponent).toBeTruthy();
 });
 
-test("ParticleSystem - emit", () => {
+await test("ParticleSystem - emit", () => {
   const ps = new ParticleSystem();
   ps.emit({
     numParticles: 10,
@@ -29,7 +29,7 @@ test("ParticleSystem - emit", () => {
   expect(p.velocity.length()).toBeGreaterThan(0);
 });
 
-test("ParticleSystem - update physics", () => {
+await test("ParticleSystem - update physics", () => {
   const ps = new ParticleSystem();
   ps.emit({
     numParticles: 1,
@@ -54,7 +54,7 @@ test("ParticleSystem - update physics", () => {
   expect(particle.position.x).toBeCloseTo(initialPos.x + 3);
 });
 
-test("ParticleSystem - particle lifetime", () => {
+await test("ParticleSystem - particle lifetime", () => {
   const ps = new ParticleSystem();
   ps.emit({
     numParticles: 1,
@@ -72,7 +72,7 @@ test("ParticleSystem - particle lifetime", () => {
   expect((ps as any).particlePool.length).toBe(1);
 });
 
-test("ParticleSystem - color interpolation", () => {
+await test("ParticleSystem - color interpolation", () => {
   const ps = new ParticleSystem();
   const startColor = new Color(255, 0, 0, 1); // Red
   const endColor = new Color(0, 0, 255, 0); // Blue (transparent)
@@ -108,5 +108,3 @@ test("ParticleSystem - color interpolation", () => {
   }
   expect(particle.color).toEqual(endColor);
 });
-
-finish();

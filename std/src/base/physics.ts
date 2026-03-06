@@ -16,8 +16,8 @@ export class Physics {
 
   /**
    * The velocity component.
-   * If an entity has this component, it will be moved by its velocity.
    * Velocity is expressed in units per second.
+   * If an entity has this component, it will be moved by its velocity every second.
    */
   velocity: Component<Vec2> = new Component<Vec2>();
   /**
@@ -71,7 +71,6 @@ export class Physics {
       2,
     );
   }
-
 
   /**
    * Registers a force to be applied to entities.

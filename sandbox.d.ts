@@ -8,7 +8,7 @@ declare global {
     resizeCanvas: (width: number, height: number) => void;
     addSound: (props: SoundProps) => Promise<number>;
     playSound: (sound: number) => void;
-    onUpdate: (() => void) | undefined;
+    run: (onUpdate: () => void) => Promise<void>;
     addFetchAsset: (path: string, fetchAddr: string) => Promise<void>;
   };
 }

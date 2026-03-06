@@ -286,6 +286,8 @@ function stopSimulation() {
   }
 }
 
+let runResolve = null;
+
 const sim = {
   log: (...args) => {
     writeToTerminal(args.join("\t"));
@@ -299,14 +301,14 @@ const sim = {
     }).catch(() => { });
   },
   finish: () => {
-    isFinished = true;
-    fetch("/finish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    }).catch(() => { });
-    stopSimulation();
-    showFinishOverlay();
-    waitForNext();
+    if (interval !== null) {
+      clearInterval(interval);
+      interval = null;
+    }
+    if (runResolve) {
+      runResolve();
+      runResolve = null;
+    }
   },
   ctx: canvas.getContext("2d"),
   resizeCanvas: (width, height) => {
@@ -390,9 +392,27 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
 
   startPinging();
 
-  if (sim.onUpdate) {
-    interval = setInterval(() => {
-      sim.onUpdate();
+  // Handle automatic finish when the script reaches its end
+  isFinished = true;
+  fetch("/finish", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  }).catch(() => { });
+  stopSimulation();
+  showFinishOverlay();
+  waitForNext();
+});
+
+sim.run = (onUpdate) => {
+  if (runResolve) {
+    runResolve();
+  }
+
+  return new Promise((resolve) => {
+    runResolve = resolve;
+
+    const runFrame = () => {
+      onUpdate();
 
       if (SHOULD_RECORD) {
         canvas.toBlob(async (blob) => {
@@ -403,13 +423,11 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
           }
         }, "image/png");
       }
-    }, 1000 / 60);
-  } else {
-    stopSimulation();
-    showFinishOverlay();
-    waitForNext();
-  }
-});
+    };
+
+    interval = setInterval(runFrame, 1000 / 60);
+  });
+};
 
 function waitForNext() {
   setInterval(() => {

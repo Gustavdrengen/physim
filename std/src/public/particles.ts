@@ -23,7 +23,7 @@
  *   color: { start: Color.fromHex("#ff0000"), end: Color.fromHex("#ffff00") },
  * });
  *
- * simulation.run(() => {
+ * await simulation.run(() => {
  *   particleSystem.updateAndRender();
  * });
  * ```

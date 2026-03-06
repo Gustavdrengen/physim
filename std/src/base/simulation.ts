@@ -43,13 +43,16 @@ export class Simulation {
 
   /**
    * Runs the simulation loop.
-   * This method sets up a continuous update cycle that calls the provided `onUpdate` callback
+   * This method sets up a continuous update cycle at 60 fps that calls the provided `onUpdate` callback
    * on each frame, after physics updates and display rendering.
+   * 
+   * This function resolves when the simulation is finished.
    *
    * @param onUpdate An optional callback function to be executed on each frame.
+   * @returns A promise that resolves when the simulation finishes.
    */
-  run(onUpdate: () => void = () => { }) {
-    sim.onUpdate = () => {
+  async run(onUpdate: () => void = () => { }): Promise<void> {
+    await sim.run(() => {
       this.frame++;
       if (this.autoStopTime && this.time >= this.autoStopTime) {
         this.finish();
@@ -59,7 +62,7 @@ export class Simulation {
       this.physics.update();
       this.display.draw(this.camera);
       onUpdate();
-    };
+    });
   }
 
   /**
