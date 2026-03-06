@@ -67,7 +67,5 @@ const objectB = Entity.create(new Vec2(-400, -200), [
 simulation.camera.follow([objectA, objectB]);
 
 // 6. Run the simulation
-simulation.run();
-
-// The simulation stops when the end of the script is reached AND the simulation is finished using simulation.finish()
+await simulation.run();
 ```

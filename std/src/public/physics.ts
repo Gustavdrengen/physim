@@ -16,7 +16,7 @@
  * );
  *
  * // Run the simulation. The player will move by (1, 0) every frame.
- * simulation.run();
+ * await simulation.run();
  * ```
  *
  * @module

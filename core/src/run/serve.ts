@@ -160,9 +160,11 @@ export async function runServer(
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/finish") {
         setTimeout(() => {
-          logs.forEach((log) => {
-            print.raw(log);
-          });
+          if (print.isRawModeEnabled()) {
+            logs.forEach((log) => {
+              print.raw(log);
+            });
+          }
           print.info("Simulation finished");
           webviewWorker?.terminate();
           server.shutdown();

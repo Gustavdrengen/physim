@@ -1,4 +1,4 @@
-import { test, expect, finish } from "../../test.ts";
+import { test, expect } from "../../test.ts";
 import { Color } from "physim/draw";
 
 // Common test values
@@ -7,7 +7,7 @@ const greenColor = new Color(0, 255, 0);
 const blueColor = new Color(0, 0, 255);
 const transparentRed = new Color(255, 0, 0, 0.5);
 
-test("Color constructor should clamp values and set alpha", () => {
+await test("Color constructor should clamp values and set alpha", () => {
   const color = new Color(300, -10, 128, 0.5);
   expect(color.r).toBe(255);
   expect(color.g).toBe(0);
@@ -18,7 +18,7 @@ test("Color constructor should clamp values and set alpha", () => {
   expect(defaultAlphaColor.a).toBe(1);
 });
 
-test("Color.fromRGB should create color correctly", () => {
+await test("Color.fromRGB should create color correctly", () => {
   const color = Color.fromRGB(255, 0, 128, 0.7);
   expect(color.r).toBe(255);
   expect(color.g).toBe(0);
@@ -26,7 +26,7 @@ test("Color.fromRGB should create color correctly", () => {
   expect(color.a).toBe(0.7);
 });
 
-test("Color.fromHex should parse various hex formats", () => {
+await test("Color.fromHex should parse various hex formats", () => {
   // #RGB
   let color = Color.fromHex("#F00");
   expect(color.r).toBe(redColor.r);
@@ -62,7 +62,7 @@ test("Color.fromHex should parse various hex formats", () => {
   expect(color.b).toBe(255);
 });
 
-test("Color.fromHSL should convert HSL to RGB", () => {
+await test("Color.fromHSL should convert HSL to RGB", () => {
   // Red
   let color = Color.fromHSL(0, 1, 0.5);
   expect(color.r).toBe(redColor.r);
@@ -92,7 +92,7 @@ test("Color.fromHSL should convert HSL to RGB", () => {
   expect(color.a).toBe(0.5);
 });
 
-test("Color.fromHSV should convert HSV to RGB", () => {
+await test("Color.fromHSV should convert HSV to RGB", () => {
   // Red
   let color = Color.fromHSV(0, 1, 1);
   expect(color.r).toBe(redColor.r);
@@ -122,7 +122,7 @@ test("Color.fromHSV should convert HSV to RGB", () => {
   expect(color.a).toBe(0.5);
 });
 
-test("Color.fromString should parse various string formats", () => {
+await test("Color.fromString should parse various string formats", () => {
   // Hex
   let color = Color.fromString("#FF0000");
   expect(color.r).toBe(redColor.r);
@@ -156,18 +156,18 @@ test("Color.fromString should parse various string formats", () => {
   expect(color.a).toBe(0.2);
 });
 
-test("Color.toCSS should return correct CSS string", () => {
+await test("Color.toCSS should return correct CSS string", () => {
   expect(redColor.toCSS()).toBe("rgb(255, 0, 0)");
   expect(transparentRed.toCSS()).toBe("rgba(255, 0, 0, 0.5)");
 });
 
-test("Color.toHex should return correct hex string", () => {
+await test("Color.toHex should return correct hex string", () => {
   expect(redColor.toHex()).toBe("#ff0000");
   expect(transparentRed.toHex(true)).toBe("#ff000080");
   expect(transparentRed.toHex(false)).toBe("#ff0000");
 });
 
-test("Color.withAlpha should return a new color with updated alpha", () => {
+await test("Color.withAlpha should return a new color with updated alpha", () => {
   const originalColor = new Color(255, 255, 255, 1);
   const newColor = originalColor.withAlpha(0.5);
 
@@ -177,5 +177,3 @@ test("Color.withAlpha should return a new color with updated alpha", () => {
   expect(newColor.a).toBe(0.5);
   expect(newColor).not.toBe(originalColor); // Should be a new instance
 });
-
-finish();

@@ -1,10 +1,10 @@
-import { test, expect, finish } from "../../test.ts";
+import { test, expect } from "../../test.ts";
 import { Camera } from "physim/display";
 import { Vec2 } from "physim/vec";
 import { Entity } from "physim/ecs";
 
 // Camera tests
-test("Camera - constructor defaults", () => {
+await test("Camera - constructor defaults", () => {
   const camera = new Camera();
   expect(camera.position).toEqual(Vec2.zero());
   expect(camera.zoom).toBe(1);
@@ -12,14 +12,14 @@ test("Camera - constructor defaults", () => {
   expect(camera.target).toBeNull();
 });
 
-test("Camera - shake", () => {
+await test("Camera - shake", () => {
   const camera = new Camera();
   camera.shake(60, 10);
   expect(camera.shakeTime).toBe(60);
   expect(camera.shakeIntensity).toBe(10);
 });
 
-test("Camera - update shake", () => {
+await test("Camera - update shake", () => {
   const camera = new Camera();
   camera.shake(1, 5);
   camera.update();
@@ -29,7 +29,7 @@ test("Camera - update shake", () => {
   expect(camera.shakeOffset).toEqual(Vec2.zero()); // Should be zero after time runs out
 });
 
-test("Camera - follow single entity", () => {
+await test("Camera - follow single entity", () => {
   const camera = new Camera();
   const entity = new Entity(new Vec2(100, 100));
   camera.follow(entity);
@@ -37,7 +37,7 @@ test("Camera - follow single entity", () => {
   expect(camera.position).toEqual(new Vec2(100, 100));
 });
 
-test("Camera - follow multiple entities", () => {
+await test("Camera - follow multiple entities", () => {
   const camera = new Camera();
   const entity1 = new Entity(new Vec2(100, 100));
   const entity2 = new Entity(new Vec2(300, 300));
@@ -45,5 +45,3 @@ test("Camera - follow multiple entities", () => {
   camera.update();
   expect(camera.position).toEqual(new Vec2(200, 200));
 });
-
-finish();

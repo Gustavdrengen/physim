@@ -30,7 +30,7 @@ import { Vec2 } from "./vec.ts";
  * );
  *
  * // Run the simulation
- * simulation.run();
+ * await simulation.run();
  * ```
  */
 export class Display {
