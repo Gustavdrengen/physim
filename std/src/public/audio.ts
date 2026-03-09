@@ -4,3 +4,4 @@
  */
 export * from "../base/audio/sound";
 export * from "../base/audio/notes";
+export * from "../base/audio/synthesize";

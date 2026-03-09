@@ -1,13 +1,17 @@
 import { AssetManager } from "../assets.ts";
-import { playMP3 } from "./playback.ts";
+import { SoundProps } from "../../../../sound.ts";
 import { addAudioToMp4 } from "./mp4.ts";
 import { synthMidi } from "./midi.ts";
+import { synthSox } from "./sox.ts";
 import { join } from "@std/path";
-import { fail, failed, InputFailureTag, Result } from "../../err.ts";
-
-type SoundProps = {
-  src: string;
-};
+import {
+  fail,
+  failed,
+  InputFailureTag,
+  Result,
+  SystemFailureTag,
+} from "../../err.ts";
+import { playAudio } from "../../rust.ts";
 
 type Sound = string;
 
@@ -28,26 +32,32 @@ export class AudioPlayer {
     const id = this.sounds.length;
     this.sounds.push("");
 
-    const fileName = join(this.tmpDir, "sound_" + id + ".mp3");
+    const fileName = join(this.tmpDir, "sound_" + id + ".wav");
 
     if (typeof props.src === "string") {
       const r = this.assetManager.copyAsset(props.src, fileName);
       if (r) {
         return r;
       }
-    } else {
+    } else if ("midi" in props.src) {
       let midi = props.src.midi;
       if (typeof midi === "string") {
-        midi = this.assetManager.resolveAssetPath(midi);
-        if (failed(midi)) {
-          return midi;
+        const resolved = this.assetManager.resolveAssetPath(midi);
+        if (failed(resolved)) {
+          return resolved as Result<number>;
         }
+        midi = resolved as string;
       }
-      let fontPath = this.assetManager.resolveAssetPath(props.src.soundfont);
+      const fontPath = this.assetManager.resolveAssetPath(props.src.soundfont);
       if (failed(fontPath)) {
         return fontPath as Result<number>;
       }
       const r = await synthMidi(midi, fontPath as string, fileName);
+      if (r) {
+        return r;
+      }
+    } else if ("args" in props.src) {
+      const r = await synthSox(props.src.args, fileName);
       if (r) {
         return r;
       }
@@ -67,7 +77,10 @@ export class AudioPlayer {
 
     const sound = this.sounds[id];
     this.soundLog.push([frame, sound]);
-    playMP3(sound);
+    const r = playAudio(sound);
+    if (failed(r)) {
+      return r;
+    }
   }
 
   addAudioToVideo(videoPath: string): Promise<Result<undefined>> {

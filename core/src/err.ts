@@ -45,6 +45,8 @@ export enum SystemFailureTag {
   FfmpegFailure = "FFMPEG_FAILURE",
   NetworkFailure = "NETWORK_FAILURE",
   MidiSynthesisFailure = "MIDI_SYNTHESIS_FAILURE",
+  AudioPlaybackFailure = "AUDIO_PLAYBACK_FAILURE",
+  SoxSynthesisFailure = "SOX_SYNTHESIS_FAILURE",
 }
 
 export type Failure = {

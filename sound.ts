@@ -15,8 +15,13 @@ export interface midiSource {
   soundfont: string;
 }
 
+export interface SynthSource {
+  /// Arguments passed to the SoX CLI tool
+  args: string[];
+}
+
 export interface SoundProps {
-  src: string | midiSource;
+  src: string | midiSource | SynthSource;
 
   /**
    * Effects / post-processing

@@ -15,7 +15,7 @@ import { Entity } from "physim/ecs";
 import { ParticleSystem } from "physim/particles";
 import * as Draw from "physim/draw";
 import { createFireEffect } from "physim/effects/particles";
-import { NoteSeries } from "physim/audio";
+import { Sound } from "physim/audio";
 import { fetchAsset } from "physim/assets";
 import { Simulation } from "physim/simulation";
 
@@ -36,48 +36,13 @@ const { addCollisionCallback, staticComponent } = await initCollisionForce(
 );
 const particleSystem = new ParticleSystem();
 
-log("pre fetch");
-const notes = new NoteSeries(
-  [
-    "E5",
-    "D#5",
-    "E5",
-    "D#5",
-    "E5",
-    "B4",
-    "D5",
-    "C5",
-    "A4",
-    "C5",
-    "E5",
-    "A4",
-    "B4",
-    "E5",
-    "G#4",
-    "B4",
-    "C5",
-    "E5",
-    "E5",
-    "D#5",
-    "E5",
-    "D#5",
-    "E5",
-    "B4",
-    "D5",
-    "C5",
-    "A4",
-    "C5",
-    "E5",
-    "A4",
-  ],
-  fetchAsset(
-    "https://musical-artifacts.com/artifacts/4819/School_Piano_2024.sf2",
-  ),
-);
-log("post fetch");
-
-await notes.init();
-log("notes inited");
+const collisionSound = await Sound.fromSynth({
+  duration: 0.1,
+  oscillators: {
+    type: "sine",
+    freq: ["C6", "C5"],
+  },
+}, { volume: 0.2 });
 
 addCollisionCallback((event) => {
   particleSystem.emit(
@@ -86,6 +51,7 @@ addCollisionCallback((event) => {
     }),
   );
   simulation.camera.shake(20, 10);
+  collisionSound.play();
 });
 
 const blueBallBody = Body.fromShape(createCircle(20));
@@ -146,10 +112,6 @@ await simulation.run(() => {
   particleSystem.draw(simulation.camera);
   Draw.text(new Vec2(500, 200), "SIX SEVEN");
   ringBody.rotation += 0.01;
-
-  if (simulation.frame % 15 === 0) {
-    notes.playNext();
-  }
 
   if (simulation.frame == 60 * 5) {
     //sim.finish();

@@ -1,0 +1,11 @@
+[package]
+name = "rust-core"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+once_cell = "1.21.3"
+rodio = "0.22.2"

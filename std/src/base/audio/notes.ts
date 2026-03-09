@@ -2,7 +2,8 @@ import * as SoundInterface from "../../../../sound";
 import { Asset } from "../assets";
 import { Sound } from "./sound";
 
-const NOTE_MAP: Record<string, number> = {
+/** @internal */
+export const NOTE_MAP: Record<string, number> = {
   C: 0,
   "C#": 1,
   Db: 1,

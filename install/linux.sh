@@ -20,7 +20,17 @@ else
   echo "Deno is already installed."
 fi
 
-# 3️⃣ Create start script in /usr/local/bin
+# 3️⃣ Check for Rust/Cargo
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "Error: Cargo (Rust) not found. Please install Rust from https://rustup.rs/"
+  exit 1
+fi
+
+# 4️⃣ Build rust-core in release mode
+echo "Building rust-core in release mode..."
+(cd rust-core && cargo build --release)
+
+# 5️⃣ Create start script in /usr/local/bin
 START_SCRIPT="$BIN_DIR/$APP_NAME"
 
 echo "Creating start script at $START_SCRIPT (requires sudo)..."

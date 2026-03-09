@@ -35,7 +35,7 @@ export async function runServer(
   useWebview: boolean,
 ): Promise<Result<undefined>> {
   let server: Deno.HttpServer<Deno.NetAddr>;
-  let webviewWorker: Worker | undefined;
+  let webviewProcess: Deno.ChildProcess | undefined;
 
   let started = false;
   let pingNexted = false;
@@ -55,7 +55,7 @@ export async function runServer(
 
   function endAndFail(failure: Failure) {
     ret = failure;
-    webviewWorker?.terminate();
+    webviewProcess?.kill();
     server.shutdown();
   }
 
@@ -65,7 +65,7 @@ export async function runServer(
     if (!started) {
       const url = `http://127.0.0.1:${servePort}/`;
       if (useWebview) {
-        webviewWorker = openWebview(url);
+        webviewProcess = openWebview(url);
         setTimeout(() => {
           if (!started) {
             endAndFail(
@@ -166,7 +166,7 @@ export async function runServer(
             });
           }
           print.info("Simulation finished");
-          webviewWorker?.terminate();
+          webviewProcess?.kill();
           server.shutdown();
         }, 100);
 
