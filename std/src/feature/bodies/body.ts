@@ -2,7 +2,7 @@ import { Vec2 } from "../../base/vec.ts";
 import { Component } from "../../base/entity.ts";
 import { Shape } from "./shape.ts";
 import { Color } from "../../base/draw/color.ts";
-import { polygon } from "../../base/draw/shapes.ts";
+import { Draw } from "../../base/draw/shapes.ts";
 
 /**
  * Represents a part of a composite body, associating a shape
@@ -92,7 +92,7 @@ export class Body {
 
         return new Vec2(rotatedX + pos.x, rotatedY + pos.y);
       });
-      polygon(transformedVertices, color, fill, lineWidth);
+      Draw.polygon(transformedVertices, color, fill, lineWidth);
     }
   }
 
@@ -239,8 +239,7 @@ export class Body {
  *
  * @example
  * ```ts
- * import { Entity } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
+ * import { Entity, Vec2 } from "physim/base";
  * import { createRectangle, initBodyComponent, Body } from "physim/bodies";
  *
  * const bodyComponent = initBodyComponent();

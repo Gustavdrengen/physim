@@ -5,7 +5,6 @@ import {
   RapierWorldManager,
 } from "./rapier_world_manager";
 import { CollisionEvent } from "./events";
-import { Body } from "../../body/body";
 import { CollisionCallback } from "./mod";
 
 export class CollisionSystem {

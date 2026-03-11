@@ -6,12 +6,10 @@
 
 ## Next commits:
 
-- Test the sfx lib
-
----
-
 - Fix layer system
-  - Base layer barreled imports
+  - Update examples for base layer barreled imports
+  - Add more docs to base layer things
+  - Ensure all tests work
 
 ---
 

@@ -1,10 +1,10 @@
-import { Vec2 } from "../vec";
-import { Color } from "../draw/color";
-import { Particle, ParticleEmissionOptions } from "./particle";
-import { Camera } from "../camera";
-import { Body } from "../../resource/body/body";
-import { Component, Entity } from "../entity";
-import { TrailOptions } from "./trail";
+import { Vec2 } from "../../base/vec.ts";
+import { Color } from "../../base/draw/color.ts";
+import { Particle, ParticleEmissionOptions } from "./particle.ts";
+import { Camera } from "../../base/camera.ts";
+import { Body } from "../bodies/body.ts";
+import { Component, Entity } from "../../base/entity.ts";
+import { TrailOptions } from "./trail.ts";
 
 /**
  * A system for creating and managing particles.

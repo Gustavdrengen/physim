@@ -1,8 +1,6 @@
 import { test, expect } from "../../test.ts";
 import { initCollisionForce } from "physim/forces/collision";
-import { Physics } from "physim/physics";
-import { Entity } from "physim/ecs";
-import { Vec2 } from "physim/vec";
+import { Physics, Entity, Vec2 } from "physim/base";
 import { initBodyComponent, Body, createCircle } from "physim/bodies";
 
 await test("initCollisionForce - collision callback", async () => {

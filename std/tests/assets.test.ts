@@ -1,12 +1,11 @@
 import { test, expect } from "../test.ts";
-import { fetchAsset } from "../src/public/assets.ts";
-import { resolveAssetPath } from "../src/base/assets.ts";
+import { fetchAsset, resolveAssetPath } from "physim/base";
 
 await test("fetchAsset", () => {
   const url = "https://example.com/asset.png";
   const asset = fetchAsset(url);
-  expect(asset._isFetchAsset).toBe(true);
-  expect(asset.url).toBe(url);
+  expect((asset as any)._isFetchAsset).toBe(true);
+  expect((asset as any).url).toBe(url);
 });
 
 await test("resolveAssetPath - string", async () => {

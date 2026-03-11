@@ -7,7 +7,7 @@ import {
   DefaultCollisionProperties,
 } from "./rapier_world_manager";
 import { CollisionSystem } from "./system";
-import { Body } from "../../body/body";
+import { Body } from "../../../feature/bodies/body";
 
 /**
  * A function that is called when a collision occurs.

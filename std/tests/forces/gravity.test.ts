@@ -1,8 +1,6 @@
 import { test, expect } from "../../test.ts";
 import { initGravityForce } from "physim/forces/gravity";
-import { Physics } from "physim/physics";
-import { Entity } from "physim/ecs";
-import { Vec2 } from "physim/vec";
+import { Physics, Entity, Vec2 } from "physim/base";
 
 await test("initGravityForce - applies gravitational acceleration", () => {
   const physics = new Physics();

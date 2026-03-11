@@ -1,10 +1,10 @@
 import * as RAPIER from "@dimforge/rapier2d-compat";
 
-import { Vec2 } from "../../../base/vec";
-import { Entity, Component } from "../../../base/entity";
-import { CollisionEvent } from "./events";
-import { Body, BodyPart } from "../../body/body";
-import { Physics } from "../../../base/physics";
+import { Vec2 } from "../../../base/vec.ts";
+import { Entity, Component } from "../../../base/entity.ts";
+import { CollisionEvent } from "./events.ts";
+import { Body, BodyPart } from "../../../feature/bodies/body.ts";
+import { Physics } from "../../../base/physics.ts";
 
 /**
  * Default properties for colliders created for entities.

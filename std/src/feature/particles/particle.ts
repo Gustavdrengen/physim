@@ -1,6 +1,6 @@
-import { Vec2 } from "../vec";
-import { Color } from "../draw/color";
-import { Body } from "../../resource/body/body";
+import { Vec2 } from "../../base/vec.ts";
+import { Color } from "../../base/draw/color.ts";
+import { Body } from "../bodies/body.ts";
 
 /**
  * @internal

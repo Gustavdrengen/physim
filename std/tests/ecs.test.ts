@@ -1,6 +1,5 @@
 import { test, expect } from "../test.ts";
-import { Entity, Component } from "../src/public/ecs.ts";
-import { Vec2 } from "../src/public/vec.ts";
+import { Entity, Component, Vec2 } from "physim/base";
 
 await test("Entity constructor", () => {
   const pos = new Vec2(10, 20);

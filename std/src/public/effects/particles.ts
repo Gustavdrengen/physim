@@ -3,4 +3,4 @@
  * @module
  */
 
-export * from "../../resource/effects/particles";
+export * from "../../resource/effects/particles.ts";

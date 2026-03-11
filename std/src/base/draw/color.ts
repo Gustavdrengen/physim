@@ -151,6 +151,16 @@ const NAMED_COLORS: { [key: string]: [number, number, number] } = {
 
 /**
  * A color class that can be used to represent colors in RGB, HSL, HSV and hex formats.
+ *
+ * @example
+ * ```ts
+ * import { Color } from "physim/base";
+ *
+ * const red = Color.fromRGB(255, 0, 0);
+ * const green = Color.fromHex("#00ff00");
+ * const blue = Color.fromHSL(240, 100, 50);
+ * const transparent = Color.fromString("transparent");
+ * ```
  */
 export class Color {
   /**

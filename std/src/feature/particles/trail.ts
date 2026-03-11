@@ -1,5 +1,5 @@
-import { Color } from "../draw/color";
-import { Body } from "../../resource/body/body";
+import { Color } from "../../base/draw/color.ts";
+import { Body } from "../bodies/body.ts";
 
 /**
  * Defines the configuration for a particle trail effect.

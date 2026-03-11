@@ -45,12 +45,9 @@ Physim is a 2D physics simulation, visualization, and audiation framework for Ty
    Create a file named `main.ts` with the following content:
 
    ```typescript
-   import { Simulation } from "physim/simulation";
-   import { Vec2 } from "physim/vec";
    import { Body, createCircle, initBodyComponent } from "physim/bodies";
    import { initBodyDisplayComponent } from "physim/graphics";
-   import { Color } from "physim/draw";
-   import { Entity } from "physim/ecs";
+   import { Entity, Color, Simulation, Vec2 } from "physim/base";
 
    const simulation = new Simulation();
 

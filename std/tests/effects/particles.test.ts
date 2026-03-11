@@ -1,6 +1,6 @@
 import { test, expect } from "../../test.ts";
 import { createFireEffect } from "physim/effects/particles";
-import { Vec2 } from "physim/vec";
+import { Vec2 } from "physim/base";
 
 await test("createFireEffect", () => {
     const pos = new Vec2(123, 456);
@@ -10,6 +10,6 @@ await test("createFireEffect", () => {
     expect(effect.position).toEqual(pos);
     expect(effect.acceleration).toBeTruthy();
     if (effect.acceleration) {
-        expect(effect.acceleration.y).toBeCloseTo(updraft);
+        expect((effect as any).acceleration.y).toBeCloseTo(updraft);
     }
 });

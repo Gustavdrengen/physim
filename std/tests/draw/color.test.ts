@@ -1,5 +1,5 @@
 import { test, expect } from "../../test.ts";
-import { Color } from "physim/draw";
+import { Color } from "physim/base";
 
 // Common test values
 const redColor = new Color(255, 0, 0);

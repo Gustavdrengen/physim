@@ -3,7 +3,7 @@
  *
  * @example
  * ```ts
- * import { Display } from "physim/display";
+ * import { Display } from "physim/base";
  * import { initPointDisplayComponent } from "physim/graphics";
  *
  * const display = new Display();

@@ -5,9 +5,7 @@
  * @example
  * ```ts
  * import { ParticleSystem } from "physim/particles";
- * import { Vec2 } from "physim/vec";
- * import { Color } from "physim/draw";
- * import { Simulation } from "physim/simulation";
+ * import { Vec2, Color, Simulation } from "physim/base";
  *
  * const simulation = new Simulation();
  *
@@ -30,5 +28,5 @@
  * @module
  */
 
-export * from "../base/particles/system";
-export * from "../base/particles/particle";
+export * from "../feature/particles/system.ts";
+export * from "../feature/particles/particle.ts";

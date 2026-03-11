@@ -109,7 +109,7 @@ export class Vec2 {
    *
    * @example
    * ```ts
-   * import { Vec2 } from "physim/vec";
+   * import { Vec2 } from "physim/base";
    * import { log } from "physim/logging";
    *
    * const vectors = [new Vec2(1, 2), new Vec2(3, 4), new Vec2(5, 6)];

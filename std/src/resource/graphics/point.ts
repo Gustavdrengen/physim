@@ -1,6 +1,6 @@
 import { Display } from "../../base/display.ts";
 import { Color } from "../../base/draw/color.ts";
-import { circle } from "../../base/draw/shapes.ts";
+import { Draw } from "../../base/draw/shapes.ts";
 import { Component } from "../../base/entity.ts";
 
 type PointData = {
@@ -16,11 +16,8 @@ type PointData = {
  *
  * @example
  * ```ts
- * import { Display } from "physim/display";
- * import { Entity } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
+ * import { Display, Entity, Vec2, Color, Draw } from "physim/base";
  * import { initPointDisplayComponent } from "physim/graphics";
- * import { Color } from "physim/draw";
  *
  * const display = new Display();
  * const pointDisplay = initPointDisplayComponent(display);
@@ -37,7 +34,7 @@ export function initPointDisplayComponent(
   const pointDisplay = new Component<PointData>();
 
   display.registerDrawComponent(pointDisplay, (entity, data) => {
-    circle(entity.pos, data.radius, data.color);
+    Draw.circle(entity.pos, data.radius, data.color);
   });
 
   return pointDisplay;

@@ -1,5 +1,5 @@
 import { test, expect, getPixelColor } from "../test.ts";
-import { Color } from "../src/base/draw/color.ts";
+import { Color } from "physim/base";
 
 // Basic equality tests
 await test("toBe - strict equality", () => {

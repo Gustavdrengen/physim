@@ -7,8 +7,8 @@ Physim is a TypeScript library designed for creating physics simulations and int
 You can import components like this:
 
 ```typescript
-import { Vec2 } from "physim/vec";
-import { Entity, Component } from "physim/ecs";
+import { Vec2, Entity } from "physim/base";
+import { log } from "physim/logging";
 // ... and so on for other modules
 ```
 
@@ -24,16 +24,13 @@ import { Entity, Component } from "physim/ecs";
 This example demonstrates how to set up a basic simulation with gravity, displaying two bodies attracting each other.
 
 ```typescript
-import { Simulation } from "physim/simulation";
-import { Entity } from "physim/ecs";
-import { Vec2 } from "physim/vec";
+import { Simulation, Entity, Vec2, Color, Draw } from "physim/simulation";
 import { initGravityForce } from "physim/forces/gravity";
 import { initBodyComponent, createCircle, Body } from "physim/bodies";
 import { initBodyDisplayComponent } from "physim/graphics";
-import { Color, setCanvasSize } from "physim/draw";
 
 // 1. Set size of canvas
-setCanvasSize(1920, 1080);
+Draw.setCanvasSize(1920, 1080);
 
 // 2. Initialize the simulation
 const simulation = new Simulation();

@@ -1,9 +1,7 @@
 import { test, expect } from "../test.ts";
 import { ParticleSystem } from "physim/particles";
-import { Vec2 } from "physim/vec";
-import { Color } from "physim/draw";
+import { Vec2, Color, Entity } from "physim/base";
 import { Body, createCircle } from "physim/bodies";
-import { Entity } from "physim/ecs";
 
 await test("ParticleSystem - constructor", () => {
   const ps = new ParticleSystem();

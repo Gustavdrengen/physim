@@ -1,5 +1,5 @@
 import { test, expect } from "../test.ts";
-import { log } from "../src/public/logging.ts";
+import { log } from "physim/logging";
 
 await test("logging calls sim.log", () => {
   const logMessages: any[] = [];

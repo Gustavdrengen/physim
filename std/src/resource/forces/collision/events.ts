@@ -1,5 +1,5 @@
-import { Entity } from "../../../base/entity";
-import { Vec2 } from "../../../base/vec";
+import { Entity } from "../../../base/entity.ts";
+import { Vec2 } from "../../../base/vec.ts";
 
 /**
  * Represents a collision event between two entities.

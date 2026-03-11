@@ -1,6 +1,5 @@
 import { test, expect } from "../test.ts";
-import { Sound, SoundBuilder } from "../src/public/audio.ts";
-import { noteEventToMidi, NoteSeries } from "../src/base/audio/notes.ts";
+import { Sound, noteEventToMidi, NoteSeries } from "physim/base";
 
 await test("noteEventToMidi", () => {
   const event = { note: "C4", time: 1, duration: 0.5, velocity: 0.8 };
@@ -19,7 +18,7 @@ await test("noteEventToMidi - default values", () => {
   expect(midi.velocity).toBe(0.9 * 127);
 });
 
-await test("SoundBuilder and Sound.play", async () => {
+await test("Sound.fromSrc and Sound.play", async () => {
   let addedProps: any = null;
   (globalThis as any).sim.addSound = async (props: any) => {
     addedProps = props;

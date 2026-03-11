@@ -1,5 +1,5 @@
 import { test, expect } from "../test.ts";
-import { Simulation } from "../src/public/simulation.ts";
+import { Simulation } from "physim/base";
 
 await test("Simulation initial state", () => {
   const simInstance = new Simulation();

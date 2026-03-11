@@ -1,7 +1,5 @@
 import { test, expect } from "../test.ts";
-import { Physics } from "../src/public/physics.ts";
-import { Entity } from "../src/public/ecs.ts";
-import { Vec2 } from "../src/public/vec.ts";
+import { Physics, Entity, Vec2 } from "physim/base";
 
 await test("Physics - basic movement (velocity)", () => {
   const physics = new Physics();

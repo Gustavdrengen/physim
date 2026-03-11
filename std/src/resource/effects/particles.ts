@@ -3,11 +3,11 @@
  * This module provides a library of pre-configured particle effects.
  */
 
-import { Vec2 } from "../../base/vec";
-import { Color } from "../../base/draw/color";
-import { ParticleEmissionOptions } from "../../base/particles/particle";
-import { createCircle } from "../body/shape";
-import { Body } from "../body/body";
+import { Vec2 } from "../../base/vec.ts";
+import { Color } from "../../base/draw/color.ts";
+import { ParticleEmissionOptions } from "../../feature/particles/particle.ts";
+import { createCircle } from "../../feature/bodies/shape.ts";
+import { Body } from "../../feature/bodies/body.ts";
 
 /**
  * Defines the parameters for creating a fire effect.

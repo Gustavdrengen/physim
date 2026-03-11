@@ -2,6 +2,20 @@ import { Vec2 } from "./vec.ts";
 
 /**
  * An entity in the world.
+ *
+ * @example
+ * ```ts
+ * import { Simulation, Entity, Vec2 } from "physim/base";
+ *
+ * const sim = new Simulation();
+ *
+ * const player = Entity.create(
+ *   new Vec2(100, 100),
+ *   [
+ *     [sim.physics.velocity, new Vec2(10, 0)]
+ *   ]
+ * );
+ * ```
  */
 export class Entity {
   /**

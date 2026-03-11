@@ -4,11 +4,9 @@
  * @module
  * @example
  * ```ts
- * import { Simulation } from "physim/simulation";
+ * import { Simulation, Entity, Vec2 } from "physim/base";
  * import { initCollisionForce } from "physim/forces/collision";
  * import { initBodyComponent, Body } from "physim/bodies";
- * import { Entity } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
  *
  * const simulation = new Simulation();
  * const bodyComponent = initBodyComponent();

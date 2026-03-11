@@ -1,6 +1,6 @@
 import { test, expect } from "../test.ts";
-import { Body, createCircle, createRectangle, createRing } from "../src/public/bodies.ts";
-import { Vec2 } from "../src/public/vec.ts";
+import { Body, createCircle, createRectangle, createRing } from "physim/bodies";
+import { Vec2 } from "physim/base";
 
 await test("Shape creation functions", () => {
   const circle = createCircle(10);
@@ -9,11 +9,11 @@ await test("Shape creation functions", () => {
 
   const rect = createRectangle(20, 40);
   expect(rect.type).toBe("polygon");
-  expect(rect.vertices.length).toBe(4);
-  expect(rect.vertices[0]).toEqual(new Vec2(-10, -20));
-  expect(rect.vertices[1]).toEqual(new Vec2(10, -20));
-  expect(rect.vertices[2]).toEqual(new Vec2(10, 20));
-  expect(rect.vertices[3]).toEqual(new Vec2(-10, 20));
+  expect((rect as any).vertices.length).toBe(4);
+  expect((rect as any).vertices[0]).toEqual(new Vec2(-10, -20));
+  expect((rect as any).vertices[1]).toEqual(new Vec2(10, -20));
+  expect((rect as any).vertices[2]).toEqual(new Vec2(10, 20));
+  expect((rect as any).vertices[3]).toEqual(new Vec2(-10, 20));
 
   const ring = createRing(5, 10);
   expect(ring.type).toBe("ring");

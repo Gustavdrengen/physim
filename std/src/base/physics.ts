@@ -4,6 +4,34 @@ import { Vec2 } from "./vec.ts";
 /**
  * The `Physics` class is responsible for updating entities based on forces.
  * It manages the application of various forces (like velocity and acceleration) to entities that possess the relevant components.
+ *
+ * @example
+ * ```ts
+ * import { Simulation, Entity, Vec2, Color } from "physim/base";
+ * import { Body, createCircle, initBodyComponent } from "physim/bodies";
+ * import { initBodyDisplayComponent } from "physim/graphics";
+ *
+ * const sim = new Simulation();
+ *
+ * // Apply gravity to everything in the simulation
+ * sim.physics.constantPull = new Vec2(0, 20);
+ *
+ * // Initialize components
+ * const bodyComp = initBodyComponent();
+ * const displayComp = initBodyDisplayComponent(sim.display, bodyComp);
+ *
+ * // Create a ball that will fall
+ * Entity.create(
+ *   new Vec2(100, 100),
+ *   [
+ *     [sim.physics.velocity, new Vec2(200, 0)],
+ *     [bodyComp, Body.fromShape(createCircle(10))],
+ *     [displayComp, { color: Color.fromString("blue") }]
+ *   ]
+ * );
+ *
+ * await sim.run();
+ * ```
  */
 export class Physics {
   private forces: Array<

@@ -1,6 +1,6 @@
 # The Structure of the Standard Library
 
-Here is the structure of how the standard library is organized containing all import paths (italics means unimplemented):
+Here is the structure of how the standard library is organized containing all import paths:
 The library is split into three layers: the base layer, the resource layer and the helper layer.
 Code must not depend on code from layers above themself.
 All modules (especially outside the base layer) should be completely tree-shakable, allowing the library to grow without adding bloat to the compiled code.
@@ -8,34 +8,42 @@ All modules (especially outside the base layer) should be completely tree-shakab
 ## Base layer
 
 _Generic things, that may be used in all simulations, and that lay the foundation for more specified features.
-It is totally allowed to contain advanced features, as long as they are still generic.
+It should only contain generic, fundemental things.
 This layer is not allowed to be feature-discriminating. An example of that would be providing a way to generate sound from one instrument but not from others.
 In this example the only way for a sound-generation feature to be added would be to give complete control over sound generation. Intrument presets could then be added in the resource layer._
 
-| Name              | Description                                                                      |
-| ----------------- | -------------------------------------------------------------------------------- |
-| physim/draw       | Basic drawing operations                                                         |
-| physim/audio      | Basic audio system                                                               |
-| physim/vec        | A 2D vector class with common vector operations                                  |
-| physim/ecs        | Entity and Component class for managing components, includes only position       |
-| physim/physics    | Generic physics system intended to be extended by other modules                  |
-| physim/display    | A basic display system to manage rendering entities to the screen, with a camera |
-| physim/particles  | A system for creating and managing particles                                     |
-| physim/assets     | Utilities for handling and fetching assets                                       |
-| physim/simulation | A system for managing the simulation                                             |
+| Name       | Description                                                                      |
+| ---------- | -------------------------------------------------------------------------------- |
+| draw       | Basic drawing operations                                                         |
+| audio      | Basic audio system                                                               |
+| vec        | A 2D vector class with common vector operations                                  |
+| ecs        | Entity and Component class for managing components, includes only position       |
+| physics    | Generic physics system intended to be extended by other modules                  |
+| display    | A basic display system to manage rendering entities to the screen, with a camera |
+| assets     | Utilities for handling and fetching assets                                       |
+| simulation | A system for managing the simulation                                             |
+
+## Feature layer
+
+_Just like the base layer, it is not allowed to be feature-discriminating, features should be generic.
+But this layer should contain should contain more advanced features, that might not be usable in every simulation_
+
+| Name             | Description                                                                    |
+| ---------------- | ------------------------------------------------------------------------------ |
+| physim/particles | A system for creating and managing particles                                   |
+| physim/bodies    | A system for defining the physical body of an entity for physics and graphics. |
 
 ## Resource layer
 
-_Builds on Layer 1 to provide more specified things_
+_Provides more specific, un-generic and discriminating things_
 
-| Name                     | Description                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| physim/forces/gravity    | Gravity force                                                                  |
-| physim/forces/collision  | Collision force                                                                |
-| physim/graphics          | Display components using Display                                               |
-| physim/bodies            | A system for defining the physical body of an entity for physics and graphics. |
-| physim/effects/particles | Provides pre-configured particle effects like fire and rain                    |
-| physim/sounds            | A library of sound effects and instruments                                     |
+| Name                     | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| physim/forces/gravity    | Gravity force                                               |
+| physim/forces/collision  | Collision force                                             |
+| physim/graphics          | Display components using Display                            |
+| physim/effects/particles | Provides pre-configured particle effects like fire and rain |
+| physim/sounds            | A library of sound effects and instruments                  |
 
 ## Helper layer
 

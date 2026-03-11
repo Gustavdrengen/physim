@@ -1,5 +1,5 @@
 import { test, expect } from "../test.ts";
-import { Vec2 } from "../src/public/vec.ts";
+import { Vec2 } from "physim/base";
 
 await test("Vec2.zero", () => {
   const zero = Vec2.zero();

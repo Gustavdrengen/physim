@@ -5,6 +5,32 @@ import { Physics } from "./physics.ts";
 /**
  * The `Simulation` class is the main entry point for creating and managing a simulation.
  * It integrates a `Physics` instance for handling physics calculations and a `Display` instance for rendering.
+ *
+ * @example
+ * ```ts
+ * import { Simulation, Entity, Vec2, Color } from "physim/base";
+ * import { Body, createRectangle, initBodyComponent } from "physim/bodies";
+ * import { initBodyDisplayComponent } from "physim/graphics";
+ *
+ * const sim = new Simulation();
+ *
+ * // Initialize components for bodies and their display
+ * const bodyComp = initBodyComponent();
+ * const displayComp = initBodyDisplayComponent(sim.display, bodyComp);
+ *
+ * // Create a falling rectangle
+ * Entity.create(
+ *   new Vec2(100, 100),
+ *   [
+ *     [sim.physics.velocity, new Vec2(0, 50)],
+ *     [bodyComp, Body.fromShape(createRectangle(20, 20))],
+ *     [displayComp, { color: Color.fromString("orange") }]
+ *   ]
+ * );
+ *
+ * // Run the simulation loop
+ * await sim.run();
+ * ```
  */
 export class Simulation {
   /**

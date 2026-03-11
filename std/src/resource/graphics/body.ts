@@ -1,16 +1,13 @@
-
-import { Vec2 } from "../../base/vec.ts";
 import { Display } from "../../base/display.ts";
-import { polygon } from "../../base/draw/shapes.ts";
 import { Component } from "../../base/entity.ts";
 import { Color } from "../../base/draw/color.ts";
-import { Body } from "../body/body.ts";
+import { Body } from "../../feature/bodies/body.ts";
 
 type BodyDisplayData = {
   color: Color;
   fill?: boolean;
   lineWidth?: number;
-}
+};
 
 /**
  * Initializes a component that draws bodies.
@@ -21,12 +18,9 @@ type BodyDisplayData = {
  *
  * @example
  * ```ts
- * import { Display } from "physim/display";
- * import { Entity } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
+ * import { Display, Entity, Vec2, Color } from "physim/base";
  * import { initBodyDisplayComponent } from "physim/graphics";
  * import { initBodyComponent, createRectangle, Body } from "physim/bodies";
- * import { Color } from "physim/draw";
  *
  * const display = new Display();
  * const bodyComponent = initBodyComponent();
@@ -45,14 +39,17 @@ type BodyDisplayData = {
  */
 export function initBodyDisplayComponent(
   display: Display,
-  bodyComponent: Component<Body>
+  bodyComponent: Component<Body>,
 ): Component<BodyDisplayData> {
   const bodyDisplay = new Component<BodyDisplayData>();
 
-  display.registerDrawComponent([bodyDisplay, bodyComponent], (entity, [data, body]) => {
-    const { color, fill = true, lineWidth = 1 } = data;
-    body.draw(entity.pos, color, fill, lineWidth);
-  });
+  display.registerDrawComponent(
+    [bodyDisplay, bodyComponent],
+    (entity, [data, body]) => {
+      const { color, fill = true, lineWidth = 1 } = data;
+      body.draw(entity.pos, color, fill, lineWidth);
+    },
+  );
 
   return bodyDisplay;
 }

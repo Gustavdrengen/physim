@@ -1,6 +1,5 @@
-import { Vec2 } from "physim/vec";
+import { Vec2, Color, Entity, Simulation, Sound, Draw } from "physim/base";
 import { initBodyDisplayComponent } from "physim/graphics";
-import { Color } from "physim/draw";
 import {
   Body,
   createCircle,
@@ -11,12 +10,8 @@ import {
 import { initGravityForce } from "physim/forces/gravity";
 import { initCollisionForce } from "physim/forces/collision";
 import { log } from "physim/logging";
-import { Entity } from "physim/ecs";
 import { ParticleSystem } from "physim/particles";
-import * as Draw from "physim/draw";
 import { createFireEffect } from "physim/effects/particles";
-import { Sound } from "physim/audio";
-import { Simulation } from "physim/simulation";
 import { Instruments, SFX } from "physim/sounds";
 
 const simulation = new Simulation();

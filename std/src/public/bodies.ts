@@ -3,9 +3,9 @@
  *
  * @example
  * ```ts
- * import { Entity } from "physim/ecs";
- * import { Vec2 } from "physim/vec";
+ * import { Entity, Vec2, Color } from "physim/base";
  * import { createRectangle, initBodyComponent, Body } from "physim/bodies";
+ * import { initBodyDisplayComponent } from "physim/graphics";
  *
  * const bodyComponent = initBodyComponent();
  * const bodyDisplay = initBodyDisplayComponent(
@@ -28,5 +28,5 @@
  * @module
  */
 
-export * from "../resource/body/body.ts";
-export * from "../resource/body/shape.ts";
+export * from "../feature/bodies/body.ts";
+export * from "../feature/bodies/shape.ts";

@@ -4,7 +4,7 @@
  * @module
  * @example
  * ```ts
- * import { Simulation } from "physim/simulation";
+ * import { Simulation } from "physim/base";
  * import { initGravityForce } from "physim/forces/gravity";
  *
  * const simulation = new Simulation();
