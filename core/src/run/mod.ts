@@ -39,6 +39,7 @@ export async function run(
   entrypoint: string,
   record: string | undefined,
   useWebview: boolean,
+  noAudio: boolean,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -64,7 +65,14 @@ export async function run(
   }
 
   const assetManager = new AssetManager(dirname(entrypoint), tempDirName);
-  const audioPlayer = new AudioPlayer(true, tempDirName, assetManager);
+  const playAudio = !noAudio;
+  const audioEnabled = playAudio || (record !== undefined);
+  const audioPlayer = new AudioPlayer(
+    playAudio,
+    audioEnabled,
+    tempDirName,
+    assetManager,
+  );
   const runResult = await runServer(
     outfile,
     tempDirName,

@@ -1,8 +1,7 @@
-import { Sound } from "./sound";
 import { NOTE_MAP } from "./notes";
 
 /**
- * Types of waveforms supported by SoX synth.
+ * Types of waveforms.
  */
 export type WaveformType =
     | "sine"
@@ -98,13 +97,13 @@ export function synthToSoxArgs(synth: Synth): string[] {
     for (let i = 0; i < oscillators.length; i++) {
         const osc = oscillators[i]!;
 
+        // Add type
+        args.push(osc.type);
+
         // For subsequent oscillators, add the combine method if provided
         if (i > 0 && synth.combine) {
             args.push(synth.combine);
         }
-
-        // Add type
-        args.push(osc.type);
 
         // Add frequency (or sweep)
         if (osc.freq !== undefined) {

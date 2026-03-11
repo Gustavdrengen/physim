@@ -17,13 +17,20 @@ type Sound = string;
 
 export class AudioPlayer {
   playLoud: boolean;
+  enabled: boolean;
   sounds: Sound[] = [];
   soundLog: [number, Sound][] = [];
   tmpDir: string;
   assetManager: AssetManager;
 
-  constructor(playLoud: boolean, tmpDir: string, assetManager: AssetManager) {
+  constructor(
+    playLoud: boolean,
+    enabled: boolean,
+    tmpDir: string,
+    assetManager: AssetManager,
+  ) {
     this.playLoud = playLoud;
+    this.enabled = enabled;
     this.tmpDir = tmpDir;
     this.assetManager = assetManager;
   }
@@ -31,6 +38,10 @@ export class AudioPlayer {
   async addSound(props: SoundProps): Promise<Result<number>> {
     const id = this.sounds.length;
     this.sounds.push("");
+
+    if (!this.enabled) {
+      return id;
+    }
 
     const fileName = join(this.tmpDir, "sound_" + id + ".wav");
 
@@ -68,6 +79,10 @@ export class AudioPlayer {
   }
 
   playSound(id: number, frame: number): Result<undefined> {
+    if (!this.enabled) {
+      return;
+    }
+
     if (this.sounds[id] === undefined) {
       return fail(
         InputFailureTag.SoundFailure,
@@ -77,13 +92,19 @@ export class AudioPlayer {
 
     const sound = this.sounds[id];
     this.soundLog.push([frame, sound]);
-    const r = playAudio(sound);
-    if (failed(r)) {
-      return r;
+
+    if (this.playLoud) {
+      const r = playAudio(sound);
+      if (failed(r)) {
+        return r;
+      }
     }
   }
 
   addAudioToVideo(videoPath: string): Promise<Result<undefined>> {
+    if (!this.enabled || this.soundLog.length === 0) {
+      return Promise.resolve();
+    }
     return addAudioToMp4(this.soundLog, videoPath, 60);
   }
 }

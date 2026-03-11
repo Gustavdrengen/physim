@@ -16,8 +16,8 @@ import { ParticleSystem } from "physim/particles";
 import * as Draw from "physim/draw";
 import { createFireEffect } from "physim/effects/particles";
 import { Sound } from "physim/audio";
-import { fetchAsset } from "physim/assets";
 import { Simulation } from "physim/simulation";
+import { Instruments, SFX } from "physim/sounds";
 
 const simulation = new Simulation();
 //simulation.physics.constantPull = new Vec2(0, 10);
@@ -36,13 +36,7 @@ const { addCollisionCallback, staticComponent } = await initCollisionForce(
 );
 const particleSystem = new ParticleSystem();
 
-const collisionSound = await Sound.fromSynth({
-  duration: 0.1,
-  oscillators: {
-    type: "sine",
-    freq: ["C6", "C5"],
-  },
-}, { volume: 0.2 });
+const collisionSound = await Sound.fromSynth(SFX.stress(0.5));
 
 addCollisionCallback((event) => {
   particleSystem.emit(

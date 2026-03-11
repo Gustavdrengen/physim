@@ -6,26 +6,26 @@
 
 ## Next commits:
 
-- Python coverege script
-- Webview as subprocess
-- Audio synth - remove builder
-- Rust crate with audio playback
+- Test the sfx lib
 
 ---
 
-- Soundeffect and instrument library
 - Fix layer system
+  - Base layer barreled imports
 
 ---
 
 - More things in the Simulation class
-- Implementing more tests
-- ...
+- Complete the std test system
+
+---
+
+- Breaking animations
+- Add more instruments with attribution and stuff
 
 ## Future ideas:
 
-- Testing
-  - Implementing tests
+- Figure out if audio playback even works
 - Complete core
   - Dependency management system version control
 - Forces taking components as input and returning their own versions if not specified

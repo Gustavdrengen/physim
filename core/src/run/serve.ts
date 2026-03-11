@@ -2,14 +2,7 @@ import { dirname, fromFileUrl, join } from "@std/path";
 import { getAvailablePort } from "@std/net";
 import { AudioPlayer } from "./audio/mod.ts";
 import { openUrl } from "../open.ts";
-import {
-  fail,
-  failed,
-  Failure,
-  InputFailureTag,
-  Result,
-  SystemFailureTag,
-} from "../err.ts";
+import { fail, failed, Failure, InputFailureTag, Result, SystemFailureTag } from "../err.ts";
 import { AssetManager } from "./assets.ts";
 import * as print from "../print.ts";
 import { openWebview } from "./webview.ts";
@@ -75,7 +68,7 @@ export async function runServer(
               ),
             );
           }
-        }, 3000);
+        }, 8000);
       } else {
         const e = await openUrl(url);
         if (e) {

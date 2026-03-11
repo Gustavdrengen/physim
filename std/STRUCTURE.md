@@ -21,6 +21,7 @@ In this example the only way for a sound-generation feature to be added would be
 | physim/physics    | Generic physics system intended to be extended by other modules                  |
 | physim/display    | A basic display system to manage rendering entities to the screen, with a camera |
 | physim/particles  | A system for creating and managing particles                                     |
+| physim/assets     | Utilities for handling and fetching assets                                       |
 | physim/simulation | A system for managing the simulation                                             |
 
 ## Resource layer
@@ -34,6 +35,7 @@ _Builds on Layer 1 to provide more specified things_
 | physim/graphics          | Display components using Display                                               |
 | physim/bodies            | A system for defining the physical body of an entity for physics and graphics. |
 | physim/effects/particles | Provides pre-configured particle effects like fire and rain                    |
+| physim/sounds            | A library of sound effects and instruments                                     |
 
 ## Helper layer
 

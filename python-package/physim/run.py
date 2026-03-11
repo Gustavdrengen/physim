@@ -29,6 +29,7 @@ def run_script(
     raw: bool = False,
     video_output_path: str | None = None,
     webview: bool = False,
+    no_audio: bool = False,
 ) -> PhysimResult:
     """
     Run a physim script and capture its output.
@@ -38,6 +39,7 @@ def run_script(
         raw: Whether to use --raw flag for machine-parsable output
         video_output_path: Optional path to save a video of the simulation.
         webview: Whether to run the simulation in a webview window.
+        no_audio: Whether to disable audio playback.
 
     Returns:
         PhysimResult containing exit code and output
@@ -49,6 +51,8 @@ def run_script(
         args.extend(["--record", video_output_path])
     if webview:
         args.append("--webview")
+    if no_audio:
+        args.append("--no-audio")
     args.append(filepath)
     exit_code, stdout, stderr = _run_physim_command(args)
     return PhysimResult(exit_code=exit_code, stdout=stdout, stderr=stderr)
