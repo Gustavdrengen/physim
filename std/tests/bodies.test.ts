@@ -59,3 +59,18 @@ await test("Body rotation", () => {
   expect(body2.vertices[0][0].x).toBeCloseTo(5);
   expect(body2.vertices[0][0].y).toBeCloseTo(-10);
 });
+
+await test("Body.split", () => {
+  const rect = createRectangle(20, 20);
+  const body = Body.fromShape(rect);
+  const shards = Body.split(body, 4);
+
+  expect(shards.length).toBe(4);
+  for (const shard of shards) {
+    expect(shard.parts.length).toBe(1);
+    expect(shard.vertices[0].length).toBeGreaterThanOrEqual(3);
+    // Each shard should be within the original AABB
+    expect(shard.aabb.min.x).toBeGreaterThanOrEqual(-10.1);
+    expect(shard.aabb.max.x).toBeLessThanOrEqual(10.1);
+  }
+});

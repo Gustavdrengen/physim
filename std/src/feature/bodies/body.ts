@@ -228,7 +228,65 @@ export class Body {
       if (v.y > maxY) maxY = v.y;
     }
 
-    return { min: new Vec2(minX, minY), max: new Vec2(maxX, maxY) };
+  return { min: new Vec2(minX, minY), max: new Vec2(maxX, maxY) };
+  }
+
+  /**
+   * Splits a body into multiple shards.
+   *
+   * @param body The body to split.
+   * @param numShards The number of shards to create.
+   * @returns An array of new Body instances, each representing a shard.
+   */
+  static split(body: Body, numShards: number): Body[] {
+    const shards: Body[] = [];
+    const rotation = body.rotation;
+
+    for (const poly of body.vertices) {
+      if (poly.length < 3) continue;
+
+      // Find the center of the polygon
+      let centerX = 0;
+      let centerY = 0;
+      for (const v of poly) {
+        centerX += v.x;
+        centerY += v.y;
+      }
+      centerX /= poly.length;
+      centerY /= poly.length;
+      const center = new Vec2(centerX, centerY);
+
+      // Simple radial split for now
+      // More complex Voronoi logic could be added later
+      for (let i = 0; i < numShards; i++) {
+        const startIdx = Math.floor((i / numShards) * poly.length);
+        let endIdx = Math.floor(((i + 1) / numShards) * poly.length);
+
+        if (endIdx === startIdx) {
+          if (i === numShards - 1) {
+            endIdx = poly.length; // Ensure last shard covers everything
+          } else {
+             continue; // Skip zero-area shards
+          }
+        }
+        
+        if (endIdx === startIdx) continue;
+
+        const shardVertices: Vec2[] = [center];
+        for (let j = startIdx; j <= endIdx; j++) {
+          shardVertices.push(poly[j % poly.length]);
+        }
+
+        shards.push(
+          Body.fromShape(
+            { type: "polygon", vertices: shardVertices },
+            rotation
+          )
+        );
+      }
+    }
+
+    return shards;
   }
 }
 

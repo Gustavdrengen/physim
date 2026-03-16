@@ -11,7 +11,7 @@ import { initGravityForce } from "physim/forces/gravity";
 import { initCollisionForce } from "physim/forces/collision";
 import { log } from "physim/logging";
 import { ParticleSystem } from "physim/particles";
-import { createFireEffect } from "physim/effects/particles";
+import { createFireEffect, shatter } from "physim/effects/particles";
 import { Instruments, SFX } from "physim/sounds";
 
 const simulation = new Simulation();
@@ -110,7 +110,14 @@ addCaption(simulation.display, {
 await simulation.run(() => {
   ringBody.rotation += 0.01;
 
-  if (simulation.time >= 3) {
-    rect1.destroy();
+  if (simulation.time >= 3 && bodyComponent.has(rect1)) {
+    const displayData = bodyDisplayComponent.get(rect1);
+    shatter(rect1, bodyComponent.get(rect1)!, particleSystem, {
+      numShards: 8,
+      lifetime: { min: 60, max: 120 },
+      speed: { min: 1, max: 3 },
+      scale: { start: 1, end: 0 },
+      color: displayData ? { start: displayData.color, end: displayData.color.withAlpha(0) } : undefined,
+    });
   }
 });
