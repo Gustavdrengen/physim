@@ -1,3 +1,4 @@
+import { Body } from "../../../feature/bodies/body";
 import { Entity, Component } from "../../../base/entity";
 import { Physics } from "../../../base/physics";
 import {
@@ -9,6 +10,7 @@ import { CollisionCallback } from "./mod";
 
 export class CollisionSystem {
   private _worldManager: RapierWorldManager;
+  private _bodyComponent: Component<Body>;
   private _collisionEventComponent: Component<CollisionEvent[]>;
   private _defaultCollisionProperties: DefaultCollisionProperties;
   private _physics: Physics;
@@ -17,11 +19,13 @@ export class CollisionSystem {
 
   constructor(
     worldManager: RapierWorldManager,
+    bodyComponent: Component<Body>,
     collisionEventComponent: Component<CollisionEvent[]>,
     defaultCollisionProperties: DefaultCollisionProperties,
     physics: Physics,
   ) {
     this._worldManager = worldManager;
+    this._bodyComponent = bodyComponent;
     this._collisionEventComponent = collisionEventComponent;
     this._defaultCollisionProperties = defaultCollisionProperties;
     this._physics = physics;
@@ -32,6 +36,13 @@ export class CollisionSystem {
    * This should be called once per physics update, after all other forces are integrated.
    */
   step(): void {
+    // Check if entities still exist in the simulation
+    for (const managedEntity of this._worldManager.getEntities()) {
+      if (!this._bodyComponent.has(managedEntity)) {
+        this._worldManager.removeEntity(managedEntity);
+      }
+    }
+
     for (const entityWithEvents of this._entitiesWithCollisionEvents) {
       const events = this._collisionEventComponent.get(entityWithEvents);
       if (events) {

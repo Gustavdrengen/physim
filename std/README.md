@@ -24,7 +24,7 @@ import { log } from "physim/logging";
 This example demonstrates how to set up a basic simulation with gravity, displaying two bodies attracting each other.
 
 ```typescript
-import { Simulation, Entity, Vec2, Color, Draw } from "physim/simulation";
+import { Simulation, Entity, Vec2, Color, Draw } from "physim/base";
 import { initGravityForce } from "physim/forces/gravity";
 import { initBodyComponent, createCircle, Body } from "physim/bodies";
 import { initBodyDisplayComponent } from "physim/graphics";

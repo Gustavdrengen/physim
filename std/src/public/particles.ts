@@ -9,7 +9,7 @@
  *
  * const simulation = new Simulation();
  *
- * const particleSystem = new ParticleSystem();
+ * const particleSystem = new ParticleSystem(simulation.display);
  *
  * // Emit some particles at the start
  * particleSystem.emit({
@@ -21,9 +21,7 @@
  *   color: { start: Color.fromHex("#ff0000"), end: Color.fromHex("#ffff00") },
  * });
  *
- * await simulation.run(() => {
- *   particleSystem.updateAndRender();
- * });
+ * await simulation.run();
  * ```
  * @module
  */

@@ -412,7 +412,14 @@ sim.run = (onUpdate) => {
     runResolve = resolve;
 
     const runFrame = () => {
-      onUpdate();
+      try {
+        const result = onUpdate();
+        if (result instanceof Promise) {
+          result.catch(errorHandler);
+        }
+      } catch (err) {
+        errorHandler(err);
+      }
 
       if (SHOULD_RECORD) {
         canvas.toBlob(async (blob) => {

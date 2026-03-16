@@ -82,6 +82,11 @@ export function createRing(
   outerRadius: number,
   gaps: { startAngle: number; size: number }[] = [],
 ): Ring {
+  if (outerRadius < innerRadius) {
+    throw new Error(
+      "Outer radius must be greater than or equal to inner radius",
+    );
+  }
   return { type: "ring", innerRadius, outerRadius, gaps };
 }
 

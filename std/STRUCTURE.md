@@ -1,7 +1,7 @@
 # The Structure of the Standard Library
 
 Here is the structure of how the standard library is organized containing all import paths:
-The library is split into three layers: the base layer, the resource layer and the helper layer.
+The library is split into four layers: the base layer, the feature layer, the resource layer and the helper layer.
 Code must not depend on code from layers above themself.
 All modules (especially outside the base layer) should be completely tree-shakable, allowing the library to grow without adding bloat to the compiled code.
 
@@ -32,6 +32,7 @@ But this layer should contain should contain more advanced features, that might 
 | ---------------- | ------------------------------------------------------------------------------ |
 | physim/particles | A system for creating and managing particles                                   |
 | physim/bodies    | A system for defining the physical body of an entity for physics and graphics. |
+| physim/graphics  | Display components and statics using Display                                   |
 
 ## Resource layer
 
@@ -41,7 +42,6 @@ _Provides more specific, un-generic and discriminating things_
 | ------------------------ | ----------------------------------------------------------- |
 | physim/forces/gravity    | Gravity force                                               |
 | physim/forces/collision  | Collision force                                             |
-| physim/graphics          | Display components using Display                            |
 | physim/effects/particles | Provides pre-configured particle effects like fire and rain |
 | physim/sounds            | A library of sound effects and instruments                  |
 

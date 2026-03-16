@@ -6,10 +6,7 @@
 
 ## Next commits:
 
-- Fix layer system
-  - Update examples for base layer barreled imports
-  - Add more docs to base layer things
-  - Ensure all tests work
+- Breaking particles
 
 ---
 

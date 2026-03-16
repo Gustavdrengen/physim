@@ -1,5 +1,5 @@
 import { Vec2, Color, Entity, Simulation, Sound, Draw } from "physim/base";
-import { initBodyDisplayComponent } from "physim/graphics";
+import { initBodyDisplayComponent, addCaption } from "physim/graphics";
 import {
   Body,
   createCircle,
@@ -29,7 +29,7 @@ const { addCollisionCallback, staticComponent } = await initCollisionForce(
     restitution: 1.0,
   },
 );
-const particleSystem = new ParticleSystem();
+const particleSystem = new ParticleSystem(simulation.display);
 
 const collisionSound = await Sound.fromSynth(SFX.stress(0.5));
 
@@ -96,13 +96,21 @@ ring.addComp(staticComponent, true);
 
 log("Starting simulation...", 67);
 
+addCaption(simulation.display, {
+  text: () => `SIX SEVEN\nTime: ${simulation.time.toFixed(1)}s`,
+  pos: new Vec2(960, 200),
+  color: new Color(255, 255, 255),
+  backgroundColor: new Color(0, 0, 0, 0.7),
+  padding: new Vec2(20, 10),
+  borderRadius: 8,
+  outlineColor: new Color(255, 215, 0),
+  outlineWidth: 2,
+});
+
 await simulation.run(() => {
-  particleSystem.update();
-  particleSystem.draw(simulation.camera);
-  Draw.text(new Vec2(500, 200), "SIX SEVEN");
   ringBody.rotation += 0.01;
 
-  if (simulation.frame == 60 * 5) {
-    //sim.finish();
+  if (simulation.time >= 3) {
+    rect1.destroy();
   }
 });

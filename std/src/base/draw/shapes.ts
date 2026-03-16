@@ -58,16 +58,24 @@ export namespace Draw {
    * @param width The width of the rectangle.
    * @param height The height of the rectangle.
    * @param color The color of the rectangle.
+   * @param borderRadius Optional border radius for rounded corners.
    */
   export function rect(
     pos: Vec2,
     width: number,
     height: number,
     color: Color | string = Color.fromRGB(255, 255, 255),
+    borderRadius?: number,
   ) {
     const ctx = sim.ctx;
     ctx.fillStyle = _colorToCss(color);
-    ctx.fillRect(pos.x - width / 2, pos.y - height / 2, width, height);
+    if (borderRadius !== undefined) {
+      ctx.beginPath();
+      ctx.roundRect(pos.x - width / 2, pos.y - height / 2, width, height, borderRadius);
+      ctx.fill();
+    } else {
+      ctx.fillRect(pos.x - width / 2, pos.y - height / 2, width, height);
+    }
   }
 
   /**

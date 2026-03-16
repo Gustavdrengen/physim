@@ -5,6 +5,7 @@ import { Camera } from "../../base/camera.ts";
 import { Body } from "../bodies/body.ts";
 import { Component, Entity } from "../../base/entity.ts";
 import { TrailOptions } from "./trail.ts";
+import { Display } from "../../base/display.ts";
 
 /**
  * A system for creating and managing particles.
@@ -22,16 +23,20 @@ export class ParticleSystem {
 
   /**
    * Creates a new particle system.
+   * @param display The display to automatically render the particles to.
    */
-  constructor() {
+  constructor(display: Display) {
     this.trailComponent = new Component<TrailOptions | TrailOptions[]>();
+    display.addStatic((camera) => {
+      this.update();
+      this.draw(camera);
+    });
   }
 
   /**
    * Updates the state of all active particles and emits new particles from trails.
-   * This should be called once per frame.
    */
-  public update(): void {
+  private update(): void {
     for (let i = this.activeParticles.length - 1; i >= 0; i--) {
       const p = this.activeParticles[i];
       p.age++;
@@ -85,10 +90,9 @@ export class ParticleSystem {
 
   /**
    * Renders all active particles.
-   * This should be called once per frame.
    * @param camera The camera to use for rendering.
    */
-  public draw(camera: Camera): void {
+  private draw(camera: Camera): void {
     camera._applyTransforms(sim.ctx);
     for (const p of this.activeParticles) {
       p.body.draw(p.position, p.color, true, 1, p.scale);

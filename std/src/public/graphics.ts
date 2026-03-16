@@ -13,5 +13,6 @@
  * @module
  */
 
-export * from "../resource/graphics/point.ts";
-export * from "../resource/graphics/body.ts";
+export * from "../feature/graphics/point.ts";
+export * from "../feature/graphics/body.ts";
+export * from "../feature/graphics/caption.ts";

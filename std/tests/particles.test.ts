@@ -1,16 +1,17 @@
 import { test, expect } from "../test.ts";
 import { ParticleSystem } from "physim/particles";
 import { Vec2, Color, Entity } from "physim/base";
+import { Display } from "physim/base";
 import { Body, createCircle } from "physim/bodies";
 
 await test("ParticleSystem - constructor", () => {
-  const ps = new ParticleSystem();
+  const ps = new ParticleSystem(new Display());
   expect((ps as any).activeParticles.length).toBe(0);
   expect(ps.trailComponent).toBeTruthy();
 });
 
 await test("ParticleSystem - emit", () => {
-  const ps = new ParticleSystem();
+  const ps = new ParticleSystem(new Display());
   ps.emit({
     numParticles: 10,
     position: Vec2.zero(),
@@ -28,7 +29,7 @@ await test("ParticleSystem - emit", () => {
 });
 
 await test("ParticleSystem - update physics", () => {
-  const ps = new ParticleSystem();
+  const ps = new ParticleSystem(new Display());
   ps.emit({
     numParticles: 1,
     position: Vec2.zero(),
@@ -42,18 +43,18 @@ await test("ParticleSystem - update physics", () => {
   const particle = (ps as any).activeParticles[0];
   const initialPos = particle.position.clone();
 
-  ps.update();
+  (ps as any).update();
 
   expect(particle.age).toBe(1);
   expect(particle.position.x).toBeCloseTo(initialPos.x + 1); // vel is 1 after first frame
   expect(particle.velocity.x).toBeCloseTo(1);
 
-  ps.update();
+  (ps as any).update();
   expect(particle.position.x).toBeCloseTo(initialPos.x + 3);
 });
 
 await test("ParticleSystem - particle lifetime", () => {
-  const ps = new ParticleSystem();
+  const ps = new ParticleSystem(new Display());
   ps.emit({
     numParticles: 1,
     position: Vec2.zero(),
@@ -64,14 +65,14 @@ await test("ParticleSystem - particle lifetime", () => {
   });
 
   expect((ps as any).activeParticles.length).toBe(1);
-  ps.update(); // age 1
-  ps.update(); // age 2, should be removed
+  (ps as any).update(); // age 1
+  (ps as any).update(); // age 2, should be removed
   expect((ps as any).activeParticles.length).toBe(0);
   expect((ps as any).particlePool.length).toBe(1);
 });
 
 await test("ParticleSystem - color interpolation", () => {
-  const ps = new ParticleSystem();
+  const ps = new ParticleSystem(new Display());
   const startColor = new Color(255, 0, 0, 1); // Red
   const endColor = new Color(0, 0, 255, 0); // Blue (transparent)
   const lifetime = 10;
@@ -92,7 +93,7 @@ await test("ParticleSystem - color interpolation", () => {
 
   // After half lifetime
   for (let i = 0; i < lifetime / 2; i++) {
-    ps.update();
+    (ps as any).update();
   }
   const expectedMidColor = new Color(127.5, 0, 127.5, 0.5);
   expect(particle.color.r).toBeCloseTo(expectedMidColor.r);
@@ -102,7 +103,7 @@ await test("ParticleSystem - color interpolation", () => {
 
   // After full lifetime
   for (let i = 0; i < lifetime / 2; i++) {
-    ps.update();
+    (ps as any).update();
   }
   expect(particle.color).toEqual(endColor);
 });

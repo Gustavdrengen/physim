@@ -1,7 +1,9 @@
 """
 Python wrapper for running physim scripts.
 """
+
 from dataclasses import dataclass
+
 from ._internal import _run_physim_command
 
 
@@ -15,8 +17,8 @@ class PhysimResult:
 
     @property
     def is_system_failure(self) -> bool:
-        """Check if this was a system-level failure (exit codes 65, 69, 70)."""
-        return self.exit_code in (65, 69, 70)
+        """Check if this was a system-level failure (exit codes 69, 70)."""
+        return self.exit_code in (69, 70)
 
     @property
     def success(self) -> bool:

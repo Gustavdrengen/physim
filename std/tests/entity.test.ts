@@ -79,3 +79,24 @@ await test("Component.set, Component.get, Component.delete directly", () => {
   testComponent.delete(entity);
   expect(testComponent.get(entity)).toBeUndefined();
 });
+
+await test("Entity.destroy removes entity from all components", () => {
+  const entity = new Entity(new Vec2(0, 0));
+  const c1 = new Component<number>();
+  const c2 = new Component<string>();
+  const c3 = new Component<boolean>();
+
+  entity.addComp(c1, 10);
+  entity.addComp(c2, "hello");
+  entity.addComp(c3, true);
+
+  expect(entity.getComp(c1)).toBe(10);
+  expect(entity.getComp(c2)).toBe("hello");
+  expect(entity.getComp(c3)).toBe(true);
+
+  entity.destroy();
+
+  expect(entity.getComp(c1)).toBeUndefined();
+  expect(entity.getComp(c2)).toBeUndefined();
+  expect(entity.getComp(c3)).toBeUndefined();
+});

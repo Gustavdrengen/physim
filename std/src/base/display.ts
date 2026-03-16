@@ -36,6 +36,8 @@ export class Display {
     (entity: Entity, data: any) => void
   > = new Map();
 
+  private statics: ((camera: Camera) => void)[] = [];
+
   /**
    * Registers a draw function for a component or multiple components.
    *
@@ -60,6 +62,18 @@ export class Display {
     drawFunc: (entity: Entity, data: T | T[]) => void,
   ) {
     this.drawComponents.set(comps, drawFunc);
+  }
+
+  /**
+   * Registers a static draw callback that should be executed every frame.
+   * This callback is called after the main scene has been drawn, allowing
+   * for static graphics or overlays to be rendered independently of the camera's
+   * internal transforms.
+   *
+   * @param callback The function to execute every frame.
+   */
+  addStatic(callback: (camera: Camera) => void): void {
+    this.statics.push(callback);
   }
 
   /**
@@ -111,5 +125,9 @@ export class Display {
 
     effectiveCamera._removeTransforms(sim.ctx);
     sim.ctx.restore(); // Restore the context after drawing
+
+    for (const staticDraw of this.statics) {
+      staticDraw(effectiveCamera);
+    }
   }
 }

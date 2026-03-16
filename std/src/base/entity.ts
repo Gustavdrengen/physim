@@ -1,6 +1,12 @@
 import { Vec2 } from "./vec.ts";
 
 /**
+ * A registry of all created components.
+ * This is used to ensure that when an entity is destroyed, it is removed from all components.
+ */
+const ALL_COMPONENTS: Set<Component<any>> = new Set();
+
+/**
  * An entity in the world.
  *
  * @example
@@ -78,6 +84,16 @@ export class Entity {
   removeComp<T>(component: Component<T>): void {
     component.delete(this);
   }
+
+  /**
+   * Destroys the entity.
+   * This removes the entity from all components it is associated with.
+   */
+  destroy(): void {
+    for (const component of ALL_COMPONENTS) {
+      component.delete(this);
+    }
+  }
 }
 
 /**
@@ -87,4 +103,8 @@ export class Entity {
  * @see {@link Entity}
  */
 export class Component<T> extends Map<Entity, T> {
+  constructor() {
+    super();
+    ALL_COMPONENTS.add(this);
+  }
 }

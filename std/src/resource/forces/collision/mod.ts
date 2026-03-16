@@ -61,6 +61,7 @@ export async function initCollisionForce(
 
   const collisionSystem = new CollisionSystem(
     rapierWorldManager,
+    bodyComponent,
     collisionEventComponent,
     defaultCollisionProperties,
     physics,
