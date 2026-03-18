@@ -133,7 +133,7 @@ export class Sound {
   /**
    * Plays the sound.
    */
-  play() {
+  play(): void {
     sim.playSound(this.id);
   }
 }

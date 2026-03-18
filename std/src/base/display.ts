@@ -60,7 +60,7 @@ export class Display {
   registerDrawComponent<T>(
     comps: Component<T>[] | Component<T>,
     drawFunc: (entity: Entity, data: T | T[]) => void,
-  ) {
+  ): void {
     this.drawComponents.set(comps, drawFunc);
   }
 
@@ -80,7 +80,7 @@ export class Display {
    * Clears the screen and draws all registered components.
    * @param camera The camera to use for rendering. If not provided, a default camera is used.
    */
-  draw(camera?: Camera) {
+  draw(camera?: Camera): void {
     const effectiveCamera = camera ?? new Camera();
 
     if (effectiveCamera.target) {

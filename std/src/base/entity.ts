@@ -1,9 +1,6 @@
 import { Vec2 } from "./vec.ts";
 
-/**
- * A registry of all created components.
- * This is used to ensure that when an entity is destroyed, it is removed from all components.
- */
+// A registry of all created components.
 const ALL_COMPONENTS: Set<Component<any>> = new Set();
 
 /**

@@ -2,7 +2,7 @@ import { Vec2 } from "../vec.ts";
 import { Color } from "./color.ts";
 import { text as _text } from "./text.ts";
 
-function _colorToCss(c: Color | string) {
+function _colorToCss(c: Color | string): string {
   if (c instanceof Color) return c.toCSS();
   return c;
 }
@@ -25,7 +25,7 @@ export namespace Draw {
    *
    * @param color The color to clear the canvas with.
    */
-  export function clear(color: Color | string = Color.fromRGB(0, 0, 0)) {
+  export function clear(color: Color | string = Color.fromRGB(0, 0, 0)): void {
     const ctx = sim.ctx;
     const canvas = ctx.canvas;
     ctx.fillStyle = _colorToCss(color);
@@ -43,7 +43,7 @@ export namespace Draw {
     pos: Vec2,
     radius: number,
     color: Color | string = Color.fromRGB(255, 255, 255),
-  ) {
+  ): void {
     const ctx = sim.ctx;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
@@ -66,7 +66,7 @@ export namespace Draw {
     height: number,
     color: Color | string = Color.fromRGB(255, 255, 255),
     borderRadius?: number,
-  ) {
+  ): void {
     const ctx = sim.ctx;
     ctx.fillStyle = _colorToCss(color);
     if (borderRadius !== undefined) {
@@ -91,7 +91,7 @@ export namespace Draw {
     end: Vec2,
     color: Color | string = Color.fromRGB(255, 255, 255),
     lineWidth: number = 1,
-  ) {
+  ): void {
     const ctx = sim.ctx;
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
@@ -116,7 +116,7 @@ export namespace Draw {
     color: Color | string = Color.fromRGB(255, 0, 0),
     scale: number = 1,
     lineWidth: number = 2,
-  ) {
+  ): void {
     const end = pos.add(vec.scale(scale));
     Draw.line(pos, end, color, lineWidth);
   }
@@ -132,7 +132,7 @@ export namespace Draw {
     points: Vec2[],
     radius: number = 2,
     color: Color | string = Color.fromRGB(255, 255, 255),
-  ) {
+  ): void {
     for (const p of points) {
       Draw.circle(p, radius, color);
     }
@@ -143,7 +143,7 @@ export namespace Draw {
    * @param width The new width of the canvas.
    * @param height The new height of the canvas.
    */
-  export function setCanvasSize(width: number, height: number) {
+  export function setCanvasSize(width: number, height: number): void {
     sim.resizeCanvas(width, height);
   }
 
@@ -160,7 +160,7 @@ export namespace Draw {
     color: Color | string = Color.fromRGB(255, 255, 255),
     fill: boolean = false,
     lineWidth: number = 1,
-  ) {
+  ): void {
     if (vertices.length < 2) {
       return; // Not enough vertices to draw a polygon
     }

@@ -205,7 +205,7 @@ export class Color {
    * @param a The alpha component of the color, from 0 to 1.
    * @returns A new Color.
    */
-  static fromRGB(r: number, g: number, b: number, a: number = 1) {
+  static fromRGB(r: number, g: number, b: number, a: number = 1): Color {
     return new Color(r, g, b, a);
   }
 
@@ -217,7 +217,7 @@ export class Color {
    * @param hex The hex string.
    * @returns A new Color.
    */
-  static fromHex(hex: string) {
+  static fromHex(hex: string): Color {
     let s = hex.trim();
     if (s.startsWith("#")) s = s.slice(1);
 
@@ -251,7 +251,7 @@ export class Color {
    * @param a The alpha component of the color, from 0 to 1.
    * @returns A new Color.
    */
-  static fromHSL(h: number, s: number, l: number, a: number = 1) {
+  static fromHSL(h: number, s: number, l: number, a: number = 1): Color {
     // normalize
     const H = (((h % 360) + 360) % 360) / 360; // 0..1
     const S = s > 1 ? s / 100 : s; // allow 0..100 or 0..1
@@ -290,7 +290,7 @@ export class Color {
    * @param a The alpha component of the color, from 0 to 1.
    * @returns A new Color.
    */
-  static fromHSV(h: number, s: number, v: number, a: number = 1) {
+  static fromHSV(h: number, s: number, v: number, a: number = 1): Color {
     const H = ((h % 360) + 360) % 360;
     const S = s > 1 ? s / 100 : s;
     const V = v > 1 ? v / 100 : v;
@@ -414,7 +414,7 @@ export class Color {
 
   // --- Helpers ----------------------------------------------------------
   /**
-   * Converts the col or to a CSS string.
+   * Converts the color to a CSS string.
    *
    * @returns A CSS string representation of the color.
    */
@@ -448,7 +448,7 @@ export class Color {
    * @param a The new alpha value.
    * @returns A new color with the new alpha value.
    */
-  withAlpha(a: number) {
+  withAlpha(a: number): Color {
     return new Color(this.r, this.g, this.b, a);
   }
 

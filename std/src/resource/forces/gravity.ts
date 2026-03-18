@@ -9,9 +9,18 @@ import { Entity } from "../../base/entity.ts";
  *
  * @param physics The physics engine instance.
  * @param G The gravitational constant.
+ * 
+ * @example
+ * ```ts
+ * import { Simulation, Vec2 } from "physim/base";
+ * import { initGravityForce } from "physim/forces/gravity";
+ * 
+ * const sim = new Simulation();
+ * initGravityForce(sim.physics, 1.0);
+ * ```
  */
 export function initGravityForce(physics: Physics, G: number): void {
-  const gravityForce = (entity: Entity, mass: number) => {
+  const gravityForce = (entity: Entity, mass: number): void => {
     for (const otherEntity of physics.mass.keys()) {
       if (entity === otherEntity) continue;
 

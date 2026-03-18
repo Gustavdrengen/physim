@@ -6,13 +6,6 @@
 
 ## Next commits:
 
-- Documentation fixes
-  - Ensure guidelines are followed
-  - Ensure guidelines are good (consitency, etc.)
-  - Strategy for guidelines being folloed in the future, and for no bugs
-
----
-
 - More things in the Simulation class
 - Complete the std test system
 
@@ -23,7 +16,6 @@
 
 ## Future ideas:
 
-- Figure out if audio playback even works
 - Complete core
   - Dependency management system version control
 - Forces taking components as input and returning their own versions if not specified

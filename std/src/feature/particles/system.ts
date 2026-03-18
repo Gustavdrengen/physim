@@ -33,9 +33,7 @@ export class ParticleSystem {
     });
   }
 
-  /**
-   * Updates the state of all active particles and emits new particles from trails.
-   */
+  // Updates the state of all active particles and emits new particles from trails.
   private update(): void {
     for (let i = this.activeParticles.length - 1; i >= 0; i--) {
       const p = this.activeParticles[i];
@@ -88,10 +86,7 @@ export class ParticleSystem {
     }
   }
 
-  /**
-   * Renders all active particles.
-   * @param camera The camera to use for rendering.
-   */
+  // Renders all active particles.
   private draw(camera: Camera): void {
     camera._applyTransforms(sim.ctx);
     for (const p of this.activeParticles) {

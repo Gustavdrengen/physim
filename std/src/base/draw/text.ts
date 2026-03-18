@@ -1,7 +1,7 @@
 import { Vec2 } from "../vec.ts";
 import { Color } from "./color.ts";
 
-function _colorToCss(c: Color | string) {
+function _colorToCss(c: Color | string): string {
   if (c instanceof Color) return c.toCSS();
   return c;
 }
@@ -23,7 +23,7 @@ export function text(
   color: Color | string = Color.fromRGB(255, 255, 255),
   textAlign: CanvasTextAlign = "center",
   textBaseline: CanvasTextBaseline = "middle",
-) {
+): void {
   const ctx = sim.ctx;
   ctx.font = font;
   ctx.fillStyle = _colorToCss(color);

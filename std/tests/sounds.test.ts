@@ -1,10 +1,10 @@
 import { test, expect } from "../test.ts";
-import { SFX } from "physim/sounds";
+import { SFX, Instruments } from "physim/sounds";
 
 await test("SFX.collision - default and manual duration", () => {
   const sDefault = SFX.collision(0.5, 0.5);
   expect(sDefault.duration).toBe(0.05 + 0.1 * 0.5);
-  
+
   const sManual = SFX.collision(0.5, 0.5, 2.0);
   expect(sManual.duration).toBe(2.0);
 });
@@ -12,7 +12,7 @@ await test("SFX.collision - default and manual duration", () => {
 await test("SFX.explosion - dynamic duration", () => {
   const s = SFX.explosion(0.8);
   expect(s.duration).toBe(0.5 + 1.5 * 0.8);
-  
+
   const sManual = SFX.explosion(0.8, 3.0);
   expect(sManual.duration).toBe(3.0);
 });
@@ -58,7 +58,7 @@ await test("SFX.vortex - structure", () => {
 await test("SFX.electricDischarge - dynamic duration", () => {
   const s = SFX.electricDischarge(1.0);
   expect(s.duration).toBe(0.05 + 0.1 * 1.0);
-  
+
   const sManual = SFX.electricDischarge(1.0, 5.0);
   expect(sManual.duration).toBe(5.0);
 });
@@ -68,4 +68,8 @@ await test("SFX.oscillation - audible scaling", () => {
   expect(s.duration).toBe(0.3);
   const oscillators = s.oscillators as any[];
   expect(oscillators[0].freq).toBe(1000);
+});
+
+await test("Instruments", () => {
+  expect(Instruments.PIANO).toBeTruthy();
 });

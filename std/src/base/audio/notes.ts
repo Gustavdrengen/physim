@@ -77,7 +77,7 @@ function noteNameToMidi(note: string): number {
   return midi;
 }
 
-/// @internal
+/** @internal */
 export function noteEventToMidi(event: NoteEvent): SoundInterface.NoteEvent {
   return {
     time: event.time || 0,
@@ -90,6 +90,18 @@ export function noteEventToMidi(event: NoteEvent): SoundInterface.NoteEvent {
 
 /**
  * A series of notes that can be played sequentially.
+ * 
+ * @example
+ * ```ts
+ * import { NoteSeries } from "physim/base";
+ * import { Instruments } from "physim/sounds";
+ * 
+ * const series = new NoteSeries(["C4", "E4", "G4"], Instruments.PIANO);
+ * await series.init();
+ * 
+ * // Play notes in a loop
+ * setInterval(() => series.playNext(), 500);
+ * ```
  */
 export class NoteSeries {
   private soundsPromises: Promise<Sound>[] = [];
@@ -111,7 +123,7 @@ export class NoteSeries {
     });
   }
 
-  async init() {
+  async init(): Promise<void> {
     this.sounds = await Promise.all(this.soundsPromises);
   }
 
@@ -119,7 +131,7 @@ export class NoteSeries {
    * Plays the next note in the series.
    * If the end of the series is reached, it loops back to the beginning.
    */
-  playNext() {
+  playNext(): void {
     if (!this.sounds) {
       throw new Error(
         "NoteSeries not initialized. await init() before playing notes.",

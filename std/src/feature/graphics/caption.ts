@@ -3,6 +3,9 @@ import { Draw } from "../../base/draw/shapes.ts";
 import { Vec2 } from "../../base/vec.ts";
 import { Color } from "../../base/draw/color.ts";
 
+/**
+ * Options for the `addCaption` function.
+ */
 export interface CaptionOptions {
   text: string | (() => string);
   pos: Vec2 | (() => Vec2);
@@ -20,7 +23,30 @@ export interface CaptionOptions {
 
 declare const sim: any;
 
-export function addCaption(display: Display, options: CaptionOptions) {
+/**
+ * Adds a static caption (text overlay) to the display.
+ * This caption is rendered in screen space and remains static regardless of camera movement.
+ *
+ * @param display The display instance to add the caption to.
+ * @param options The options for the caption, including text, position, and styling.
+ *
+ * @example
+ * ```ts
+ * import { Simulation, Vec2, Color } from "physim/base";
+ * import { addCaption } from "physim/graphics";
+ *
+ * const sim = new Simulation();
+ *
+ * addCaption(sim.display, {
+ *   text: "Hello Physics!",
+ *   pos: new Vec2(400, 50),
+ *   backgroundColor: Color.fromHex("#00000088"),
+ *   padding: 10,
+ *   borderRadius: 5
+ * });
+ * ```
+ */
+export function addCaption(display: Display, options: CaptionOptions): void {
   display.addStatic((camera) => {
     const textStr = typeof options.text === "function" ? options.text() : options.text;
     const pos = typeof options.pos === "function" ? options.pos() : options.pos;

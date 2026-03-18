@@ -67,7 +67,7 @@ export class Camera {
    * @param time The duration of the shake in frames.
    * @param intensity The magnitude of the shake.
    */
-  shake(time: number, intensity: number) {
+  shake(time: number, intensity: number): void {
     this.shakeTime = time;
     this.shakeIntensity = intensity;
   }
@@ -75,7 +75,7 @@ export class Camera {
   /**
    * @internal
    */
-  update() {
+  update(): void {
     if (this.target) {
       if (Array.isArray(this.target)) {
         this.position = Vec2.average(this.target.map((e) => e.pos));
@@ -96,14 +96,14 @@ export class Camera {
    * Sets the camera to follow an entity or a group of entities.
    * @param entity The entity or entities to follow.
    */
-  follow(entity: Entity | Entity[]) {
+  follow(entity: Entity | Entity[]): void {
     this.target = entity;
   }
 
   /**
    * @internal
    */
-  _applyTransforms(ctx: CanvasRenderingContext2D) {
+  _applyTransforms(ctx: CanvasRenderingContext2D): void {
     this.update();
     const pos = this.position.add(this.shakeOffset);
 
@@ -117,7 +117,7 @@ export class Camera {
   /**
    * @internal
    */
-  _removeTransforms(ctx: CanvasRenderingContext2D) {
+  _removeTransforms(ctx: CanvasRenderingContext2D): void {
     ctx.restore();
   }
 }

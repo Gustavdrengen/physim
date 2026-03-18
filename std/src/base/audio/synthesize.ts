@@ -47,6 +47,16 @@ export type SynthCombine = "mix" | "amod" | "fmod" | "sum" | "product";
 
 /**
  * A human readable form of structuring a synthesis.
+ * 
+ * @example
+ * ```ts
+ * import { Synth } from "physim/base";
+ * 
+ * const beep: Synth = {
+ *   duration: 0.1,
+ *   oscillators: { type: "sine", freq: 440 }
+ * };
+ * ```
  */
 export interface Synth {
     /**

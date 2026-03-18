@@ -8,14 +8,18 @@ This is how a feature should be implemented:
 4. Optimize and improve the feature implementation
 5. Confirm that no problems arose from the feature implementation
 
-- Use the graph generation script for file-dependency graph
-- Use the documentation check script to check for missing docstrings
-
 Once in a while this should be done:
 
 1. Check for things that could be improved in the API and improve them
 2. Check for improvement that could be made in the development cycle, design guidelines, style guidelines or other parts of the development process.
 3. Check for problems
+
+## Tools for fixing problems
+
+- Use the script in `scripts/gen_graph.sh` for a file-dependency graph
+- Use the script in `scripts/check_docs.sh` to check for missing docstrings
+- Use the script in `scripts/coverage.py` to check test coverage
+- Use the "Check documentation" agent task to check for and fix documentation problems
 
 ## Problems
 

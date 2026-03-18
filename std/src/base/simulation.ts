@@ -94,7 +94,7 @@ export class Simulation {
   /**
    * Stops the simulation.
    */
-  finish() {
+  finish(): void {
     sim.finish();
   }
 }

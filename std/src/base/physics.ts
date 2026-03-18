@@ -74,7 +74,7 @@ export class Physics {
   constructor() {
     this.registerForce(
       this.velocity,
-      (entity: Entity, vel: Vec2) => {
+      (entity: Entity, vel: Vec2): void => {
         const velWithPull = vel.add(this.constantPull);
         this.velocity.set(entity, velWithPull);
       },
@@ -83,7 +83,7 @@ export class Physics {
 
     this.registerForce(
       this.acceleration,
-      (entity: Entity, acc: Vec2) => {
+      (entity: Entity, acc: Vec2): void => {
         const vel = this.velocity.get(entity) || new Vec2(0, 0);
         this.velocity.set(entity, vel.add(acc));
         this.acceleration.set(entity, new Vec2(0, 0));
@@ -93,7 +93,7 @@ export class Physics {
 
     this.registerForce(
       this.velocity,
-      (entity: Entity, vel: Vec2) => {
+      (entity: Entity, vel: Vec2): void => {
         entity.pos = entity.pos.add(vel.scale(1 / 60));
       },
       2,
@@ -115,14 +115,14 @@ export class Physics {
     comps: Component<T>[] | Component<T>,
     force: (entity: Entity, data: T | T[]) => void,
     priority = 0,
-  ) {
+  ): void {
     this.forces.push([comps, force, priority]);
   }
 
   /**
    * Updates the position of all entities based on the registered forces.
    */
-  update() {
+  update(): void {
     this.forces.sort((a, b) => a[2] - b[2]);
 
     for (const [comps, forceFunc] of this.forces) {

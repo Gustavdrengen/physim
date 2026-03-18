@@ -19,6 +19,26 @@ If you see code, where these principles are not being complied with, you should 
 - See `docs/bin/md` for documentation.
 - See `STRUCTURE.md` for a detailed project structure.
 - See `README.md` for information about the project.
-- See `DEVELOPMENT` for information about the development process.
-- Look in `../sandbox.d.ts` for an environment description.
-- Always read the relevant files for a task.
+- See `DEVELOPMENT.md` for information about the development process.
+- Look in `../sandbox.d.ts` and `../sound.ts` for an environment description.
+- Always read `README.md`, `STYLE.md`, `DEVELOPMENT.md` and `STRUCTURE.md`, before doing anything.
+- Always read other files that might be relevant for a task.
+
+# Tasks
+
+## Task: Check documentation
+
+### Goal
+
+Check documentation for correctness, completeness and consistency.
+
+### Steps
+
+1. Read TSDoc comments in the source code, while looking for problems
+2. Check that the styling guidelines in `STYLE.md` are being followed
+3. Fix any problems found
+
+### Response
+
+- Give a short summary of the fixed problems
+- Explain any inconsistencies that where found between documentation, including examples. These inconsistencies should not be fixed, unless the style guidelines are being violated.

@@ -80,7 +80,7 @@ export class Body {
    * @param lineWidth The width of the line if not filled.
    * @param scale The scale of the body.
    */
-  public draw(pos: Vec2, color: Color, fill: boolean = true, lineWidth: number = 1, scale: number = 1) {
+  public draw(pos: Vec2, color: Color, fill: boolean = true, lineWidth: number = 1, scale: number = 1): void {
     const rot = this.rotation;
     for (const poly of this.vertices) {
       const transformedVertices: Vec2[] = poly.map((v: Vec2) => {
