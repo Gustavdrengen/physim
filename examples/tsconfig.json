@@ -9,14 +9,15 @@
       "dom"
     ],
     "types": [
-      "/home/theman/physim/sandbox.d.ts"
+      "../sandbox.d.ts"
     ],
     "allowImportingTsExtensions": true,
-    "baseUrl": "/",
+    "baseUrl": "./",
     "paths": {
       "physim/*": [
-        "/home/theman/physim/std/src/public/*"
+        "../std/src/public/*"
       ]
     }
-  }
+  },
+  "include": ["**/*.ts"]
 }

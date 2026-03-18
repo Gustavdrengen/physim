@@ -52,3 +52,4 @@ _Helps with development by doing things like logging and debugging_
 | Name           | Description                                                   |
 | -------------- | ------------------------------------------------------------- |
 | physim/logging | A logging system to log data during simulations using sim.log |
+| physim/input   | A system for handling user input                              |

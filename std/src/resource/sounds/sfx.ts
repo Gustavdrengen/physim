@@ -47,13 +47,21 @@ export namespace SFX {
    * @returns A Synth configuration.
    */
   export function stress(tension: number, duration?: number): Synth {
-    const d = duration ?? 0.2 + 0.5 * tension;
+    const d = duration ?? 0.2 + 0.8 * tension;
+    const baseFreq = 200 + 600 * tension;
+
     return {
       duration: d,
       oscillators: [
-        { type: "brownnoise" },
-        { type: "sine", freq: [100 * tension + 50, 50 * tension + 20] },
-        { type: "square", freq: [20 * tension + 10, 10 * tension + 5] },
+        // A triangle wave for a metallic, resonant character.
+        { type: "triangle", freq: [baseFreq, baseFreq * (1 + 0.05 * tension)] },
+        // A dissonant sine wave to create an unstable "beating" or ring-modulated sound.
+        {
+          type: "sine",
+          freq: [baseFreq * 1.618, baseFreq * 1.618 * (1 + 0.1 * tension)],
+        },
+        // A low-frequency oscillator to create "pulsing" or "creaking" transients.
+        { type: "sine", freq: [6 + 18 * tension, 12 + 36 * tension] },
       ],
       combine: "amod",
     };
@@ -67,13 +75,21 @@ export namespace SFX {
    * @returns A Synth configuration.
    */
   export function phaseChange(rate: number, duration?: number): Synth {
+    const dur = duration ?? 0.05 + 0.15 * rate;
+    const start = 4000;
+    const end = 4000 + 2000 * rate;
+    const detune = 1 + 0.02 * rate;
     return {
-      duration: duration ?? 0.05 + 0.15 * rate,
+      duration: dur,
       oscillators: [
-        { type: "sine", freq: 4000 + 2000 * rate },
+        { type: "sine", freq: [start, end] },
+        {
+          type: "sine",
+          freq: [start * detune, end * detune],
+          phase: 100 * rate,
+        },
         { type: "whitenoise" },
       ],
-      combine: "product",
     };
   }
 

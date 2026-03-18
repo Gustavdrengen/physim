@@ -19,7 +19,7 @@ await test("SFX.explosion - dynamic duration", () => {
 
 await test("SFX.stress - structure and duration", () => {
   const s = SFX.stress(0.5);
-  expect(s.duration).toBe(0.2 + 0.5 * 0.5);
+  expect(s.duration).toBe(0.2 + 0.8 * 0.5);
   expect(s.combine).toBe("amod");
   const oscillators = s.oscillators as any[];
   expect(oscillators.length).toBe(3);

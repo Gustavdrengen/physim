@@ -6,7 +6,10 @@
 
 ## Next commits:
 
-- Breaking particles
+- Documentation fixes
+  - Ensure guidelines are followed
+  - Ensure guidelines are good (consitency, etc.)
+  - Strategy for guidelines being folloed in the future, and for no bugs
 
 ---
 
@@ -15,8 +18,8 @@
 
 ---
 
-- Breaking animations
 - Add more instruments with attribution and stuff
+- ...
 
 ## Future ideas:
 
