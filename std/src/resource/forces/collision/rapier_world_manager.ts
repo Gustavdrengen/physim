@@ -37,6 +37,7 @@ export class RapierWorldManager {
     Entity,
     { rigidBody: RAPIER.RigidBody; colliders: RAPIER.Collider[] }
   > = new Map();
+  private _entities: Entity[] = [];
   private _colliderHandleToEntityMap: Map<number, Entity> = new Map();
   private _physics: Physics;
   private _bodyComponent: Component<Body>;
@@ -56,7 +57,7 @@ export class RapierWorldManager {
     await RAPIER.init();
     this._eventQueue = new RAPIER.EventQueue(true);
     this._rapierWorld = new RAPIER.World(new RAPIER.Vector2(0, 0));
-    this._rapierWorld.numSolverIterations = 10;
+    this._rapierWorld.numSolverIterations = 4;
   }
 
   step(): void {
@@ -90,6 +91,7 @@ export class RapierWorldManager {
     }
 
     this._entityToRapierMap.set(entity, { rigidBody, colliders });
+    this._entities.push(entity);
   }
 
   removeEntity(entity: Entity): void {
@@ -102,10 +104,15 @@ export class RapierWorldManager {
       }
       this._rapierWorld.removeRigidBody(rapierObjects.rigidBody);
       this._entityToRapierMap.delete(entity);
+      this._entities = this._entities.filter((e) => e !== entity);
       rapierObjects.colliders.forEach((collider) => {
         this._colliderHandleToEntityMap.delete(collider.handle);
       });
     }
+  }
+
+  hasEntity(entity: Entity): boolean {
+    return this._entityToRapierMap.has(entity);
   }
 
   getCollisionEvents(): CollisionEvent[] {
@@ -351,7 +358,7 @@ export class RapierWorldManager {
   }
 
   getEntities(): Entity[] {
-    return Array.from(this._entityToRapierMap.keys());
+    return this._entities;
   }
 
   private computeApproximateInertiaForBody(

@@ -107,7 +107,7 @@ export async function initCollisionForce(
   physics.registerForce(
     bodyComponent,
     (entity: Entity, _body: Body) => {
-      if (!rapierWorldManager.getEntities().includes(entity)) {
+      if (!rapierWorldManager.hasEntity(entity)) {
         rapierWorldManager.addEntity(entity, defaultCollisionProperties);
       }
     },

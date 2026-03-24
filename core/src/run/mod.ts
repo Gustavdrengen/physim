@@ -7,34 +7,6 @@ import { AudioPlayer } from "./audio/mod.ts";
 import { fail, InputFailureTag } from "../err.ts";
 import * as print from "../print.ts";
 
-export async function compileVideo(tempDirName: string, outfile: string) {
-  const command = new Deno.Command("ffmpeg", {
-    args: [
-      "-y",
-      "-framerate",
-      "60",
-      "-i",
-      tempDirName + "/frame%05d.png",
-      "-c:v",
-      "libx264",
-      "-pix_fmt",
-      "yuv420p",
-      outfile,
-    ],
-    stdout: "piped",
-    stderr: "piped",
-  });
-
-  const { code, stdout, stderr } = await command.output();
-
-  return {
-    success: code === 0,
-    code,
-    stdout,
-    stderr,
-  };
-}
-
 export async function run(
   entrypoint: string,
   record: string | undefined,
@@ -76,7 +48,7 @@ export async function run(
   const runResult = await runServer(
     outfile,
     tempDirName,
-    record !== undefined,
+    record,
     assetManager,
     audioPlayer,
     useWebview,
@@ -88,15 +60,7 @@ export async function run(
   }
 
   if (record !== undefined) {
-    print.info("Generating video...");
-
-    const result = await compileVideo(tempDirName, record);
-
-    if (result.code !== 0) {
-      // TODO: Handle properly
-      console.error("FFMPEG ERROR:", result.stderr.toString());
-    }
-
+    print.info("Adding audio to video...");
     const r = await audioPlayer.addAudioToVideo(record);
     if (r) {
       Deno.remove(tempDirName, { recursive: true });

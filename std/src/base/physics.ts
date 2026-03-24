@@ -41,6 +41,7 @@ export class Physics {
       priority: number,
     ]
   > = [];
+  private forcesSorted = true;
 
   /**
    * The velocity component.
@@ -117,37 +118,51 @@ export class Physics {
     priority = 0,
   ): void {
     this.forces.push([comps, force, priority]);
+    this.forcesSorted = false;
   }
 
   /**
    * Updates the position of all entities based on the registered forces.
    */
   update(): void {
-    this.forces.sort((a, b) => a[2] - b[2]);
+    if (!this.forcesSorted) {
+      this.forces.sort((a, b) => a[2] - b[2]);
+      this.forcesSorted = true;
+    }
 
     for (const [comps, forceFunc] of this.forces) {
       const componentsArray = Array.isArray(comps) ? comps : [comps];
 
-      // Find entities that have all required components
-      let entitiesWithAllComps: Set<Entity> | undefined;
-
-      for (const comp of componentsArray) {
-        if (!entitiesWithAllComps) {
-          entitiesWithAllComps = new Set(comp.keys());
-        } else {
-          entitiesWithAllComps = new Set(
-            [...entitiesWithAllComps].filter((entity) => comp.has(entity)),
-          );
-        }
-      }
-
-      if (entitiesWithAllComps) {
-        for (const entity of entitiesWithAllComps) {
-          const data =
-            componentsArray.length === 1
-              ? componentsArray[0].get(entity)
-              : componentsArray.map((c) => c.get(entity));
+      if (componentsArray.length === 1) {
+        const comp = componentsArray[0];
+        for (const [entity, data] of comp) {
           forceFunc(entity, data);
+        }
+      } else {
+        // Find the smallest component to iterate over
+        let smallestComp = componentsArray[0];
+        for (let i = 1; i < componentsArray.length; i++) {
+          if (componentsArray[i].size < smallestComp.size) {
+            smallestComp = componentsArray[i];
+          }
+        }
+
+        for (const [entity, data] of smallestComp) {
+          let hasAll = true;
+          for (const comp of componentsArray) {
+            if (comp === smallestComp) continue;
+            if (!comp.has(entity)) {
+              hasAll = false;
+              break;
+            }
+          }
+
+          if (hasAll) {
+            const allData = componentsArray.map((c) =>
+              c === smallestComp ? data : c.get(entity),
+            );
+            forceFunc(entity, allData);
+          }
         }
       }
     }

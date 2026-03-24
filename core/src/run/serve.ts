@@ -22,13 +22,15 @@ let htmlContent = htmlContentRaw
 export async function runServer(
   bundle: string,
   tempDirName: string,
-  record: boolean,
+  record: string | undefined,
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
   useWebview: boolean,
-): Promise<Result<undefined>> {
+): Promise<Result<string | undefined>> {
   let server: Deno.HttpServer<Deno.NetAddr>;
   let webviewProcess: Deno.ChildProcess | undefined;
+  let ffmpegProcess: Deno.ChildProcess | undefined;
+  let ffmpegWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
 
   let started = false;
   let pingNexted = false;
@@ -37,6 +39,8 @@ export async function runServer(
   const logs: string[] = [];
 
   const simCode = await Deno.readFile(bundle);
+
+  const videoPath = record;
 
   if (record) {
     htmlContent = htmlContent.replace("SHOULD_RECORD", "true");
@@ -49,10 +53,35 @@ export async function runServer(
   function endAndFail(failure: Failure) {
     ret = failure;
     webviewProcess?.kill();
+    ffmpegProcess?.kill();
     server.shutdown();
   }
 
   let servePort: number;
+
+  // Start FFmpeg process if recording is enabled
+  if (record) {
+    ffmpegProcess = new Deno.Command("ffmpeg", {
+      args: [
+        "-y",
+        "-f",
+        "image2pipe",
+        "-framerate",
+        "60",
+        "-i",
+        "pipe:0",
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        record,
+      ],
+      stdin: "piped",
+      stdout: "null",
+      stderr: "null",
+    }).spawn();
+    ffmpegWriter = ffmpegProcess.stdin.getWriter();
+  }
 
   setTimeout(async () => {
     if (!started) {
@@ -152,25 +181,28 @@ export async function runServer(
         );
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/finish") {
-        setTimeout(() => {
+        setTimeout(async () => {
           if (print.isRawModeEnabled()) {
             logs.forEach((log) => {
-              print.raw(log);
+              print.log(log);
             });
           }
           print.info("Simulation finished");
+
+          if (ffmpegWriter) {
+            await ffmpegWriter.close();
+            await ffmpegProcess.status;
+          }
+
           webviewProcess?.kill();
           server.shutdown();
         }, 100);
 
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/frame") {
-        if (record) {
+        if (ffmpegWriter) {
           const body = await req.arrayBuffer();
-          await Deno.writeFile(
-            `${tempDirName}/frame${String(++frame).padStart(5, "0")}.png`,
-            new Uint8Array(body),
-          );
+          await ffmpegWriter.write(new Uint8Array(body));
         }
 
         return new Response(null, { status: 200 });
@@ -204,5 +236,10 @@ export async function runServer(
   );
 
   await server.finished;
-  return ret;
+
+  if (ret) {
+    return ret;
+  }
+
+  return videoPath;
 }

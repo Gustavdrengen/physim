@@ -37,7 +37,9 @@ export class CollisionSystem {
    */
   step(): void {
     // Check if entities still exist in the simulation
-    for (const managedEntity of this._worldManager.getEntities()) {
+    const managedEntities = this._worldManager.getEntities();
+    for (let i = managedEntities.length - 1; i >= 0; i--) {
+      const managedEntity = managedEntities[i];
       if (!this._bodyComponent.has(managedEntity)) {
         this._worldManager.removeEntity(managedEntity);
       }
@@ -51,13 +53,16 @@ export class CollisionSystem {
     }
     this._entitiesWithCollisionEvents.clear();
 
-    for (const managedEntity of this._worldManager.getEntities()) {
+    // Use a fresh list for syncing to avoid processing removed entities
+    const activeEntities = this._worldManager.getEntities();
+
+    for (const managedEntity of activeEntities) {
       this._worldManager.syncRigidBodyToEntity(managedEntity);
     }
 
     this._worldManager.step();
 
-    for (const managedEntity of this._worldManager.getEntities()) {
+    for (const managedEntity of activeEntities) {
       this._worldManager.syncEntityToRigidBody(managedEntity);
     }
 

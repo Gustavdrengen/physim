@@ -54,6 +54,7 @@ canvas {
 
 .stop-btn,
 .terminal-btn,
+.debug-btn,
 .hide-nav-btn {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -68,6 +69,7 @@ canvas {
 
 .stop-btn:hover,
 .terminal-btn:hover,
+.debug-btn:hover,
 .hide-nav-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
@@ -76,30 +78,27 @@ canvas {
 
 .stop-btn:active,
 .terminal-btn:active,
+.debug-btn:active,
 .hide-nav-btn:active {
   transform: translateY(0);
 }
 
 .stop-icon {
-  width: 20px;
-  height: 20px;
-  background: #ff4757;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+  fill: #ff4757;
+  filter: drop-shadow(0 2px 8px rgba(255, 71, 87, 0.4));
 }
 
-.terminal-icon {
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: white;
   transition: transform 0.3s ease;
+  display: block;
 }
 
 .hide-icon {
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 1;
+  width: 24px;
+  height: 24px;
 }
 
 .show-nav-btn {
@@ -187,6 +186,12 @@ canvas {
   color: #ff4757;
 }
 
+.close-btn .icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
 .terminal-body {
   flex: 1;
   padding: 20px;
@@ -212,6 +217,65 @@ canvas {
 
 .terminal-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 255, 136, 0.5);
+}
+
+.debug-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 250px;
+  background: rgba(20, 20, 30, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+.debug-container.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.debug-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.debug-title {
+  color: #00d2ff;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.debug-body {
+  padding: 16px;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  color: #fff;
+}
+
+.debug-item {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.debug-item span {
+  color: #00d2ff;
+  font-weight: bold;
 }
 
 .terminal-line {

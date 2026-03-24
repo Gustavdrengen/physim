@@ -256,6 +256,10 @@ const code = await response.text();
 let interval = null;
 let pingInterval = null;
 let isFinished = false;
+let frameCount = 0;
+let framesThisSecond = 0;
+let currentFPS = 0;
+let fpsTimer = null;
 
 const canvas = document.getElementById("sim");
 
@@ -284,6 +288,14 @@ function stopSimulation() {
     clearInterval(pingInterval);
     pingInterval = null;
   }
+  if (fpsTimer !== null) {
+    clearInterval(fpsTimer);
+    fpsTimer = null;
+  }
+  if (sim._stopRunning) {
+    sim._stopRunning();
+  }
+  updateDebugWindow();
 }
 
 let runResolve = null;
@@ -410,9 +422,26 @@ sim.run = (onUpdate) => {
 
   return new Promise((resolve) => {
     runResolve = resolve;
+    frameCount = 0;
+    framesThisSecond = 0;
+    currentFPS = 0;
 
-    const runFrame = () => {
+    if (fpsTimer) clearInterval(fpsTimer);
+    fpsTimer = setInterval(() => {
+      currentFPS = framesThisSecond;
+      framesThisSecond = 0;
+      updateDebugWindow();
+    }, 1000);
+
+    let running = true;
+    sim._stopRunning = () => { running = false; };
+
+    const runFrame = async () => {
       try {
+        frameCount++;
+        framesThisSecond++;
+        updateDebugWindow();
+
         const result = onUpdate();
         if (result instanceof Promise) {
           result.catch(errorHandler);
@@ -422,17 +451,29 @@ sim.run = (onUpdate) => {
       }
 
       if (SHOULD_RECORD) {
-        canvas.toBlob(async (blob) => {
-          try {
-            await fetch("/frame", { method: "POST", body: blob });
-          } catch {
-            //
-          }
-        }, "image/png");
+        await new Promise((resolve) => {
+          canvas.toBlob(async (blob) => {
+            try {
+              await fetch("/frame", { method: "POST", body: blob });
+            } catch {
+              //
+            }
+            resolve();
+          }, "image/png");
+        });
       }
     };
 
-    interval = setInterval(runFrame, 1000 / 60);
+    const runLoop = async () => {
+      while (running) {
+        await runFrame();
+        if (running) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 / 60));
+        }
+      }
+    };
+
+    runLoop();
   });
 };
 
@@ -456,6 +497,29 @@ const terminalBtn = document.getElementById("terminalBtn");
 const closeTerminalBtn = document.getElementById("closeTerminalBtn");
 const stopBtn = document.getElementById("stopBtn");
 const terminalBody = document.getElementById("terminalBody");
+
+const debug = document.getElementById("debug");
+const debugBtn = document.getElementById("debugBtn");
+const closeDebugBtn = document.getElementById("closeDebugBtn");
+const debugFrame = document.getElementById("debugFrame");
+const debugTime = document.getElementById("debugTime");
+const debugFPS = document.getElementById("debugFPS");
+
+function toggleDebug() {
+  debug.classList.toggle("open");
+}
+
+function updateDebugWindow() {
+  if (debugFrame) debugFrame.textContent = frameCount;
+  if (debugTime) debugTime.textContent = (frameCount / 60).toFixed(2) + "s";
+  if (debugFPS) {
+    if (interval === null) {
+      debugFPS.textContent = "not running";
+    } else {
+      debugFPS.textContent = currentFPS;
+    }
+  }
+}
 
 function toggleTerminal() {
   terminal.classList.toggle("open");
@@ -490,3 +554,5 @@ closeTerminalBtn.addEventListener("click", toggleTerminal);
 hideNavBtn.addEventListener("click", toggleNavbar);
 showNavBtn.addEventListener("click", toggleNavbar);
 stopBtn.addEventListener("click", handleStop);
+debugBtn.addEventListener("click", toggleDebug);
+closeDebugBtn.addEventListener("click", toggleDebug);

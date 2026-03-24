@@ -16,7 +16,7 @@
  *   numParticles: 100,
  *   position: new Vec2(0, 0),
  *   particleLifetime: { min: 30, max: 60 },
- *   initialVelocity: { min: new Vec2(-2, -2), max: new Vec2(2, 2) },
+ *   initialVelocity: { min: new 20, max: 800 },
  *   size: 5, // Constant size
  *   color: { start: Color.fromHex("#ff0000"), end: Color.fromHex("#ffff00") },
  * });
