@@ -1,5 +1,5 @@
 /**
- * This module provides a gravity force for the physics engine.
+ * This module provides an attraction-based gravity force for the physics engine.
  *
  * @module
  * @example

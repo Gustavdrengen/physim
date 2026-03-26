@@ -5,9 +5,10 @@ import sys
 from pathlib import Path
 
 # --- Configuration ---
-SRC_PUBLIC_DIR = Path("src/public")
+SRC_ROOTS = [Path("src/public"), Path("src/base")]
 TESTS_DIR = Path("tests")
 IGNORE_TEST_FILES = {"tests/exampleTest.test.ts"}
+IGNORE_SRC_TEST_CHECK = {"src/public/base.ts"}
 
 # --- Colors ---
 RED = "\033[0;31m"
@@ -96,9 +97,29 @@ def check_coverage():
     # --- 1. File Structure Check ---
     print("Checking file structure...")
     
-    src_files = list(SRC_PUBLIC_DIR.glob("**/*.ts"))
+    src_files = []
+    for root in SRC_ROOTS:
+        src_files.extend(list(root.glob("**/*.ts")))
+
     for src_file in src_files:
-        relative_path = src_file.relative_to(SRC_PUBLIC_DIR)
+        src_file_str = str(src_file).replace("\\", "/")
+        if src_file_str in IGNORE_SRC_TEST_CHECK:
+            continue
+
+        # Find which root it belongs to
+        root = None
+        for r in SRC_ROOTS:
+            try:
+                src_file.relative_to(r)
+                root = r
+                break
+            except ValueError:
+                continue
+        
+        if not root:
+            continue
+
+        relative_path = src_file.relative_to(root)
         name_no_ext = relative_path.with_suffix("")
         
         direct_test = TESTS_DIR / f"{name_no_ext}.test.ts"
@@ -121,12 +142,19 @@ def check_coverage():
             continue
             
         rel_test = test_file.relative_to(TESTS_DIR)
-        # Case A: tests/folder/file.test.ts -> src/public/folder/file.ts
-        potential_src_direct = SRC_PUBLIC_DIR / rel_test.parent / f"{rel_test.name.replace('.test.ts', '.ts')}"
-        # Case B: tests/folder/something.test.ts -> src/public/folder.ts (where folder is a file split into tests)
-        potential_src_parent = SRC_PUBLIC_DIR / f"{rel_test.parent}.ts"
         
-        if not potential_src_direct.exists() and not potential_src_parent.exists():
+        found_src = False
+        for root in SRC_ROOTS:
+            # Case A: tests/folder/file.test.ts -> src/public/folder/file.ts
+            potential_src_direct = root / rel_test.parent / f"{rel_test.name.replace('.test.ts', '.ts')}"
+            # Case B: tests/folder/something.test.ts -> src/public/folder.ts (where folder is a file split into tests)
+            potential_src_parent = root / f"{rel_test.parent}.ts"
+            
+            if potential_src_direct.exists() or potential_src_parent.exists():
+                found_src = True
+                break
+        
+        if not found_src:
              print_error(f"Extra test file found: {test_file}. No corresponding source file found.")
              errors_found = True
 
@@ -139,7 +167,20 @@ def check_coverage():
     # --- 3. Export Coverage Check ---
     print("Checking export coverage...")
     for src_file in src_files:
-        relative_path = src_file.relative_to(SRC_PUBLIC_DIR)
+        # Find which root it belongs to
+        root = None
+        for r in SRC_ROOTS:
+            try:
+                src_file.relative_to(r)
+                root = r
+                break
+            except ValueError:
+                continue
+        
+        if not root:
+            continue
+
+        relative_path = src_file.relative_to(root)
         name_no_ext = relative_path.with_suffix("")
         
         # Collect all relevant test files

@@ -294,6 +294,22 @@ class Assertions {
     }
   }
 
+  toBeGreaterThanOrEqual(expected: number): void {
+    if (typeof this.actual !== 'number' || typeof expected !== 'number') {
+      throw new Error("toBeGreaterThanOrEqual() requires number values");
+    }
+    const pass = this.actual >= expected;
+    if (this.inverted) {
+      if (pass) {
+        throw new Error(`Expected ${this.actual} not to be greater than or equal to ${expected}`);
+      }
+    } else {
+      if (!pass) {
+        throw new Error(`Expected ${this.actual} to be greater than or equal to ${expected}`);
+      }
+    }
+  }
+
   toBeLessThan(expected: number): void {
     if (typeof this.actual !== 'number' || typeof expected !== 'number') {
       throw new Error("toBeLessThan() requires number values");
@@ -306,6 +322,22 @@ class Assertions {
     } else {
       if (!pass) {
         throw new Error(`Expected ${this.actual} to be less than ${expected}`);
+      }
+    }
+  }
+
+  toBeLessThanOrEqual(expected: number): void {
+    if (typeof this.actual !== 'number' || typeof expected !== 'number') {
+      throw new Error("toBeLessThanOrEqual() requires number values");
+    }
+    const pass = this.actual <= expected;
+    if (this.inverted) {
+      if (pass) {
+        throw new Error(`Expected ${this.actual} not to be less than or equal to ${expected}`);
+      }
+    } else {
+      if (!pass) {
+        throw new Error(`Expected ${this.actual} to be less than or equal to ${expected}`);
       }
     }
   }

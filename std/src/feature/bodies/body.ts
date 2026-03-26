@@ -192,6 +192,42 @@ export class Body {
       }
     } else if (shape.type === "polygon") {
       basePolygons = [shape.vertices];
+    } else if (shape.type === "hollow_polygon") {
+      const { vertices, width } = shape;
+      basePolygons = [];
+      const halfWidth = width / 2;
+
+      const innerVertices: Vec2[] = [];
+      const outerVertices: Vec2[] = [];
+
+      for (let i = 0; i < vertices.length; i++) {
+        const vPrev = vertices[(i + vertices.length - 1) % vertices.length];
+        const vCurr = vertices[i];
+        const vNext = vertices[(i + 1) % vertices.length];
+
+        const seg1 = vCurr.sub(vPrev).normalize();
+        const seg2 = vNext.sub(vCurr).normalize();
+
+        const n1 = new Vec2(-seg1.y, seg1.x);
+        const n2 = new Vec2(-seg2.y, seg2.x);
+
+        const miter = n1.add(n2).normalize();
+        const dot = miter.dot(n1);
+        const length = dot === 0 ? halfWidth : halfWidth / dot;
+
+        outerVertices.push(vCurr.add(miter.scale(length)));
+        innerVertices.push(vCurr.sub(miter.scale(length)));
+      }
+
+      for (let i = 0; i < vertices.length; i++) {
+        const next = (i + 1) % vertices.length;
+        basePolygons.push([
+          outerVertices[i],
+          outerVertices[next],
+          innerVertices[next],
+          innerVertices[i],
+        ]);
+      }
     } else {
       basePolygons = [];
     }

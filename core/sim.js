@@ -433,8 +433,12 @@ sim.run = (onUpdate) => {
       updateDebugWindow();
     }, 1000);
 
+    interval = true;
     let running = true;
-    sim._stopRunning = () => { running = false; };
+    sim._stopRunning = () => { 
+      running = false; 
+      interval = null;
+    };
 
     const runFrame = async () => {
       try {

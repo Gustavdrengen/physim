@@ -90,6 +90,7 @@ export namespace SFX {
         },
         { type: "whitenoise" },
       ],
+      combine: "product",
     };
   }
 

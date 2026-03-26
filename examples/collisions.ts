@@ -3,8 +3,10 @@ import { initBodyDisplayComponent, addCaption } from "physim/graphics";
 import {
   Body,
   createCircle,
+  createHollowPolygon,
   createRectangle,
   createRing,
+  getRegularPolygonVertices,
   initBodyComponent,
 } from "physim/bodies";
 import { initCollisionForce } from "physim/forces/collision";
@@ -15,7 +17,7 @@ import { SFX } from "physim/sounds";
 // --- Configuration ---
 const WIDTH = 1920;
 const HEIGHT = 1080;
-const ZOOM = 2;
+const ZOOM = 1;
 const RESTITUTION = 1.1;
 const TRAIL_COLOR_START = new Color(255, 255, 255);
 const TRAIL_COLOR_END = new Color(255, 255, 255, 0);
@@ -67,6 +69,17 @@ const ringBody = Body.fromShape(
 Entity.create(new Vec2(50, 50), [
   [bodyComp, ringBody],
   [displayComp, { color: new Color(250, 250, 30) }],
+  [staticComponent, true],
+]);
+
+// 1.5. Static Hexagon Barrier
+const hexagonBody = Body.fromShape(
+  createHollowPolygon(getRegularPolygonVertices(6, 600), 40)
+);
+
+Entity.create(new Vec2(50, 50), [
+  [bodyComp, hexagonBody],
+  [displayComp, { color: new Color(100, 100, 255) }],
   [staticComponent, true],
 ]);
 

@@ -38,7 +38,7 @@ The following things are considered problems in the code:
 ## Testing
 
 - The tests directory should mirror the src/public (or src/base for the base layer) directory, but with .test.ts extensions instead of .ts extensions
-  - A test file can also be split up into a directory, so for example src/public/draw.ts correspond to all files in tests/draw
+  - A test file can also be split up into a directory, so for example src/base/draw.ts correspond to all files in tests/draw
 - Each file should be comprehensively tested
   - This includes all functionality
   - This does not include things that only tunes the behavour, but does not define it

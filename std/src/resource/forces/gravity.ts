@@ -9,12 +9,12 @@ import { Entity } from "../../base/entity.ts";
  *
  * @param physics The physics engine instance.
  * @param G The gravitational constant.
- * 
+ *
  * @example
  * ```ts
  * import { Simulation, Vec2 } from "physim/base";
  * import { initGravityForce } from "physim/forces/gravity";
- * 
+ *
  * const sim = new Simulation();
  * initGravityForce(sim.physics, 1.0);
  * ```
@@ -32,7 +32,7 @@ export function initGravityForce(physics: Physics, G: number): void {
 
       if (distSq === 0) continue;
 
-      const forceMag = G * (mass * otherMass) / distSq;
+      const forceMag = (G * (mass * otherMass)) / distSq;
       const forceVec = d.normalize().scale(forceMag);
 
       const currentAcc = physics.acceleration.get(entity) || new Vec2(0, 0);

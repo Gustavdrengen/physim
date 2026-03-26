@@ -1,6 +1,6 @@
 import { dirname } from "@std/path";
 import { buildSimulation } from "./build.ts";
-import { Result } from "../err.ts";
+import { failed, Failure, Result } from "../err.ts";
 import { runServer } from "./serve.ts";
 import { AssetManager } from "./assets.ts";
 import { AudioPlayer } from "./audio/mod.ts";
@@ -38,29 +38,28 @@ export async function run(
 
   const assetManager = new AssetManager(dirname(entrypoint), tempDirName);
   const playAudio = !noAudio;
-  const audioEnabled = playAudio || (record !== undefined);
+  const audioEnabled = playAudio || record !== undefined;
   const audioPlayer = new AudioPlayer(
     playAudio,
     audioEnabled,
     tempDirName,
     assetManager,
   );
+
   const runResult = await runServer(
     outfile,
-    tempDirName,
     record,
     assetManager,
     audioPlayer,
     useWebview,
   );
 
-  if (runResult) {
+  if (failed(runResult)) {
     Deno.remove(tempDirName, { recursive: true });
-    return runResult;
+    return runResult as Failure;
   }
 
   if (record !== undefined) {
-    print.info("Adding audio to video...");
     const r = await audioPlayer.addAudioToVideo(record);
     if (r) {
       Deno.remove(tempDirName, { recursive: true });

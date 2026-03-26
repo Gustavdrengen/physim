@@ -12,12 +12,16 @@ const ALL_COMPONENTS: Set<Component<any>> = new Set();
  *
  * const sim = new Simulation();
  *
- * const player = Entity.create(
+ * // Create an entity
+ * const myObject = Entity.create(
  *   new Vec2(100, 100),
  *   [
  *     [sim.physics.velocity, new Vec2(10, 0)]
  *   ]
  * );
+ *
+ * // Remove an entity
+ * myObject.destroy();
  * ```
  */
 export class Entity {
@@ -42,10 +46,7 @@ export class Entity {
    * @param components An array of component-value pairs to add to the entity.
    * @returns The new entity.
    */
-  static create(
-    pos: Vec2,
-    components: [Component<any>, any][],
-  ): Entity {
+  static create(pos: Vec2, components: [Component<any>, any][]): Entity {
     const entity = new Entity(pos);
     for (const [component, value] of components) {
       entity.addComp(component, value);

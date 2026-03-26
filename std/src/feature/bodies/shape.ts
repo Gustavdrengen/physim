@@ -3,7 +3,7 @@ import { Vec2 } from "../../base/vec.ts";
 /**
  * A geometric shape.
  */
-export type Shape = Circle | Polygon | Ring;
+export type Shape = Circle | Polygon | Ring | HollowPolygon;
 
 /**
  * A circle shape.
@@ -59,6 +59,24 @@ export interface Ring {
 }
 
 /**
+ * A hollow polygon shape.
+ */
+export interface HollowPolygon {
+  /**
+   * The type of the shape.
+   */
+  type: "hollow_polygon";
+  /**
+   * The vertices of the polygon in local space.
+   */
+  vertices: Vec2[];
+  /**
+   * The width of the polygon walls.
+   */
+  width: number;
+}
+
+/**
  * Creates a new circle shape.
  *
  * @param radius The radius of the circle.
@@ -88,6 +106,61 @@ export function createRing(
     );
   }
   return { type: "ring", innerRadius, outerRadius, gaps };
+}
+
+/**
+ * Creates a new polygon shape.
+ *
+ * @param vertices The vertices of the polygon in local space.
+ * @returns A new polygon shape.
+ */
+export function createPolygon(vertices: Vec2[]): Polygon {
+  return { type: "polygon", vertices };
+}
+
+/**
+ * Creates a new hollow polygon shape.
+ *
+ * @param vertices The vertices of the polygon in local space.
+ * @param width The width of the polygon walls.
+ * @returns A new hollow polygon shape.
+ */
+export function createHollowPolygon(
+  vertices: Vec2[],
+  width: number,
+): HollowPolygon {
+  return { type: "hollow_polygon", vertices, width };
+}
+
+/**
+ * Creates a new regular polygon shape.
+ *
+ * @param sides The number of sides of the polygon.
+ * @param radius The radius of the polygon.
+ * @returns A new regular polygon shape.
+ */
+export function createRegularPolygon(sides: number, radius: number): Polygon {
+  return {
+    type: "polygon",
+    vertices: getRegularPolygonVertices(sides, radius),
+  };
+}
+
+/**
+ * Generates the vertices for a regular polygon.
+ *
+ * @param sides The number of sides of the polygon.
+ * @param radius The radius of the polygon.
+ * @returns The vertices of the regular polygon.
+ */
+export function getRegularPolygonVertices(sides: number, radius: number): Vec2[] {
+  const vertices: Vec2[] = [];
+  const angleStep = (Math.PI * 2) / sides;
+  for (let i = 0; i < sides; i++) {
+    const angle = i * angleStep;
+    vertices.push(new Vec2(Math.cos(angle) * radius, Math.sin(angle) * radius));
+  }
+  return vertices;
 }
 
 /**

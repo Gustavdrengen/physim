@@ -2,7 +2,14 @@ import { dirname, fromFileUrl, join } from "@std/path";
 import { getAvailablePort } from "@std/net";
 import { AudioPlayer } from "./audio/mod.ts";
 import { openUrl } from "../open.ts";
-import { fail, failed, Failure, InputFailureTag, Result, SystemFailureTag } from "../err.ts";
+import {
+  fail,
+  failed,
+  Failure,
+  InputFailureTag,
+  Result,
+  SystemFailureTag,
+} from "../err.ts";
 import { AssetManager } from "./assets.ts";
 import * as print from "../print.ts";
 import { openWebview } from "./webview.ts";
@@ -21,7 +28,6 @@ let htmlContent = htmlContentRaw
 
 export async function runServer(
   bundle: string,
-  tempDirName: string,
   record: string | undefined,
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
@@ -184,7 +190,7 @@ export async function runServer(
         setTimeout(async () => {
           if (print.isRawModeEnabled()) {
             logs.forEach((log) => {
-              print.log(log);
+              print.raw(log);
             });
           }
           print.info("Simulation finished");
@@ -200,6 +206,7 @@ export async function runServer(
 
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/frame") {
+        frame++;
         if (ffmpegWriter) {
           const body = await req.arrayBuffer();
           await ffmpegWriter.write(new Uint8Array(body));

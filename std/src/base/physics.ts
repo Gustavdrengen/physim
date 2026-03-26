@@ -64,7 +64,7 @@ export class Physics {
   mass: Component<number> = new Component<number>();
 
   /**
-   * Constant directional pull applied to all entities with a velocity component.
+   * Constant directional pull (gravity) applied to all entities with a velocity component.
    * This effectively acts as a uniform acceleration field (like gravity).
    */
   constantPull: Vec2 = new Vec2(0, 0);

@@ -299,6 +299,58 @@ export class RapierWorldManager {
         }
         break;
       }
+      case "hollow_polygon": {
+        const { vertices, width } = shape;
+        const halfWidth = width / 2;
+
+        const innerVertices: Vec2[] = [];
+        const outerVertices: Vec2[] = [];
+
+        for (let i = 0; i < vertices.length; i++) {
+          const vPrev = vertices[(i + vertices.length - 1) % vertices.length];
+          const vCurr = vertices[i];
+          const vNext = vertices[(i + 1) % vertices.length];
+
+          const seg1 = vCurr.sub(vPrev).normalize();
+          const seg2 = vNext.sub(vCurr).normalize();
+
+          const n1 = new Vec2(-seg1.y, seg1.x);
+          const n2 = new Vec2(-seg2.y, seg2.x);
+
+          const miter = n1.add(n2).normalize();
+          const dot = miter.dot(n1);
+          const length = dot === 0 ? halfWidth : halfWidth / dot;
+
+          outerVertices.push(vCurr.add(miter.scale(length)));
+          innerVertices.push(vCurr.sub(miter.scale(length)));
+        }
+
+        const cosR = Math.cos(rotation);
+        const sinR = Math.sin(rotation);
+
+        for (let i = 0; i < vertices.length; i++) {
+          const next = (i + 1) % vertices.length;
+          const wallVerts = [
+            outerVertices[i],
+            outerVertices[next],
+            innerVertices[next],
+            innerVertices[i],
+          ];
+
+          const transformedVertices = wallVerts.map((v) => {
+            const rx = v.x * cosR - v.y * sinR + position.x;
+            const ry = v.x * sinR + v.y * cosR + position.y;
+            return [rx, ry];
+          }).flat();
+
+          const desc = RAPIER.ColliderDesc.convexHull(new Float32Array(transformedVertices));
+          if (!desc) continue;
+
+          applyProps(desc);
+          descs.push(desc);
+        }
+        break;
+      }
       default:
         throw new Error(`Unsupported shape type: ${(shape as any).type}`);
     }
@@ -391,6 +443,13 @@ export class RapierWorldManager {
             gap.size;
         }
         area -= gapArea;
+      } else if (part.shape.type === "hollow_polygon") {
+        const { vertices, width } = part.shape;
+        for (let i = 0; i < vertices.length; i++) {
+          const v1 = vertices[i];
+          const v2 = vertices[(i + 1) % vertices.length];
+          area += v2.sub(v1).length() * width;
+        }
       }
       areas.push(area);
       totalArea += area;
@@ -426,6 +485,28 @@ export class RapierWorldManager {
         const R = part.shape.outerRadius;
         const r = part.shape.innerRadius;
         I = (massPart * (R * R + r * r)) / 2;
+      } else if (part.shape.type === "hollow_polygon") {
+        const { vertices, width } = part.shape;
+        let totalLen = 0;
+        for (let i = 0; i < vertices.length; i++) {
+          totalLen += vertices[(i + 1) % vertices.length].sub(vertices[i]).length();
+        }
+
+        if (totalLen > 0) {
+          for (let i = 0; i < vertices.length; i++) {
+            const v1 = vertices[i];
+            const v2 = vertices[(i + 1) % vertices.length];
+            const segment = v2.sub(v1);
+            const L = segment.length();
+            if (L === 0) continue;
+
+            const massSeg = massPart * (L / totalLen);
+            const Iseg = (massSeg * (L * L + width * width)) / 12;
+
+            const center = v1.add(v2).scale(0.5);
+            I += Iseg + massSeg * (center.x * center.x + center.y * center.y);
+          }
+        }
       }
 
       const px = part.position.x;

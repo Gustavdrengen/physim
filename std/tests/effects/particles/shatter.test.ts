@@ -1,8 +1,8 @@
-import { test, expect } from "../test.ts";
+import { test, expect } from "../../../test.ts";
 import { Entity, Vec2, Simulation } from "physim/base";
 import { Body, createRectangle, initBodyComponent } from "physim/bodies";
 import { ParticleSystem } from "physim/particles";
-import { shatter } from "physim/graphics";
+import { shatter } from "physim/effects/particles";
 
 await test("shatter utility", () => {
   const sim = new Simulation();
