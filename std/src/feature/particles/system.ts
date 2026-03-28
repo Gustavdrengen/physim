@@ -1,6 +1,6 @@
 import { Vec2 } from "../../base/vec.ts";
 import { Color } from "../../base/draw/color.ts";
-import { Particle, ParticleEmissionOptions } from "./particle.ts";
+import { Particle, ParticleEmissionOptions, ColorStage } from "./particle.ts";
 import { Camera } from "../../base/camera.ts";
 import { Body } from "../bodies/body.ts";
 import { Component, Entity } from "../../base/entity.ts";
@@ -40,16 +40,44 @@ export class ParticleSystem {
       p.age++;
 
       p.velocity = p.velocity.add(p.acceleration);
+      
+      if (p.turbulence) {
+        const noiseX = Math.sin(p.age * p.turbulence.frequency) * p.turbulence.amplitude;
+        const noiseY = Math.cos(p.age * p.turbulence.frequency * 0.7) * p.turbulence.amplitude;
+        p.velocity = p.velocity.add(new Vec2(noiseX, noiseY));
+      }
+
       p.position = p.position.add(p.velocity);
 
       const lifeRatio = p.age / p.lifetime;
-      p.scale = p.startScale + (p.endScale - p.startScale) * lifeRatio;
+      
+      let scaleRatio = lifeRatio;
+      if (p.scaleCurve === "easeIn") {
+        scaleRatio = lifeRatio * lifeRatio;
+      } else if (p.scaleCurve === "easeOut") {
+        scaleRatio = 1 - (1 - lifeRatio) * (1 - lifeRatio);
+      } else if (p.scaleCurve === "easeInOut") {
+        scaleRatio = lifeRatio < 0.5 
+          ? 2 * lifeRatio * lifeRatio 
+          : 1 - Math.pow(-2 * lifeRatio + 2, 2) / 2;
+      }
+      p.scale = p.startScale + (p.endScale - p.startScale) * scaleRatio;
 
-      const r = p.startColor.r + (p.endColor.r - p.startColor.r) * lifeRatio;
-      const g = p.startColor.g + (p.endColor.g - p.startColor.g) * lifeRatio;
-      const b = p.startColor.b + (p.endColor.b - p.startColor.b) * lifeRatio;
-      const a = p.startColor.a + (p.endColor.a - p.startColor.a) * lifeRatio;
-      p.color = new Color(r, g, b, a);
+      if (p.colorStages && p.colorStages.length > 0) {
+        p.color = this.interpolateColorStages(p.colorStages, lifeRatio);
+      } else {
+        const r = p.startColor.r + (p.endColor.r - p.startColor.r) * lifeRatio;
+        const g = p.startColor.g + (p.endColor.g - p.startColor.g) * lifeRatio;
+        const b = p.startColor.b + (p.endColor.b - p.startColor.b) * lifeRatio;
+        const a = p.startColor.a + (p.endColor.a - p.startColor.a) * lifeRatio;
+        p.color = new Color(r, g, b, a);
+      }
+
+      p.rotation += p.rotationSpeed;
+
+      if (p.customUpdate) {
+        p.customUpdate(p, lifeRatio);
+      }
 
       if (p.age >= p.lifetime) {
         this.particlePool.push(p);
@@ -95,6 +123,26 @@ export class ParticleSystem {
     camera._removeTransforms(sim.ctx);
   }
 
+  private interpolateColorStages(stages: ColorStage[], lifeRatio: number): Color {
+    if (lifeRatio <= 0) return stages[0].color;
+    if (lifeRatio >= 1) return stages[stages.length - 1].color;
+
+    for (let i = 0; i < stages.length - 1; i++) {
+      const current = stages[i];
+      const next = stages[i + 1];
+      if (lifeRatio >= current.position && lifeRatio <= next.position) {
+        const segmentRatio = (lifeRatio - current.position) / (next.position - current.position);
+        const r = current.color.r + (next.color.r - current.color.r) * segmentRatio;
+        const g = current.color.g + (next.color.g - current.color.g) * segmentRatio;
+        const b = current.color.b + (next.color.b - current.color.b) * segmentRatio;
+        const a = current.color.a + (next.color.a - current.color.a) * segmentRatio;
+        return new Color(r, g, b, a);
+      }
+    }
+
+    return stages[stages.length - 1].color;
+  }
+
   /**
    * Emits a burst of particles with the specified properties.
    * @param options The properties for the particles to be emitted.
@@ -113,7 +161,14 @@ export class ParticleSystem {
       const jitterY = (Math.random() - 0.5) * jitter;
       p.position = options.position.add(new Vec2(jitterX, jitterY));
 
-      const randomAngle = Math.random() * Math.PI * 2;
+      let randomAngle: number;
+      if (options.directionBias) {
+        const baseAngle = options.directionBias.angle;
+        const spread = options.directionBias.spread;
+        randomAngle = baseAngle + (Math.random() - 0.5) * spread;
+      } else {
+        randomAngle = Math.random() * Math.PI * 2;
+      }
       const randomMagnitude =
         options.initialVelocity.min +
         Math.random() * (options.initialVelocity.max - options.initialVelocity.min);
@@ -133,6 +188,7 @@ export class ParticleSystem {
         p.endScale = scale.end;
       }
       p.scale = p.startScale;
+      p.scaleCurve = options.scaleCurve;
 
       if (options.orientToDirection) {
         p.body = new Body([...options.body.parts], p.velocity.angle());
@@ -140,9 +196,24 @@ export class ParticleSystem {
         p.body = new Body([...options.body.parts], options.body.rotation);
       }
 
-      p.startColor = options.color.start;
-      p.endColor = options.color.end;
-      p.color = p.startColor;
+      if (options.colorStages) {
+        p.colorStages = options.colorStages;
+        p.color = options.colorStages[0].color;
+        p.startColor = options.colorStages[0].color;
+        p.endColor = options.colorStages[options.colorStages.length - 1].color;
+      } else if (options.color) {
+        p.startColor = options.color.start;
+        p.endColor = options.color.end;
+        p.color = p.startColor;
+      }
+
+      const rot = options.rotation;
+      p.rotation = rot ? rot.min + Math.random() * (rot.max - rot.min) : 0;
+      const rotSpeed = options.rotationSpeed;
+      p.rotationSpeed = rotSpeed ? rotSpeed.min + Math.random() * (rotSpeed.max - rotSpeed.min) : 0;
+
+      p.turbulence = options.turbulence;
+      p.customUpdate = options.customUpdate;
 
       this.activeParticles.push(p);
     }

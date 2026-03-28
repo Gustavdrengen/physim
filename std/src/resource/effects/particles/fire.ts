@@ -1,11 +1,6 @@
-/**
- * @module
- * This module provides a fire-like particle effect.
- */
-
 import { Vec2 } from "../../../base/vec.ts";
 import { Color } from "../../../base/draw/color.ts";
-import { ParticleEmissionOptions } from "../../../feature/particles/particle.ts";
+import { ParticleEmissionOptions, ColorStage } from "../../../feature/particles/particle.ts";
 import { createCircle } from "../../../feature/bodies/shape.ts";
 import { Body } from "../../../feature/bodies/body.ts";
 
@@ -17,32 +12,142 @@ export interface FireEffectOptions {
   position: Vec2;
   /** The overall size multiplier for the effect. Defaults to 1. */
   size?: number;
-  /** The number of particles to emit. Defaults to 50. */
+  /** The number of particles to emit per burst. Defaults to 80. */
   count?: number;
-  /** The upward acceleration of the particles. Defaults to -0.015 */
+  /** The upward acceleration of the particles. Defaults to -0.02. */
   updraft?: number;
+  /** The intensity of the fire (affects particle count and size). Defaults to 1. */
+  intensity?: number;
+  /** Wind affecting the fire horizontally. Defaults to 0. */
+  wind?: number;
+  /** Turbulence for flickering effect. Defaults to { frequency: 0.3, amplitude: 0.5 }. */
+  turbulence?: { frequency: number; amplitude: number };
+  /** The base temperature of the fire (affects color). 0 = cool (red), 1 = hot (white). Defaults to 0.7. */
+  temperature?: number;
+  /** Whether to emit smoke particles at the top. Defaults to false. */
+  withSmoke?: boolean;
+  /** Smoke emission rate (0-1). Defaults to 0.3. */
+  smokeRate?: number;
 }
 
 /**
- * Creates a fire-like particle emission.
+ * Creates a realistic fire-like particle emission.
+ * 
+ * The fire effect uses multi-stage color gradients to simulate the temperature
+ * variation in flames (hot white/yellow core → orange → red → smoke gray).
+ * Particles have turbulence for natural flickering and rise with an updraft.
+ * 
+ * @example
+ * ```ts
+ * import { ParticleSystem } from "physim/particles";
+ * import { createFireEffect } from "physim/effects/particles";
+ * import { Vec2 } from "physim/base";
+ * 
+ * const particleSystem = new ParticleSystem(simulation.display);
+ * 
+ * // Basic campfire
+ * particleSystem.emit(createFireEffect({
+ *   position: new Vec2(400, 500),
+ *   size: 2,
+ *   count: 100,
+ *   intensity: 1.5,
+ * }));
+ * 
+ * // Intense blaze with wind
+ * particleSystem.emit(createFireEffect({
+ *   position: new Vec2(200, 400),
+ *   size: 3,
+ *   count: 200,
+ *   intensity: 2,
+ *   wind: 0.3,
+ *   turbulence: { frequency: 0.5, amplitude: 1 },
+ * }));
+ * ```
+ * 
  * @param options The options for the fire effect.
  * @returns A `ParticleEmissionOptions` object ready to be used with a `ParticleSystem`.
  */
 export function createFireEffect(options: FireEffectOptions): ParticleEmissionOptions {
-  const { position, size = 1, count = 50, updraft = -0.015 } = options;
+  const {
+    position,
+    size = 1,
+    count = 80,
+    updraft = -0.02,
+    intensity = 1,
+    wind = 0,
+    turbulence = { frequency: 0.3, amplitude: 0.5 },
+    temperature = 0.7,
+    withSmoke = false,
+    smokeRate = 0.3,
+  } = options;
+
+  const adjustedCount = Math.floor(count * intensity);
+  
+  const tempClamped = Math.max(0, Math.min(1, temperature));
+  
+  const coreColor = lerpColor(
+    new Color(255, 200, 50),
+    new Color(255, 255, 200),
+    tempClamped
+  );
+  
+  const midColor = lerpColor(
+    new Color(255, 150, 50),
+    new Color(255, 200, 50),
+    tempClamped
+  );
+  
+  const outerColor = lerpColor(
+    new Color(255, 80, 20),
+    new Color(255, 150, 50),
+    tempClamped
+  );
+
+  const smokeStartColor = new Color(80, 80, 80, 0.4);
+  const smokeEndColor = new Color(40, 40, 40, 0);
+
+  const colorStages: ColorStage[] = [
+    { position: 0, color: coreColor.withAlpha(1) },
+    { position: 0.15, color: coreColor.withAlpha(0.9) },
+    { position: 0.3, color: midColor.withAlpha(0.8) },
+    { position: 0.5, color: outerColor.withAlpha(0.6) },
+    { position: 0.7, color: new Color(150, 50, 20, 0.3) },
+    { position: 1, color: withSmoke ? smokeStartColor : new Color(50, 50, 50, 0) },
+  ];
 
   return {
-    numParticles: count,
+    numParticles: adjustedCount,
     position: position,
-    positionJitter: 10 * size,
-    particleLifetime: { min: 60, max: 120 },
-    initialVelocity: { min: 0.5 * size, max: 1.5 * size },
-    acceleration: new Vec2(0, updraft * size),
-    scale: { start: 0.5 * size, end: 0 },
-    body: Body.fromShape(createCircle(5 * size)),
-    color: {
-      start: new Color(255, 150, 50, 1),
-      end: new Color(50, 50, 50, 0),
+    positionJitter: 15 * size,
+    particleLifetime: { min: 40 * size, max: 80 * size },
+    initialVelocity: { min: 0.8 * size, max: 2.5 * size },
+    directionBias: {
+      angle: -Math.PI / 2,
+      spread: 0.8,
     },
+    acceleration: new Vec2(wind * 0.5, updraft * size),
+    scale: { start: 0.3 * size, end: 1.5 * size },
+    scaleCurve: "easeOut",
+    body: Body.fromShape(createCircle(6 * size)),
+    colorStages,
+    turbulence,
+    rotation: { min: 0, max: Math.PI * 2 },
+    rotationSpeed: { min: -0.1, max: 0.1 },
+    customUpdate: withSmoke
+      ? (particle, lifeRatio) => {
+          if (lifeRatio > 0.7 && Math.random() < smokeRate * 0.1) {
+            particle.scale *= 1.02;
+          }
+        }
+      : undefined,
   };
+}
+
+function lerpColor(a: Color, b: Color, t: number): Color {
+  return new Color(
+    a.r + (b.r - a.r) * t,
+    a.g + (b.g - a.g) * t,
+    a.b + (b.b - a.b) * t,
+    a.a + (b.a - a.a) * t
+  );
 }

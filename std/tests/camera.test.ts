@@ -1,4 +1,4 @@
-import { test, expect } from "../../test.ts";
+import { test, expect } from "../test.ts";
 import { Camera, Vec2, Entity } from "physim/base";
 
 // Camera tests

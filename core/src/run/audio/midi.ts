@@ -141,10 +141,14 @@ export async function synthMidi(
   }
 
   try {
+    console.log(
+      `Synthesizing MIDI to ${outputFile} using soundfont ${soundfont}...`,
+    );
     const command = new Deno.Command("fluidsynth", {
       args: ["-ni", soundfont, midiPath, "-F", outputFile, "-q"],
     });
     const { code, stderr } = await command.output();
+    console.log(`fluidsynth exited with code ${code}`);
 
     if (code !== 0) {
       const error = new TextDecoder().decode(stderr);

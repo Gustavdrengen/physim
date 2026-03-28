@@ -11,7 +11,7 @@ import {
 } from "physim/bodies";
 import { initCollisionForce } from "physim/forces/collision";
 import { ParticleSystem } from "physim/particles";
-import { createFireEffect } from "physim/effects/particles";
+import { createSparkEffect } from "physim/effects/particles";
 import { SFX } from "physim/sounds";
 
 // --- Configuration ---
@@ -35,7 +35,7 @@ const displayComp = initBodyDisplayComponent(sim.display, bodyComp);
 const { addCollisionCallback, staticComponent } = await initCollisionForce(
   sim.physics,
   bodyComp,
-  { restitution: RESTITUTION }
+  { restitution: RESTITUTION },
 );
 
 const particles = new ParticleSystem(sim.display);
@@ -45,9 +45,9 @@ const collisionSound = await Sound.fromSynth(SFX.collision(0.5, 0.8));
 addCollisionCallback((event) => {
   // Visual feedback
   particles.emit(
-    createFireEffect({
+    createSparkEffect({
       position: event.position,
-    })
+    }),
   );
   sim.camera.shake(20, 10);
 
@@ -59,11 +59,11 @@ addCollisionCallback((event) => {
 
 // 1. Static Ring Barrier
 const ringBody = Body.fromShape(
-  createRing(250, 300, [
+  createRing(280, 300, [
     { startAngle: 1, size: 0.3 },
     { startAngle: 4, size: 0.1 },
   ]),
-  3
+  3,
 );
 
 Entity.create(new Vec2(50, 50), [
@@ -74,7 +74,7 @@ Entity.create(new Vec2(50, 50), [
 
 // 1.5. Static Hexagon Barrier
 const hexagonBody = Body.fromShape(
-  createHollowPolygon(getRegularPolygonVertices(6, 600), 40)
+  createHollowPolygon(getRegularPolygonVertices(6, 600), 40),
 );
 
 Entity.create(new Vec2(50, 50), [
@@ -86,22 +86,41 @@ Entity.create(new Vec2(50, 50), [
 // 2. Active Blue Ball
 Entity.create(new Vec2(100, 50), [
   [bodyComp, Body.fromShape(createCircle(20))],
-  [sim.physics.velocity, new Vec2(-200, -100)],
+  [sim.physics.velocity, new Vec2(-400, -400)],
   [displayComp, { color: Color.fromString("blue"), fill: true }],
 ]);
 
 // 3. Rectangles
 const rectData = [
-  { pos: [10, 50], vel: [500, 100], color: [250, 50, 100], shape: createCircle(20), trail: true },
-  { pos: [100, 100], vel: [-400, 200], color: [20, 250, 100], shape: createRectangle(20, 20) },
-  { pos: [130, 200], vel: [200, -400], color: [20, 50, 250], shape: createRectangle(20, 20) },
+  {
+    pos: [10, 50],
+    vel: [500, 100],
+    color: [250, 50, 100],
+    shape: createCircle(20),
+    trail: true,
+  },
+  {
+    pos: [100, 100],
+    vel: [-400, 200],
+    color: [20, 250, 100],
+    shape: createRectangle(20, 20),
+  },
+  {
+    pos: [130, 200],
+    vel: [200, -400],
+    color: [20, 50, 250],
+    shape: createRectangle(20, 20),
+  },
 ];
 
 for (const data of rectData) {
   const entity = Entity.create(new Vec2(data.pos[0], data.pos[1]), [
     [sim.physics.mass, 10],
     [bodyComp, Body.fromShape(data.shape)],
-    [displayComp, { color: new Color(data.color[0], data.color[1], data.color[2]) }],
+    [
+      displayComp,
+      { color: new Color(data.color[0], data.color[1], data.color[2]) },
+    ],
     [sim.physics.velocity, new Vec2(data.vel[0], data.vel[1])],
   ]);
 

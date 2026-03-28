@@ -4,4 +4,6 @@
  */
 
 export * from "../../resource/effects/particles/fire.ts";
+export * from "../../resource/effects/particles/smoke.ts";
+export * from "../../resource/effects/particles/spark.ts";
 export * from "../../resource/effects/particles/shatter.ts";

@@ -40,3 +40,20 @@ await test("initCollisionForce - collision callback", async () => {
     expect(entities).toContain(entity2);
   }
 });
+
+await test("initCollisionForce - constantPull matches base physics timing", async () => {
+  const physics = new Physics();
+  physics.constantPull = new Vec2(0, 10);
+
+  const bodyComponent = initBodyComponent();
+  await initCollisionForce(physics, bodyComponent);
+
+  const entity = new Entity(new Vec2(0, 0));
+  entity.addComp(bodyComponent, Body.fromShape(createCircle(10)));
+  entity.addComp(physics.velocity, new Vec2(0, 0));
+
+  physics.update();
+
+  expect(entity.pos.y).toBeCloseTo(0);
+  expect(physics.velocity.get(entity)?.y).toBe(10);
+});

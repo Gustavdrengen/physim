@@ -35,7 +35,12 @@ export class RapierWorldManager {
   private _eventQueue: RAPIER.EventQueue | null = null;
   private _entityToRapierMap: Map<
     Entity,
-    { rigidBody: RAPIER.RigidBody; colliders: RAPIER.Collider[] }
+    {
+      rigidBody: RAPIER.RigidBody;
+      colliders: RAPIER.Collider[];
+      bodySignature: string;
+      defaultProps: DefaultCollisionProperties;
+    }
   > = new Map();
   private _entities: Entity[] = [];
   private _colliderHandleToEntityMap: Map<number, Entity> = new Map();
@@ -57,7 +62,7 @@ export class RapierWorldManager {
     await RAPIER.init();
     this._eventQueue = new RAPIER.EventQueue(true);
     this._rapierWorld = new RAPIER.World(new RAPIER.Vector2(0, 0));
-    this._rapierWorld.numSolverIterations = 4;
+    this._rapierWorld.numSolverIterations = 8;
   }
 
   step(): void {
@@ -79,18 +84,19 @@ export class RapierWorldManager {
     }
 
     const rigidBody = this.createRigidBody(entity, body, defaultProps);
-    const colliders: RAPIER.Collider[] = [];
+    const colliders = this.createCollidersForBody(
+      entity,
+      rigidBody,
+      body,
+      defaultProps,
+    );
 
-    for (const part of body.parts) {
-      const colliderDescs = this.createColliderDescsForPart(part, defaultProps);
-      for (const desc of colliderDescs) {
-        const collider = this._rapierWorld.createCollider(desc, rigidBody);
-        colliders.push(collider);
-        this._colliderHandleToEntityMap.set(collider.handle, entity);
-      }
-    }
-
-    this._entityToRapierMap.set(entity, { rigidBody, colliders });
+    this._entityToRapierMap.set(entity, {
+      rigidBody,
+      colliders,
+      bodySignature: this.computeBodySignature(body),
+      defaultProps,
+    });
     this._entities.push(entity);
   }
 
@@ -363,20 +369,27 @@ export class RapierWorldManager {
     const bodyComponent = entity.getComp(this._bodyComponent);
     if (!rapierObjects || !bodyComponent) return;
 
+    this.syncCollidersToBody(entity, bodyComponent, rapierObjects);
+
     const rigidBody = rapierObjects.rigidBody;
 
-    // Sync position/rotation to Rapier. 
-    // For kinematic bodies, this is how they move.
-    // For dynamic bodies, we sync to allow Rapier to resolve any penetration 
-    // introduced by base physics integration (like gravity) before the Rapier step.
-    rigidBody.setTranslation(
-      new RAPIER.Vector2(entity.pos.x, entity.pos.y),
-      true,
-    );
-    rigidBody.setRotation(bodyComponent.rotation, true);
+    if (rigidBody.isFixed()) {
+      rigidBody.setTranslation(
+        new RAPIER.Vector2(entity.pos.x, entity.pos.y),
+        true,
+      );
+      rigidBody.setRotation(bodyComponent.rotation, true);
+      return;
+    }
 
-    // Always sync velocity for all body types
-    const vel = this._physics.velocity.get(entity) || new Vec2(0, 0);
+    // Base physics applies constantPull after position integration, so the
+    // velocity component already includes "next frame" pull by the time the
+    // collision step runs. Remove it here so Rapier integrates using the same
+    // per-frame velocity that non-collision entities used for movement.
+    const velocity = this._physics.velocity.get(entity);
+    const vel = velocity
+      ? velocity.sub(this._physics.constantPull)
+      : new Vec2(0, 0);
     rigidBody.setLinvel(new RAPIER.Vector2(vel.x, vel.y), true);
   }
 
@@ -401,7 +414,7 @@ export class RapierWorldManager {
       const linvel = rigidBody.linvel();
       (this._physics.velocity as Component<Vec2>).set(
         entity,
-        new Vec2(linvel.x, linvel.y),
+        new Vec2(linvel.x, linvel.y).add(this._physics.constantPull),
       );
     }
 
@@ -411,6 +424,106 @@ export class RapierWorldManager {
 
   getEntities(): Entity[] {
     return this._entities;
+  }
+
+  private createCollidersForBody(
+    entity: Entity,
+    rigidBody: RAPIER.RigidBody,
+    body: Body,
+    defaultProps: DefaultCollisionProperties,
+  ): RAPIER.Collider[] {
+    const colliders: RAPIER.Collider[] = [];
+
+    for (const part of body.parts) {
+      const colliderDescs = this.createColliderDescsForPart(part, defaultProps);
+      for (const desc of colliderDescs) {
+        const collider = this._rapierWorld!.createCollider(desc, rigidBody);
+        colliders.push(collider);
+        this._colliderHandleToEntityMap.set(collider.handle, entity);
+      }
+    }
+
+    return colliders;
+  }
+
+  private syncCollidersToBody(
+    entity: Entity,
+    body: Body,
+    rapierObjects: {
+      rigidBody: RAPIER.RigidBody;
+      colliders: RAPIER.Collider[];
+      bodySignature: string;
+      defaultProps: DefaultCollisionProperties;
+    },
+  ): void {
+    const nextSignature = this.computeBodySignature(body);
+    if (nextSignature === rapierObjects.bodySignature) {
+      return;
+    }
+
+    for (const collider of rapierObjects.colliders) {
+      this._colliderHandleToEntityMap.delete(collider.handle);
+      this._rapierWorld!.removeCollider(collider, true);
+    }
+
+    rapierObjects.colliders = this.createCollidersForBody(
+      entity,
+      rapierObjects.rigidBody,
+      body,
+      rapierObjects.defaultProps,
+    );
+    rapierObjects.bodySignature = nextSignature;
+
+    if (rapierObjects.rigidBody.isDynamic()) {
+      const mass = this._physics.mass.get(entity) ?? rapierObjects.defaultProps.mass ?? 1.0;
+      const inertia = this.computeApproximateInertiaForBody(body, mass);
+      rapierObjects.rigidBody.setAdditionalMassProperties(
+        mass,
+        new RAPIER.Vector2(0, 0),
+        inertia,
+        true,
+      );
+    }
+  }
+
+  private computeBodySignature(body: Body): string {
+    return JSON.stringify(
+      body.parts.map((part) => ({
+        position: { x: part.position.x, y: part.position.y },
+        rotation: part.rotation,
+        shape: this.serializeShape(part.shape),
+      })),
+    );
+  }
+
+  private serializeShape(shape: BodyPart["shape"]): unknown {
+    switch (shape.type) {
+      case "circle":
+        return { type: shape.type, radius: shape.radius };
+      case "polygon":
+        return {
+          type: shape.type,
+          vertices: shape.vertices.map((v) => [v.x, v.y]),
+        };
+      case "ring":
+        return {
+          type: shape.type,
+          innerRadius: shape.innerRadius,
+          outerRadius: shape.outerRadius,
+          gaps: shape.gaps.map((gap) => ({
+            startAngle: gap.startAngle,
+            size: gap.size,
+          })),
+        };
+      case "hollow_polygon":
+        return {
+          type: shape.type,
+          width: shape.width,
+          vertices: shape.vertices.map((v) => [v.x, v.y]),
+        };
+      default:
+        return shape;
+    }
   }
 
   private computeApproximateInertiaForBody(
