@@ -10,5 +10,7 @@ declare global {
     playSound: (sound: number) => void;
     run: (onUpdate: () => void) => Promise<void>;
     addFetchAsset: (path: string, fetchAddr: string) => Promise<void>;
+    __PROFILE_ENTER: (name: string) => void;
+    __PROFILE_EXIT: () => void;
   };
 }

@@ -80,6 +80,7 @@ export class Display {
    * Clears the screen and draws all registered components.
    * @param camera The camera to use for rendering. If not provided, a default camera is used.
    */
+  // @profile "Display.draw"
   draw(camera?: Camera): void {
     const effectiveCamera = camera ?? new Camera();
 
@@ -92,14 +93,19 @@ export class Display {
       }
     }
 
+    // @profile-start "Display.draw.clear"
     Draw.clear();
-    sim.ctx.save(); // Save the context before applying camera transforms
+    // @profile-end
+    
+    sim.ctx.save();
+    // @profile-start "Display.draw.applyCamera"
     effectiveCamera._applyTransforms(sim.ctx);
+    // @profile-end
 
+    // @profile-start "Display.draw.components"
     for (const [comps, drawFunc] of this.drawComponents) {
       const componentsArray = Array.isArray(comps) ? comps : [comps];
 
-      // Find entities that have all required components
       let entitiesWithAllComps: Set<Entity> | undefined;
 
       for (const comp of componentsArray) {
@@ -122,12 +128,17 @@ export class Display {
         }
       }
     }
+    // @profile-end
 
+    // @profile-start "Display.draw.removeCamera"
     effectiveCamera._removeTransforms(sim.ctx);
-    sim.ctx.restore(); // Restore the context after drawing
+    // @profile-end
+    sim.ctx.restore();
 
+    // @profile-start "Display.draw.statics"
     for (const staticDraw of this.statics) {
       staticDraw(effectiveCamera);
     }
+    // @profile-end
   }
 }

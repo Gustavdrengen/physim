@@ -17,7 +17,7 @@ import { Vec2 } from "./vec.ts";
  * sim.physics.constantPull = new Vec2(0, 20);
  *
  * // Initialize components
- * const bodyComp = initBodyComponent();
+ * const bodyComp = initBodyComponent(sim.physics);
  * const displayComp = initBodyDisplayComponent(sim.display, bodyComp);
  *
  * // Create a ball that will fall
@@ -65,7 +65,7 @@ export class Physics {
 
   /**
    * Constant directional pull (gravity) applied to all entities with a velocity component.
-   * This effectively acts as a uniform acceleration field (like gravity).
+   * This effectively acts as a uniform acceleration field.
    */
   constantPull: Vec2 = new Vec2(0, 0);
 
@@ -124,12 +124,14 @@ export class Physics {
   /**
    * Updates the position of all entities based on the registered forces.
    */
+  // @profile "Physics.update"
   update(): void {
     if (!this.forcesSorted) {
       this.forces.sort((a, b) => a[2] - b[2]);
       this.forcesSorted = true;
     }
 
+    // @profile-start "Physics.update.forceLoop"
     for (const [comps, forceFunc] of this.forces) {
       const componentsArray = Array.isArray(comps) ? comps : [comps];
 
@@ -139,7 +141,6 @@ export class Physics {
           forceFunc(entity, data);
         }
       } else {
-        // Find the smallest component to iterate over
         let smallestComp = componentsArray[0];
         for (let i = 1; i < componentsArray.length; i++) {
           if (componentsArray[i].size < smallestComp.size) {
@@ -166,5 +167,6 @@ export class Physics {
         }
       }
     }
+    // @profile-end
   }
 }

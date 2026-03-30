@@ -18,13 +18,13 @@ type BodyDisplayData = {
  *
  * @example
  * ```ts
- * import { Display, Entity, Vec2, Color } from "physim/base";
+ * import { Simulation, Entity, Vec2, Color } from "physim/base";
  * import { initBodyDisplayComponent } from "physim/graphics";
  * import { initBodyComponent, createRectangle, Body } from "physim/bodies";
  *
- * const display = new Display();
- * const bodyComponent = initBodyComponent();
- * const bodyDisplay = initBodyDisplayComponent(display, bodyComponent);
+ * const simulation = new Simulation();
+ * const bodyComponent = initBodyComponent(simulation.physics);
+ * const bodyDisplay = initBodyDisplayComponent(simulation.display, bodyComponent);
  *
  * const myBody = Body.fromShape(createRectangle(50, 50));
  *

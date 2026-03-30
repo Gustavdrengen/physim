@@ -32,6 +32,7 @@ export async function runServer(
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
   useWebview: boolean,
+  profiling: boolean,
 ): Promise<Result<string | undefined>> {
   let server: Deno.HttpServer<Deno.NetAddr>;
   let webviewProcess: Deno.ChildProcess | undefined;
@@ -52,6 +53,12 @@ export async function runServer(
     htmlContent = htmlContent.replace("SHOULD_RECORD", "true");
   } else {
     htmlContent = htmlContent.replace("SHOULD_RECORD", "false");
+  }
+  
+  if (profiling) {
+    htmlContent = htmlContent.replace("PROFILING_ENABLED", "true");
+  } else {
+    htmlContent = htmlContent.replace("PROFILING_ENABLED", "false");
   }
 
   let ret;

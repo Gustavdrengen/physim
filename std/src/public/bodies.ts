@@ -3,11 +3,12 @@
  *
  * @example
  * ```ts
- * import { Entity, Vec2, Color } from "physim/base";
+ * import { Simulation, Entity, Vec2, Color } from "physim/base";
  * import { createRectangle, initBodyComponent, Body } from "physim/bodies";
  * import { initBodyDisplayComponent } from "physim/graphics";
  *
- * const bodyComponent = initBodyComponent();
+ * const simulation = new Simulation();
+ * const bodyComponent = initBodyComponent(simulation.physics);
  * const bodyDisplay = initBodyDisplayComponent(
  *  simulation.display,
  *  bodyComponent,

@@ -36,7 +36,7 @@ Draw.setCanvasSize(1920, 1080);
 const simulation = new Simulation();
 
 // 3. Initialize components and forces
-const bodyComponent = initBodyComponent();
+const bodyComponent = initBodyComponent(simulation.physics);
 const bodyDisplayComponent = initBodyDisplayComponent(
   simulation.display,
   bodyComponent,

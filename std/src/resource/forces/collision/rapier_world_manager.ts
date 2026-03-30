@@ -40,6 +40,7 @@ export class RapierWorldManager {
       colliders: RAPIER.Collider[];
       bodySignature: string;
       defaultProps: DefaultCollisionProperties;
+      previousRotation: number;
     }
   > = new Map();
   private _entities: Entity[] = [];
@@ -65,6 +66,7 @@ export class RapierWorldManager {
     this._rapierWorld.numSolverIterations = 8;
   }
 
+  // @profile "RapierWorldManager.step"
   step(): void {
     if (!this._rapierWorld || !this._eventQueue) {
       throw new Error("RapierWorldManager not initialized. Call init() first.");
@@ -96,6 +98,7 @@ export class RapierWorldManager {
       colliders,
       bodySignature: this.computeBodySignature(body),
       defaultProps,
+      previousRotation: body.rotation,
     });
     this._entities.push(entity);
   }
@@ -121,6 +124,7 @@ export class RapierWorldManager {
     return this._entityToRapierMap.has(entity);
   }
 
+  // @profile "RapierWorldManager.getCollisionEvents"
   getCollisionEvents(): CollisionEvent[] {
     if (!this._eventQueue || !this._rapierWorld) {
       throw new Error("RapierWorldManager not initialized. Call init() first.");
@@ -215,6 +219,7 @@ export class RapierWorldManager {
         inertia,
         true,
       );
+      rigidBody.setAngvel(body.angularVelocity, true);
     }
 
     return rigidBody;
@@ -364,12 +369,15 @@ export class RapierWorldManager {
     return descs;
   }
 
+  // @profile "RapierWorldManager.syncRigidBodyToEntity"
   syncRigidBodyToEntity(entity: Entity): void {
     const rapierObjects = this._entityToRapierMap.get(entity);
     const bodyComponent = entity.getComp(this._bodyComponent);
     if (!rapierObjects || !bodyComponent) return;
 
+    // @profile-start "RapierWorldManager.syncCollidersToBody"
     this.syncCollidersToBody(entity, bodyComponent, rapierObjects);
+    // @profile-end
 
     const rigidBody = rapierObjects.rigidBody;
 
@@ -379,20 +387,20 @@ export class RapierWorldManager {
         true,
       );
       rigidBody.setRotation(bodyComponent.rotation, true);
+      rapierObjects.previousRotation = bodyComponent.rotation;
       return;
     }
 
-    // Base physics applies constantPull after position integration, so the
-    // velocity component already includes "next frame" pull by the time the
-    // collision step runs. Remove it here so Rapier integrates using the same
-    // per-frame velocity that non-collision entities used for movement.
     const velocity = this._physics.velocity.get(entity);
     const vel = velocity
       ? velocity.sub(this._physics.constantPull)
       : new Vec2(0, 0);
     rigidBody.setLinvel(new RAPIER.Vector2(vel.x, vel.y), true);
+    rigidBody.setAngvel(bodyComponent.angularVelocity, true);
+    rigidBody.setRotation(rapierObjects.previousRotation, true);
   }
 
+  // @profile "RapierWorldManager.syncEntityToRigidBody"
   syncEntityToRigidBody(entity: Entity): void {
     const rapierObjects = this._entityToRapierMap.get(entity);
     const bodyComponent = entity.getComp(this._bodyComponent);
@@ -404,8 +412,6 @@ export class RapierWorldManager {
       return;
     }
 
-    // For dynamic bodies, read position from Rapier (authoritative simulation)
-    // This includes collision response - Rapier has already integrated position
     if (rigidBody.isDynamic()) {
       const pos = rigidBody.translation();
       entity.pos.x = pos.x;
@@ -416,10 +422,14 @@ export class RapierWorldManager {
         entity,
         new Vec2(linvel.x, linvel.y).add(this._physics.constantPull),
       );
+
+      const angvel = rigidBody.angvel();
+      bodyComponent.angularVelocity = angvel;
     }
 
     const rotation = rigidBody.rotation();
     bodyComponent.rotation = rotation;
+    rapierObjects.previousRotation = rotation;
   }
 
   getEntities(): Entity[] {

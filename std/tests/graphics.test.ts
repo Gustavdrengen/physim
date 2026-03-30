@@ -11,7 +11,7 @@ await test("initPointDisplayComponent", () => {
 
 await test("initBodyDisplayComponent", () => {
   const sim = new Simulation();
-  const bodyComponent = initBodyComponent();
+  const bodyComponent = initBodyComponent(sim.physics);
   const bodyDisplay = initBodyDisplayComponent(sim.display, bodyComponent);
   expect(bodyDisplay instanceof Component).toBe(true);
 });

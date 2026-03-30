@@ -8,8 +8,9 @@ import {
   createRegularPolygon,
   createRing,
   getRegularPolygonVertices,
+  initBodyComponent,
 } from "physim/bodies";
-import { Vec2 } from "physim/base";
+import { Vec2, Physics } from "physim/base";
 
 await test("Shape creation functions", () => {
   const circle = createCircle(10);
@@ -114,4 +115,61 @@ await test("Body.split", () => {
     expect(shard.aabb.min.x).toBeGreaterThanOrEqual(-10.1);
     expect(shard.aabb.max.x).toBeLessThanOrEqual(10.1);
   }
+});
+
+await test("Body angularVelocity property", () => {
+  const body = Body.fromShape(createCircle(10));
+  expect(body.angularVelocity).toBe(0);
+  
+  body.angularVelocity = Math.PI;
+  expect(body.angularVelocity).toBe(Math.PI);
+});
+
+await test("Body.fromShape with initialAngularVelocity", () => {
+  const body = Body.fromShape(createCircle(10), 0, Math.PI / 2);
+  expect(body.angularVelocity).toBe(Math.PI / 2);
+  expect(body.rotation).toBe(0);
+});
+
+await test("Body constructor with initialAngularVelocity", () => {
+  const rect = createRectangle(20, 10);
+  const body = new Body([{ shape: rect, position: Vec2.zero(), rotation: 0 }], 0, Math.PI);
+  expect(body.angularVelocity).toBe(Math.PI);
+});
+
+await test("Angular velocity integration", () => {
+  const physics = new Physics();
+  const bodyComponent = initBodyComponent(physics);
+  
+  const body = Body.fromShape(createCircle(10));
+  body.angularVelocity = Math.PI; // π rad/s
+  
+  const entity = new Entity(new Vec2(0, 0));
+  entity.addComp(bodyComponent, body);
+  
+  const initialRotation = body.rotation;
+  
+  // After 1 frame (1/60 second), rotation should increase by π/60
+  physics.update();
+  
+  const expectedRotation = initialRotation + Math.PI / 60;
+  expect(body.rotation).toBeCloseTo(expectedRotation, 5);
+});
+
+await test("Angular velocity integration - multiple frames", () => {
+  const physics = new Physics();
+  const bodyComponent = initBodyComponent(physics);
+  
+  const body = Body.fromShape(createCircle(10));
+  body.angularVelocity = Math.PI * 2; // 2π rad/s (one full rotation per second)
+  
+  const entity = new Entity(new Vec2(0, 0));
+  entity.addComp(bodyComponent, body);
+  
+  // After 60 frames (1 second), should complete one full rotation
+  for (let i = 0; i < 60; i++) {
+    physics.update();
+  }
+  
+  expect(body.rotation).toBeCloseTo(Math.PI * 2, 4);
 });

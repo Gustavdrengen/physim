@@ -7,7 +7,7 @@ import { shatter } from "physim/effects/particles";
 await test("shatter utility", () => {
   const sim = new Simulation();
   const ps = new ParticleSystem(sim.display);
-  const bodyComp = initBodyComponent();
+  const bodyComp = initBodyComponent(sim.physics);
   
   const rect = createRectangle(20, 20);
   const body = Body.fromShape(rect);

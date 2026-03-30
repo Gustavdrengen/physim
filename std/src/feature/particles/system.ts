@@ -33,8 +33,9 @@ export class ParticleSystem {
     });
   }
 
-  // Updates the state of all active particles and emits new particles from trails.
+  // @profile "ParticleSystem.update"
   private update(): void {
+    // @profile-start "ParticleSystem.update.particles"
     for (let i = this.activeParticles.length - 1; i >= 0; i--) {
       const p = this.activeParticles[i];
       p.age++;
@@ -85,7 +86,9 @@ export class ParticleSystem {
         continue;
       }
     }
+    // @profile-end
 
+    // @profile-start "ParticleSystem.update.trails"
     for (const [entity, trailData] of this.trailComponent.entries()) {
       const trails = Array.isArray(trailData) ? trailData : [trailData];
       for (const trail of trails) {
@@ -112,17 +115,21 @@ export class ParticleSystem {
         }
       }
     }
+    // @profile-end
   }
 
-  // Renders all active particles.
+  // @profile "ParticleSystem.draw"
   private draw(camera: Camera): void {
     camera._applyTransforms(sim.ctx);
+    // @profile-start "ParticleSystem.draw.particles"
     for (const p of this.activeParticles) {
       p.body.draw(p.position, p.color, true, 1, p.scale);
     }
+    // @profile-end
     camera._removeTransforms(sim.ctx);
   }
 
+  // @profile "ParticleSystem.interpolateColorStages"
   private interpolateColorStages(stages: ColorStage[], lifeRatio: number): Color {
     if (lifeRatio <= 0) return stages[0].color;
     if (lifeRatio >= 1) return stages[stages.length - 1].color;
@@ -147,7 +154,9 @@ export class ParticleSystem {
    * Emits a burst of particles with the specified properties.
    * @param options The properties for the particles to be emitted.
    */
+  // @profile "ParticleSystem.emit"
   public emit(options: ParticleEmissionOptions): void {
+    // @profile-start "ParticleSystem.emit.loop"
     for (let i = 0; i < options.numParticles; i++) {
       const p = this.particlePool.pop() || {} as Particle;
 
@@ -217,6 +226,7 @@ export class ParticleSystem {
 
       this.activeParticles.push(p);
     }
+    // @profile-end
   }
 }
 

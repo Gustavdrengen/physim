@@ -35,11 +35,12 @@ const cmd = new Command()
   )
   .option("-w --webview", "Run the simulation in a webview window.")
   .option("--no-audio", "Disables audio playback.")
-  .action(async ({ raw, record, webview, audio }, entrypoint) => {
+  .option("--profiling", "Enable performance profiling with live stats in debug panel.")
+  .action(async ({ raw, record, webview, audio, profiling }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record, webview, !audio));
+    unwrap(await run(entrypoint, record, webview, !audio, !!profiling));
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {

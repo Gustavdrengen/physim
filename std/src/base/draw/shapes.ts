@@ -25,6 +25,7 @@ export namespace Draw {
    *
    * @param color The color to clear the canvas with.
    */
+  // @profile "Draw.clear"
   export function clear(color: Color | string = Color.fromRGB(0, 0, 0)): void {
     const ctx = sim.ctx;
     const canvas = ctx.canvas;
@@ -39,6 +40,7 @@ export namespace Draw {
    * @param radius The radius of the circle.
    * @param color The color of the circle.
    */
+  // @profile "Draw.circle"
   export function circle(
     pos: Vec2,
     radius: number,
@@ -60,6 +62,7 @@ export namespace Draw {
    * @param color The color of the rectangle.
    * @param borderRadius Optional border radius for rounded corners.
    */
+  // @profile "Draw.rect"
   export function rect(
     pos: Vec2,
     width: number,
@@ -86,6 +89,7 @@ export namespace Draw {
    * @param color The color of the line.
    * @param lineWidth The width of the line.
    */
+  // @profile "Draw.line"
   export function line(
     start: Vec2,
     end: Vec2,
@@ -155,6 +159,7 @@ export namespace Draw {
    * @param fill Whether to fill the polygon.
    * @param lineWidth The width of the line if not filled.
    */
+  // @profile "Draw.polygon"
   export function polygon(
     vertices: Vec2[],
     color: Color | string = Color.fromRGB(255, 255, 255),
@@ -162,7 +167,7 @@ export namespace Draw {
     lineWidth: number = 1,
   ): void {
     if (vertices.length < 2) {
-      return; // Not enough vertices to draw a polygon
+      return;
     }
 
     const ctx = sim.ctx;

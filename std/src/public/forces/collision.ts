@@ -9,7 +9,7 @@
  * import { initBodyComponent, Body } from "physim/bodies";
  *
  * const simulation = new Simulation();
- * const bodyComponent = initBodyComponent();
+ * const bodyComponent = initBodyComponent(simulation.physics);
  *
  * const { staticComponent } = await initCollisionForce(simulation.physics, bodyComponent, {
  *  restitution: 0.5

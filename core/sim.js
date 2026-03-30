@@ -261,6 +261,47 @@ let framesThisSecond = 0;
 let currentFPS = 0;
 let fpsTimer = null;
 
+const __profiling = {
+  enabled: typeof PROFILING !== 'undefined' && PROFILING,
+  stack: [],
+  stats: new Map(),
+  
+  enter(name) {
+    if (!this.enabled) return;
+    this.stack.push({ name, start: performance.now() });
+  },
+  
+  exit() {
+    if (!this.enabled || !this.stack.length) return;
+    const frame = this.stack.pop();
+    const duration = performance.now() - frame.start;
+    
+    let stat = this.stats.get(frame.name);
+    if (!stat) {
+      stat = { total: 0, calls: 0, min: Infinity, max: 0, last: 0 };
+      this.stats.set(frame.name, stat);
+    }
+    stat.total += duration;
+    stat.calls++;
+    stat.min = Math.min(stat.min, duration);
+    stat.max = Math.max(stat.max, duration);
+    stat.last = duration;
+  },
+  
+  getStats() {
+    const result = [];
+    for (const [name, stat] of this.stats) {
+      result.push({ name, ...stat });
+    }
+    return result.sort((a, b) => b.total - a.total);
+  },
+  
+  reset() {
+    this.stats.clear();
+    this.stack = [];
+  }
+};
+
 const canvas = document.getElementById("sim");
 
 function fixCanvasDisplay() {
@@ -357,6 +398,12 @@ const sim = {
     } catch {
       //
     }
+  },
+  __PROFILE_ENTER: (name) => {
+    __profiling.enter(name);
+  },
+  __PROFILE_EXIT: () => {
+    __profiling.exit();
   },
 };
 
@@ -521,6 +568,24 @@ function updateDebugWindow() {
       debugFPS.textContent = "not running";
     } else {
       debugFPS.textContent = currentFPS;
+    }
+  }
+  
+  const profilingSection = document.getElementById("debugProfilingSection");
+  const profilingContainer = document.getElementById("debugProfiling");
+  if (profilingSection && profilingContainer && __profiling.enabled) {
+    profilingSection.style.display = "block";
+    const stats = __profiling.getStats();
+    if (stats.length > 0) {
+      const totalTime = stats.reduce((sum, s) => sum + s.total, 0);
+      profilingContainer.innerHTML = stats.map(stat => {
+        const percent = ((stat.total / totalTime) * 100).toFixed(1);
+        const avg = (stat.total / stat.calls).toFixed(2);
+        return `<div class="debug-profiling-item">
+          <div class="debug-profiling-name">${stat.name}</div>
+          <div class="debug-profiling-stats">${stat.calls} calls | ${avg}ms avg | ${stat.total.toFixed(2)}ms total (${percent}%)</div>
+        </div>`;
+      }).join("");
     }
   }
 }

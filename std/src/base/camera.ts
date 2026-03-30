@@ -103,6 +103,7 @@ export class Camera {
   /**
    * @internal
    */
+  // @profile "Camera._applyTransforms"
   _applyTransforms(ctx: CanvasRenderingContext2D): void {
     this.update();
     const pos = this.position.add(this.shakeOffset);
@@ -117,6 +118,7 @@ export class Camera {
   /**
    * @internal
    */
+  // @profile "Camera._removeTransforms"
   _removeTransforms(ctx: CanvasRenderingContext2D): void {
     ctx.restore();
   }

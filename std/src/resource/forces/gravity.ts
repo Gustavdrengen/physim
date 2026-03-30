@@ -21,6 +21,7 @@ import { Entity } from "../../base/entity.ts";
  */
 export function initGravityForce(physics: Physics, G: number): void {
   const gravityForce = (entity: Entity, mass: number): void => {
+    // @profile-start "Gravity.forceCalculation"
     for (const otherEntity of physics.mass.keys()) {
       if (entity === otherEntity) continue;
 
@@ -41,6 +42,7 @@ export function initGravityForce(physics: Physics, G: number): void {
         currentAcc.add(forceVec.scale(1 / mass)),
       );
     }
+    // @profile-end
   };
 
   physics.registerForce(physics.mass, gravityForce, 0);

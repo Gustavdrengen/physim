@@ -12,6 +12,7 @@ export async function run(
   record: string | undefined,
   useWebview: boolean,
   noAudio: boolean,
+  profiling: boolean,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -30,7 +31,7 @@ export async function run(
   const tempDirName = await Deno.makeTempDir();
   const outfile = `${tempDirName}/out.js`;
 
-  const r = await buildSimulation(entrypoint, outfile);
+  const r = await buildSimulation(entrypoint, outfile, profiling);
   if (r) {
     Deno.remove(tempDirName, { recursive: true });
     return r;
@@ -52,6 +53,7 @@ export async function run(
     assetManager,
     audioPlayer,
     useWebview,
+    profiling,
   );
 
   if (failed(runResult)) {

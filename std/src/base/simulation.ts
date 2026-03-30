@@ -15,7 +15,7 @@ import { Physics } from "./physics.ts";
  * const sim = new Simulation();
  *
  * // Initialize components for bodies and their display
- * const bodyComp = initBodyComponent();
+ * const bodyComp = initBodyComponent(sim.physics);
  * const displayComp = initBodyDisplayComponent(sim.display, bodyComp);
  *
  * // Create a falling rectangle
@@ -77,6 +77,7 @@ export class Simulation {
    * @param onUpdate An optional callback function to be executed on each frame.
    * @returns A promise that resolves when the simulation finishes.
    */
+  // @profile "Simulation.run"
   async run(onUpdate: () => void = () => { }): Promise<void> {
     await sim.run(() => {
       this.frame++;
@@ -85,9 +86,17 @@ export class Simulation {
         return;
       }
 
+      // @profile-start "Simulation.physics.update"
       this.physics.update();
+      // @profile-end
+      
+      // @profile-start "Simulation.display.draw"
       this.display.draw(this.camera);
+      // @profile-end
+      
+      // @profile-start "Simulation.onUpdate"
       onUpdate();
+      // @profile-end
     });
   }
 

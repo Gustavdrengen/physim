@@ -16,6 +16,7 @@ function _colorToCss(c: Color | string): string {
  * @param textAlign The horizontal alignment of the text.
  * @param textBaseline The vertical alignment of the text.
  */
+// @profile "Draw.text"
 export function text(
   pos: Vec2,
   text: string,

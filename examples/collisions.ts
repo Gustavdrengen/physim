@@ -30,7 +30,7 @@ const sim = new Simulation();
 sim.camera.zoom = ZOOM;
 
 // --- Component Initialization ---
-const bodyComp = initBodyComponent();
+const bodyComp = initBodyComponent(sim.physics);
 const displayComp = initBodyDisplayComponent(sim.display, bodyComp);
 const { addCollisionCallback, staticComponent } = await initCollisionForce(
   sim.physics,
@@ -65,6 +65,7 @@ const ringBody = Body.fromShape(
   ]),
   3,
 );
+ringBody.angularVelocity = 0.6; // radians per second (0.01 * 60fps)
 
 Entity.create(new Vec2(50, 50), [
   [bodyComp, ringBody],
@@ -147,7 +148,4 @@ addCaption(sim.display, {
 });
 
 // --- Main Loop ---
-await sim.run(() => {
-  // Animate the ring
-  ringBody.rotation += 0.01;
-});
+await sim.run();

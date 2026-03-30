@@ -278,6 +278,36 @@ canvas {
   font-weight: bold;
 }
 
+.debug-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.debug-subtitle {
+  color: #ff00ff;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.debug-profiling-item {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.debug-profiling-name {
+  color: #ff9ff3;
+  font-weight: bold;
+}
+
+.debug-profiling-stats {
+  color: #aaa;
+  font-size: 10px;
+}
+
 .terminal-line {
   margin-bottom: 4px;
   animation: fadeIn 0.3s ease;

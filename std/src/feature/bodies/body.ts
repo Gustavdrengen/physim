@@ -1,8 +1,9 @@
 import { Vec2 } from "../../base/vec.ts";
-import { Component } from "../../base/entity.ts";
+import { Component, Entity } from "../../base/entity.ts";
 import { Shape } from "./shape.ts";
 import { Color } from "../../base/draw/color.ts";
 import { Draw } from "../../base/draw/shapes.ts";
+import { Physics } from "../../base/physics.ts";
 
 /**
  * Represents a part of a composite body, associating a shape
@@ -51,16 +52,23 @@ export class Body {
    * The overall rotation of the body in radians.
    */
   rotation: number;
+  /**
+   * The angular velocity of the body in radians per second.
+   * This is automatically integrated into rotation each frame.
+   */
+  angularVelocity: number;
 
   /**
    * Creates a new Body instance.
    *
    * @param parts An array of `BodyPart` objects that compose this body.
    * @param initialRotation The initial rotation of the body in radians.
+   * @param initialAngularVelocity The initial angular velocity of the body in radians per second.
    */
-  constructor(parts: BodyPart[], initialRotation: number = 0) {
+  constructor(parts: BodyPart[], initialRotation: number = 0, initialAngularVelocity: number = 0) {
     this.parts = parts;
     this.rotation = initialRotation;
+    this.angularVelocity = initialAngularVelocity;
 
     const allVertices: Vec2[][] = [];
     for (const part of parts) {
@@ -80,8 +88,10 @@ export class Body {
    * @param lineWidth The width of the line if not filled.
    * @param scale The scale of the body.
    */
+  // @profile "Body.draw"
   public draw(pos: Vec2, color: Color, fill: boolean = true, lineWidth: number = 1, scale: number = 1): void {
     const rot = this.rotation;
+    // @profile-start "Body.draw.transformVertices"
     for (const poly of this.vertices) {
       const transformedVertices: Vec2[] = poly.map((v: Vec2) => {
         const scaledV = v.scale(scale);
@@ -94,6 +104,7 @@ export class Body {
       });
       Draw.polygon(transformedVertices, color, fill, lineWidth);
     }
+    // @profile-end
   }
 
   /**
@@ -102,16 +113,17 @@ export class Body {
    *
    * @param shape The shape to create the body from.
    * @param initialRotation The initial rotation of the body in radians.
+   * @param initialAngularVelocity The initial angular velocity of the body in radians per second.
    * @returns A new Body instance.
    */
-  static fromShape(shape: Shape, initialRotation: number = 0): Body {
+  static fromShape(shape: Shape, initialRotation: number = 0, initialAngularVelocity: number = 0): Body {
     return new Body([
       {
         shape,
         position: Vec2.zero(),
         rotation: 0,
       },
-    ], initialRotation);
+    ], initialRotation, initialAngularVelocity);
   }
 
   private static createRingSegment(
@@ -140,12 +152,12 @@ export class Body {
     return vertices;
   }
 
+  // @profile "Body.calculatePartVertices"
   private static calculatePartVertices(part: BodyPart): Vec2[][] {
     const { shape, position, rotation } = part;
     let basePolygons: Vec2[][];
 
     if (shape.type === "circle") {
-      // Approximate circle with 32 vertices for general vertex handling
       const baseVertices: Vec2[] = [];
       for (let i = 0; i < 32; i++) {
         const angle = (i / 32) * 2 * Math.PI;
@@ -245,6 +257,7 @@ export class Body {
     );
   }
 
+  // @profile "Body.calculateAABB"
   private static calculateAABB(
     vertices: readonly Vec2[]
   ): { min: Vec2; max: Vec2 } {
@@ -274,14 +287,15 @@ export class Body {
    * @param numShards The number of shards to create.
    * @returns An array of new Body instances, each representing a shard.
    */
+  // @profile "Body.split"
   static split(body: Body, numShards: number): Body[] {
     const shards: Body[] = [];
     const rotation = body.rotation;
 
+    // @profile-start "Body.split.polygons"
     for (const poly of body.vertices) {
       if (poly.length < 3) continue;
 
-      // Find the center of the polygon
       let centerX = 0;
       let centerY = 0;
       for (const v of poly) {
@@ -292,17 +306,15 @@ export class Body {
       centerY /= poly.length;
       const center = new Vec2(centerX, centerY);
 
-      // Simple radial split for now
-      // More complex Voronoi logic could be added later
       for (let i = 0; i < numShards; i++) {
         const startIdx = Math.floor((i / numShards) * poly.length);
         let endIdx = Math.floor(((i + 1) / numShards) * poly.length);
 
         if (endIdx === startIdx) {
           if (i === numShards - 1) {
-            endIdx = poly.length; // Ensure last shard covers everything
+            endIdx = poly.length;
           } else {
-             continue; // Skip zero-area shards
+             continue;
           }
         }
         
@@ -321,24 +333,28 @@ export class Body {
         );
       }
     }
+    // @profile-end
 
     return shards;
   }
 }
 
 /**
- * Initializes a new body component.
+ * Initializes a new body component and registers angular velocity integration with the physics system.
  *
+ * @param physics The physics system to register with.
  * @returns The new component.
  *
  * @example
  * ```ts
- * import { Entity, Vec2 } from "physim/base";
+ * import { Simulation, Entity, Vec2 } from "physim/base";
  * import { createRectangle, initBodyComponent, Body } from "physim/bodies";
  *
- * const bodyComponent = initBodyComponent();
+ * const simulation = new Simulation();
+ * const bodyComponent = initBodyComponent(simulation.physics);
  *
  * const body = Body.fromShape(createRectangle(10, 10));
+ * body.angularVelocity = Math.PI; // Rotate at 180 degrees per second
  *
  * const entity = Entity.create(
  *   new Vec2(100, 100),
@@ -346,6 +362,16 @@ export class Body {
  * );
  * ```
  */
-export function initBodyComponent(): Component<Body> {
-  return new Component<Body>();
+export function initBodyComponent(physics: Physics): Component<Body> {
+  const bodyComponent = new Component<Body>();
+
+  physics.registerForce(
+    bodyComponent,
+    (entity: Entity, body: Body) => {
+      body.rotation += body.angularVelocity * (1 / 60);
+    },
+    2,
+  );
+
+  return bodyComponent;
 }
