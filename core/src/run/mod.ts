@@ -13,6 +13,7 @@ export async function run(
   useWebview: boolean,
   noAudio: boolean,
   profiling: boolean,
+  noThrottle: boolean,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -54,6 +55,7 @@ export async function run(
     audioPlayer,
     useWebview,
     profiling,
+    noThrottle,
   );
 
   if (failed(runResult)) {

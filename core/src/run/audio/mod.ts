@@ -9,7 +9,6 @@ import {
   failed,
   InputFailureTag,
   Result,
-  SystemFailureTag,
 } from "../../err.ts";
 import { playAudio } from "../../rust.ts";
 
@@ -22,6 +21,8 @@ export class AudioPlayer {
   soundLog: [number, Sound][] = [];
   tmpDir: string;
   assetManager: AssetManager;
+  currentFrame: number = 0;
+  playedThisFrame: Set<number> = new Set();
 
   constructor(
     playLoud: boolean,
@@ -83,12 +84,23 @@ export class AudioPlayer {
       return;
     }
 
+    if (this.currentFrame !== frame) {
+      this.currentFrame = frame;
+      this.playedThisFrame.clear();
+    }
+
+    if (this.playedThisFrame.has(id)) {
+      return;
+    }
+
     if (this.sounds[id] === undefined) {
       return fail(
         InputFailureTag.SoundFailure,
         `Undefined sound with id: ${id}`,
       );
     }
+
+    this.playedThisFrame.add(id);
 
     const sound = this.sounds[id];
     this.soundLog.push([frame, sound]);
@@ -103,7 +115,7 @@ export class AudioPlayer {
 
   addAudioToVideo(videoPath: string): Promise<Result<undefined>> {
     if (!this.enabled || this.soundLog.length === 0) {
-      return Promise.resolve();
+      return Promise.resolve(undefined as unknown as Result<undefined>);
     }
     return addAudioToMp4(this.soundLog, videoPath, 60);
   }

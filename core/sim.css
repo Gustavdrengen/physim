@@ -224,6 +224,7 @@ canvas {
   bottom: 20px;
   right: 20px;
   width: 250px;
+  max-height: 400px;
   background: rgba(20, 20, 30, 0.85);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -265,6 +266,25 @@ canvas {
   font-family: "Courier New", monospace;
   font-size: 13px;
   color: #fff;
+  overflow-y: auto;
+  max-height: 340px;
+}
+
+.debug-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.debug-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.debug-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 210, 255, 0.3);
+  border-radius: 3px;
+}
+
+.debug-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.5);
 }
 
 .debug-item {

@@ -33,6 +33,7 @@ export async function runServer(
   audioPlayer: AudioPlayer,
   useWebview: boolean,
   profiling: boolean,
+  noThrottle: boolean,
 ): Promise<Result<string | undefined>> {
   let server: Deno.HttpServer<Deno.NetAddr>;
   let webviewProcess: Deno.ChildProcess | undefined;
@@ -50,15 +51,21 @@ export async function runServer(
   const videoPath = record;
 
   if (record) {
-    htmlContent = htmlContent.replace("SHOULD_RECORD", "true");
+    htmlContent = htmlContent.replaceAll("SHOULD_RECORD", "true");
   } else {
-    htmlContent = htmlContent.replace("SHOULD_RECORD", "false");
+    htmlContent = htmlContent.replaceAll("SHOULD_RECORD", "false");
   }
   
   if (profiling) {
-    htmlContent = htmlContent.replace("PROFILING_ENABLED", "true");
+    htmlContent = htmlContent.replaceAll("PROFILING", "true");
   } else {
-    htmlContent = htmlContent.replace("PROFILING_ENABLED", "false");
+    htmlContent = htmlContent.replaceAll("PROFILING", "false");
+  }
+  
+  if (noThrottle) {
+    htmlContent = htmlContent.replaceAll("NO_THROTTLE", "true");
+  } else {
+    htmlContent = htmlContent.replaceAll("NO_THROTTLE", "false");
   }
 
   let ret;
@@ -92,6 +99,10 @@ export async function runServer(
       stdin: "piped",
       stdout: "null",
       stderr: "null",
+      clearEnv: true,
+      env: {
+        PATH: Deno.env.get("PATH") || "",
+      },
     }).spawn();
     ffmpegWriter = ffmpegProcess.stdin.getWriter();
   }
@@ -204,7 +215,7 @@ export async function runServer(
 
           if (ffmpegWriter) {
             await ffmpegWriter.close();
-            await ffmpegProcess.status;
+            await ffmpegProcess!.status;
           }
 
           webviewProcess?.kill();
@@ -230,8 +241,10 @@ export async function runServer(
         }
         return new Response(id.toString(), { status: 200 });
       } else if (url.pathname === "/playSound") {
-        const id = parseInt(await req.text());
-        const r = audioPlayer.playSound(id, frame);
+        const data = await req.json();
+        const id = Number(data.sound);
+        const frm = Number(data.frame ?? frame);
+        const r = audioPlayer.playSound(id, frm);
         if (r) {
           endAndFail(r);
         }

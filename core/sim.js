@@ -17,7 +17,7 @@ function runInFrame(code, endowments = {}, onError) {
 
     const resolveOnce = settleOnce(outerResolve);
     const rejectOnce = settleOnce((reason) =>
-      outerReject(reason instanceof Error ? reason : new Error(reason)),
+      outerReject(reason instanceof Error ? reason : new Error(reason))
     );
 
     const callOnError = (err) => {
@@ -253,33 +253,53 @@ function showStoppedOverlay() {
 const response = await fetch("/bundle.js");
 const code = await response.text();
 
+const yieldChannel = new MessageChannel();
+let yieldResolve = null;
+yieldChannel.port1.onmessage = () => {
+  if (yieldResolve) yieldResolve();
+};
+
 let interval = null;
 let pingInterval = null;
 let isFinished = false;
 let frameCount = 0;
 let framesThisSecond = 0;
 let currentFPS = 0;
+let currentFrameTime = 0;
+let lastFrameTime = 0;
 let fpsTimer = null;
 
 const __profiling = {
-  enabled: typeof PROFILING !== 'undefined' && PROFILING,
+  enabled: typeof PROFILING !== "undefined" && PROFILING,
   stack: [],
   stats: new Map(),
-  
+
   enter(name) {
     if (!this.enabled) return;
-    this.stack.push({ name, start: performance.now() });
+    const parentName = this.stack.length > 0 ? this.stack[this.stack.length - 1].fullName : null;
+    const fullName = parentName ? `${parentName} > ${name}` : name;
+    this.stack.push({ name, fullName, start: performance.now() });
   },
-  
+
   exit() {
-    if (!this.enabled || !this.stack.length) return;
+    if (!this.enabled) return;
+    if (!this.stack.length) {
+      throw new Error("Profiling error: __PROFILE_EXIT called without matching __PROFILE_ENTER");
+    }
     const frame = this.stack.pop();
     const duration = performance.now() - frame.start;
-    
-    let stat = this.stats.get(frame.name);
+
+    let stat = this.stats.get(frame.fullName);
     if (!stat) {
-      stat = { total: 0, calls: 0, min: Infinity, max: 0, last: 0 };
-      this.stats.set(frame.name, stat);
+      stat = {
+        total: 0,
+        calls: 0,
+        min: Infinity,
+        max: 0,
+        last: 0,
+        displayName: frame.name,
+      };
+      this.stats.set(frame.fullName, stat);
     }
     stat.total += duration;
     stat.calls++;
@@ -287,19 +307,23 @@ const __profiling = {
     stat.max = Math.max(stat.max, duration);
     stat.last = duration;
   },
-  
+
   getStats() {
+    if (this.stack.length > 0) {
+      const remaining = this.stack.map(s => s.fullName).join(", ");
+      throw new Error(`Profiling error: ${this.stack.length} unclosed profiling region(s) remain: ${remaining}`);
+    }
     const result = [];
-    for (const [name, stat] of this.stats) {
-      result.push({ name, ...stat });
+    for (const [fullName, stat] of this.stats) {
+      result.push({ fullName, ...stat });
     }
     return result.sort((a, b) => b.total - a.total);
   },
-  
+
   reset() {
     this.stats.clear();
     this.stack = [];
-  }
+  },
 };
 
 const canvas = document.getElementById("sim");
@@ -351,7 +375,7 @@ const sim = {
         .map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg)))
         .join("\t"),
       headers: { "Content-Type": "application/json" },
-    }).catch(() => { });
+    }).catch(() => {});
   },
   finish: () => {
     if (interval !== null) {
@@ -384,9 +408,9 @@ const sim = {
   playSound: (sound) => {
     fetch("/playSound", {
       method: "POST",
-      body: sound.toString(),
+      body: JSON.stringify({ sound, frame: frameCount }),
       headers: { "Content-Type": "application/json" },
-    }).catch(() => { });
+    }).catch(() => {});
   },
   addFetchAsset: async (path, fetchAddr) => {
     try {
@@ -410,7 +434,7 @@ const sim = {
 fetch("/begin", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-}).catch(() => { });
+}).catch(() => {});
 
 function startPinging() {
   pingInterval = setInterval(() => {
@@ -440,7 +464,7 @@ function errorHandler(err) {
     method: "POST",
     body: err.message,
     headers: { "Content-Type": "application/json" },
-  }).catch(() => { });
+  }).catch(() => {});
 
   stopSimulation();
   waitForNext();
@@ -456,7 +480,7 @@ runInFrame(code, { sim }, errorHandler).then((val) => {
   fetch("/finish", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-  }).catch(() => { });
+  }).catch(() => {});
   stopSimulation();
   showFinishOverlay();
   waitForNext();
@@ -476,14 +500,15 @@ sim.run = (onUpdate) => {
     if (fpsTimer) clearInterval(fpsTimer);
     fpsTimer = setInterval(() => {
       currentFPS = framesThisSecond;
+      currentFrameTime = currentFPS > 0 ? 1000 / currentFPS : 0;
       framesThisSecond = 0;
       updateDebugWindow();
     }, 1000);
 
     interval = true;
     let running = true;
-    sim._stopRunning = () => { 
-      running = false; 
+    sim._stopRunning = () => {
+      running = false;
       interval = null;
     };
 
@@ -491,7 +516,6 @@ sim.run = (onUpdate) => {
       try {
         frameCount++;
         framesThisSecond++;
-        updateDebugWindow();
 
         const result = onUpdate();
         if (result instanceof Promise) {
@@ -515,11 +539,30 @@ sim.run = (onUpdate) => {
       }
     };
 
+    let nextFrameTime = performance.now();
+
     const runLoop = async () => {
       while (running) {
+        const frameStart = performance.now();
+        if (lastFrameTime > 0) {
+          currentFrameTime = frameStart - lastFrameTime;
+        }
+        lastFrameTime = frameStart;
+
         await runFrame();
-        if (running) {
-          await new Promise((resolve) => setTimeout(resolve, 1000 / 60));
+
+        yieldChannel.port2.postMessage(null);
+        await new Promise((resolve) => {
+          yieldResolve = resolve;
+        });
+
+        if (!NO_THROTTLE && running) {
+          const targetFrameTime = 1000 / 60;
+          nextFrameTime += targetFrameTime;
+          const sleepTime = nextFrameTime - performance.now();
+          if (sleepTime > 0) {
+            await new Promise((resolve) => setTimeout(resolve, sleepTime));
+          }
         }
       }
     };
@@ -536,7 +579,7 @@ function waitForNext() {
           location.reload();
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, 300);
 }
 
@@ -555,6 +598,7 @@ const closeDebugBtn = document.getElementById("closeDebugBtn");
 const debugFrame = document.getElementById("debugFrame");
 const debugTime = document.getElementById("debugTime");
 const debugFPS = document.getElementById("debugFPS");
+const debugFrameTime = document.getElementById("debugFrameTime");
 
 function toggleDebug() {
   debug.classList.toggle("open");
@@ -570,7 +614,14 @@ function updateDebugWindow() {
       debugFPS.textContent = currentFPS;
     }
   }
-  
+  if (debugFrameTime) {
+    if (interval === null) {
+      debugFrameTime.textContent = "not running";
+    } else {
+      debugFrameTime.textContent = currentFrameTime.toFixed(2) + "ms";
+    }
+  }
+
   const profilingSection = document.getElementById("debugProfilingSection");
   const profilingContainer = document.getElementById("debugProfiling");
   if (profilingSection && profilingContainer && __profiling.enabled) {
@@ -578,14 +629,22 @@ function updateDebugWindow() {
     const stats = __profiling.getStats();
     if (stats.length > 0) {
       const totalTime = stats.reduce((sum, s) => sum + s.total, 0);
-      profilingContainer.innerHTML = stats.map(stat => {
-        const percent = ((stat.total / totalTime) * 100).toFixed(1);
-        const avg = (stat.total / stat.calls).toFixed(2);
-        return `<div class="debug-profiling-item">
-          <div class="debug-profiling-name">${stat.name}</div>
-          <div class="debug-profiling-stats">${stat.calls} calls | ${avg}ms avg | ${stat.total.toFixed(2)}ms total (${percent}%)</div>
+      profilingContainer.innerHTML = stats
+        .map((stat) => {
+          const percent = ((stat.total / totalTime) * 100).toFixed(1);
+          const avg = (stat.total / stat.calls).toFixed(2);
+          const avgCalls = (stat.calls / frameCount).toFixed(2);
+          const indent = (stat.fullName.match(/>/g) || []).length * 16;
+          return `<div class="debug-profiling-item" style="padding-left: ${indent}px;">
+          <div class="debug-profiling-name">${stat.fullName}</div>
+          <div class="debug-profiling-stats">${avgCalls} avg calls | ${avg}ms avg | ${
+            stat.total.toFixed(
+              2,
+            )
+          }ms total (${percent}%)</div>
         </div>`;
-      }).join("");
+        })
+        .join("");
     }
   }
 }
@@ -612,7 +671,7 @@ function handleStop() {
   fetch("/finish", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-  }).catch(() => { });
+  }).catch(() => {});
   stopSimulation();
   showStoppedOverlay();
   waitForNext();

@@ -61,92 +61,132 @@ export async function addAudioToMp4(
 
   const hasAudio = await mp4HasAudio(mp4Path);
 
-  const args: string[] = ["-y", "-i", mp4Path];
-  for (const clip of validClips) args.push("-i", clip.path);
+  const uniquePaths = [...new Set(validClips.map(c => c.path))];
 
-  const filterParts: string[] = [];
-  const delayedLabels: string[] = [];
-  for (let i = 0; i < validClips.length; i++) {
-    const { frame } = validClips[i];
-    const startMs = Math.round((frame / framerate) * 1000);
-    const inputIndex = i + 1;
-    const label = `a${i}`;
-    filterParts.push(`[${inputIndex}:a]adelay=${startMs}:all=1[${label}]`);
-    delayedLabels.push(`[${label}]`);
+  const intermediateFiles: string[] = [];
+  const cleanupIntermediates = async () => {
+    for (const f of intermediateFiles) {
+      try {
+        await Deno.remove(f);
+      } catch {
+      }
+    }
+  };
+
+  for (let pathIdx = 0; pathIdx < uniquePaths.length; pathIdx++) {
+    const path = uniquePaths[pathIdx]!;
+    const clipsForPath = validClips.filter(c => c.path === path);
+
+    if (clipsForPath.length === 0) continue;
+
+    const args: string[] = ["-y", "-i", path];
+
+    const filterParts: string[] = [];
+    const delayedLabels: string[] = [];
+    for (let i = 0; i < clipsForPath.length; i++) {
+      const clip = clipsForPath[i]!;
+      const startMs = Math.round((clip.frame / framerate) * 1000);
+      const label = `a${i}`;
+      filterParts.push(`[0:a]adelay=${startMs}:all=1[${label}]`);
+      delayedLabels.push(`[${label}]`);
+    }
+
+    const filterComplex = filterParts.join(";") + ";" + delayedLabels.join("") + `amix=inputs=${clipsForPath.length}:duration=longest[out${pathIdx}]`;
+    const filterScriptPath = `/tmp/physim_audio_filter_${pathIdx}.txt`;
+    await Deno.writeTextFile(filterScriptPath, filterComplex);
+
+    const outputPath = `/tmp/physim_audio_intermediate_${pathIdx}.wav`;
+    intermediateFiles.push(outputPath);
+
+    args.push("-filter_complex_script", filterScriptPath);
+    args.push("-map", `[out${pathIdx}]`);
+    args.push("-c:a", "pcm_s16le", outputPath);
+
+    const ff = new Deno.Command("ffmpeg", { args });
+    const { code } = await ff.output();
+
+    try {
+      await Deno.remove(filterScriptPath);
+    } catch {
+    }
+
+    if (code !== 0) {
+      await cleanupIntermediates();
+      return fail(
+        SystemFailureTag.FfmpegFailure,
+        `ffmpeg intermediate mix ${pathIdx} exited with code ${code}`,
+      );
+    }
   }
 
-  const audioSources: string[] = [];
-  if (hasAudio) audioSources.push("[0:a]");
-  audioSources.push(...delayedLabels);
-
-  let finalAudioLabel = "";
-  if (audioSources.length === 1) {
-    finalAudioLabel = audioSources[0];
-  } else {
-    const inputsCount = audioSources.length;
-    filterParts.push(
-      `${audioSources.join("")}amix=inputs=${inputsCount}:duration=longest[aout]`,
-    );
-    finalAudioLabel = "[aout]";
+  const finalArgs: string[] = ["-y", "-i", mp4Path];
+  for (let i = 0; i < intermediateFiles.length; i++) {
+    finalArgs.push("-i", intermediateFiles[i]!);
   }
 
-  const filterComplex = filterParts.join(";");
+  const audioInputs: string[] = [];
+  for (let i = 0; i < intermediateFiles.length; i++) {
+    audioInputs.push(`[${i + 1}:a]`);
+  }
 
-  const tmpOutput = `${mp4Path}.with_added_audio.tmp.mp4`;
+  if (hasAudio) {
+    audioInputs.unshift("[0:a]");
+  }
 
-  args.push("-filter_complex", filterComplex);
-  args.push("-map", "0:v");
-  args.push("-map", finalAudioLabel);
-  args.push("-c:v", "copy", "-c:a", "aac", "-b:a", "192k", tmpOutput);
+  const finalFilterComplex = `${audioInputs.join("")}amix=inputs=${audioInputs.length}:duration=longest[aout]`;
+  const finalFilterScriptPath = "/tmp/physim_audio_final_filter.txt";
+  await Deno.writeTextFile(finalFilterScriptPath, finalFilterComplex);
+
+  finalArgs.push("-filter_complex_script", finalFilterScriptPath);
+  finalArgs.push("-map", "0:v");
+  finalArgs.push("-map", "[aout]");
+  finalArgs.push("-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "/tmp/physim_audio_final.mp4");
+
+  const ff2 = new Deno.Command("ffmpeg", { args: finalArgs });
+  const { code: code2 } = await ff2.output();
 
   try {
-    const ff = new Deno.Command("ffmpeg", {
-      args,
-    });
+    await Deno.remove(finalFilterScriptPath);
+  } catch {
+  }
 
-    const { code } = await ff.output();
-    if (code !== 0) {
-      try {
-        await Deno.remove(tmpOutput);
-      } catch {
-        //
-      }
-      return fail(
-        SystemFailureTag.FfmpegFailure,
-        `ffmpeg exited with code ${code}`,
-      );
-    }
-
-    const backupPath = `${mp4Path}.bak.${Date.now()}`;
+  if (code2 !== 0) {
     try {
-      await Deno.rename(mp4Path, backupPath);
-      await Deno.rename(tmpOutput, mp4Path);
-      await Deno.remove(backupPath);
-    } catch (err) {
-      try {
-        const statBackup = await Deno.stat(backupPath).catch(() => null);
-        if (statBackup) {
-          try {
-            await Deno.remove(tmpOutput).catch(() => {});
-          } catch {
-            //
-          }
-          await Deno.rename(backupPath, mp4Path);
-        }
-      } catch {
-        //
-      }
-      return fail(
-        SystemFailureTag.FfmpegFailure,
-        `Failed to replace MP4: ${String(err)}`,
-      );
+      await Deno.remove("/tmp/physim_audio_final.mp4");
+    } catch {
     }
-  } catch (err) {
+    await cleanupIntermediates();
     return fail(
       SystemFailureTag.FfmpegFailure,
-      `Unexpected error: ${String(err)}`,
+      `ffmpeg final mix exited with code ${code2}`,
     );
   }
+
+  const backupPath = `${mp4Path}.bak.${Date.now()}`;
+  try {
+    await Deno.rename(mp4Path, backupPath);
+    await Deno.rename("/tmp/physim_audio_final.mp4", mp4Path);
+    await Deno.remove(backupPath);
+  } catch (err) {
+    try {
+      const statBackup = await Deno.stat(backupPath).catch(() => null);
+      if (statBackup) {
+        try {
+          await Deno.remove("/tmp/physim_audio_final.mp4").catch(() => {});
+        } catch {
+        }
+        await Deno.rename(backupPath, mp4Path);
+      }
+    } catch {
+    }
+    await cleanupIntermediates();
+    return fail(
+      SystemFailureTag.FfmpegFailure,
+      `Failed to replace MP4: ${String(err)}`,
+    );
+  }
+
+  await cleanupIntermediates();
 
   return undefined as unknown as Result<undefined>;
 }

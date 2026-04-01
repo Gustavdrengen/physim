@@ -70,13 +70,6 @@ export async function initCollisionForce(
   // Store original velocities for Rapier-managed entities to prevent double-integration
   const originalVelocities = new Map<Entity, Vec2>();
 
-  // Turn detection for batching collision steps
-  const originalUpdate = physics.update.bind(physics);
-  physics.update = () => {
-    originalUpdate();
-    collisionSystem.step();
-  };
-
   // Zero out velocity before integration (priority 1.5, after acceleration, before position integration)
   // This prevents the base physics integration from moving entities that Rapier already integrated
   physics.registerForce(
@@ -112,6 +105,13 @@ export async function initCollisionForce(
       }
     },
     4,
+  );
+
+  physics.registerStaticForce(
+    () => {
+      collisionSystem.step();
+    },
+    5,
   );
 
   return {

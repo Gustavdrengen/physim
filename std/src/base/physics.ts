@@ -41,6 +41,12 @@ export class Physics {
       priority: number,
     ]
   > = [];
+  private staticForces: Array<
+    [
+      force: () => void,
+      priority: number,
+    ]
+  > = [];
   private forcesSorted = true;
 
   /**
@@ -122,49 +128,78 @@ export class Physics {
   }
 
   /**
+   * Registers a static force that runs once per frame.
+   * @param force The function to call once per frame.
+   * @param priority The priority of the force.
+   */
+  registerStaticForce(
+    force: () => void,
+    priority = 0,
+  ): void {
+    this.staticForces.push([force, priority]);
+    this.forcesSorted = false;
+  }
+
+  /**
    * Updates the position of all entities based on the registered forces.
    */
   // @profile "Physics.update"
   update(): void {
     if (!this.forcesSorted) {
       this.forces.sort((a, b) => a[2] - b[2]);
+      this.staticForces.sort((a, b) => a[1] - b[1]);
       this.forcesSorted = true;
     }
 
     // @profile-start "Physics.update.forceLoop"
-    for (const [comps, forceFunc] of this.forces) {
-      const componentsArray = Array.isArray(comps) ? comps : [comps];
+    let forceIndex = 0;
+    let staticIndex = 0;
 
-      if (componentsArray.length === 1) {
-        const comp = componentsArray[0];
-        for (const [entity, data] of comp) {
-          forceFunc(entity, data);
-        }
-      } else {
-        let smallestComp = componentsArray[0];
-        for (let i = 1; i < componentsArray.length; i++) {
-          if (componentsArray[i].size < smallestComp.size) {
-            smallestComp = componentsArray[i];
+    while (forceIndex < this.forces.length || staticIndex < this.staticForces.length) {
+      const forcePriority = forceIndex < this.forces.length ? this.forces[forceIndex]?.[2] ?? Infinity : Infinity;
+      const staticPriority = staticIndex < this.staticForces.length ? this.staticForces[staticIndex]?.[1] ?? Infinity : Infinity;
+
+      if (forcePriority <= staticPriority && forceIndex < this.forces.length) {
+        const [comps, forceFunc] = this.forces[forceIndex]!;
+        forceIndex++;
+
+        const componentsArray = Array.isArray(comps) ? comps : [comps];
+
+        if (componentsArray.length === 1) {
+          const comp = componentsArray[0];
+          for (const [entity, data] of comp) {
+            forceFunc(entity, data);
           }
-        }
-
-        for (const [entity, data] of smallestComp) {
-          let hasAll = true;
-          for (const comp of componentsArray) {
-            if (comp === smallestComp) continue;
-            if (!comp.has(entity)) {
-              hasAll = false;
-              break;
+        } else {
+          let smallestComp = componentsArray[0];
+          for (let i = 1; i < componentsArray.length; i++) {
+            if (componentsArray[i].size < smallestComp.size) {
+              smallestComp = componentsArray[i];
             }
           }
 
-          if (hasAll) {
-            const allData = componentsArray.map((c) =>
-              c === smallestComp ? data : c.get(entity),
-            );
-            forceFunc(entity, allData);
+          for (const [entity, data] of smallestComp) {
+            let hasAll = true;
+            for (const comp of componentsArray) {
+              if (comp === smallestComp) continue;
+              if (!comp.has(entity)) {
+                hasAll = false;
+                break;
+              }
+            }
+
+            if (hasAll) {
+              const allData = componentsArray.map((c) =>
+                c === smallestComp ? data : c.get(entity),
+              );
+              forceFunc(entity, allData);
+            }
           }
         }
+      } else if (staticIndex < this.staticForces.length) {
+        const [forceFn] = this.staticForces[staticIndex]!;
+        staticIndex++;
+        forceFn();
       }
     }
     // @profile-end
