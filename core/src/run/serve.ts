@@ -9,10 +9,12 @@ import {
   InputFailureTag,
   Result,
   SystemFailureTag,
+  formatStackTrace,
 } from "../err.ts";
 import { AssetManager } from "./assets.ts";
 import * as print from "../print.ts";
 import { openWebview } from "./webview.ts";
+import { TraceMap } from "@jridgewell/trace-mapping";
 
 const coreDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
 const htmlPath = join(coreDir, "sim.html");
@@ -34,7 +36,10 @@ export async function runServer(
   useWebview: boolean,
   profiling: boolean,
   noThrottle: boolean,
+  maxTraceback: number,
+  baseDir: string,
 ): Promise<Result<string | undefined>> {
+  const bundleDir = dirname(bundle);
   let server: Deno.HttpServer<Deno.NetAddr>;
   let webviewProcess: Deno.ChildProcess | undefined;
   let ffmpegProcess: Deno.ChildProcess | undefined;
@@ -47,6 +52,14 @@ export async function runServer(
   const logs: string[] = [];
 
   const simCode = await Deno.readFile(bundle);
+
+  let traceMap: TraceMap | null = null;
+  try {
+    const mapData = await Deno.readTextFile(bundle + ".map");
+    traceMap = new TraceMap(mapData);
+  } catch {
+    // Source map not available, fall back to raw stack
+  }
 
   const videoPath = record;
 
@@ -197,10 +210,23 @@ export async function runServer(
         }
         return new Response("Logged", { status: 200 });
       } else if (url.pathname === "/err") {
+        const body = req.body ? await req.text() : "Unknown error";
+        let formattedError: string;
+        try {
+          const parsed = JSON.parse(body);
+          const message = parsed.message ?? "Unknown error";
+          const stack = parsed.stack ?? "";
+          const trace = stack
+            ? formatStackTrace(stack, traceMap, maxTraceback, baseDir, bundleDir)
+            : "";
+          formattedError = trace ? `${message}\n${trace}` : message;
+        } catch {
+          formattedError = body;
+        }
         endAndFail(
           fail(
             InputFailureTag.RuntimeFailure,
-            req.body ? await req.text() : "Unknown error",
+            formattedError,
           ),
         );
         return new Response(null, { status: 200 });

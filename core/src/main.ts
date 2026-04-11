@@ -37,11 +37,16 @@ const cmd = new Command()
   .option("--no-audio", "Disables audio playback.")
   .option("--profiling", "Enable performance profiling with live stats in debug panel.")
   .option("--no-throttle", "Disable FPS throttling, runs at maximum speed.")
-  .action(async ({ raw, record, webview, audio, profiling, throttle }, entrypoint) => {
+  .option(
+    "--max-traceback <n:number>",
+    "Maximum number of traceback frames to show in runtime errors.",
+    { default: 10 },
+  )
+  .action(async ({ raw, record, webview, audio, profiling, throttle, maxTraceback }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false));
+    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false, maxTraceback));
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {

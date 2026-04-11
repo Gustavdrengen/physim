@@ -14,6 +14,7 @@ export async function run(
   noAudio: boolean,
   profiling: boolean,
   noThrottle: boolean,
+  maxTraceback: number,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -56,6 +57,8 @@ export async function run(
     useWebview,
     profiling,
     noThrottle,
+    maxTraceback,
+    dirname(entrypoint),
   );
 
   if (failed(runResult)) {

@@ -462,7 +462,10 @@ function errorHandler(err) {
 
   fetch("/err", {
     method: "POST",
-    body: err.message,
+    body: JSON.stringify({
+      message: err.message || String(err),
+      stack: err.stack || "",
+    }),
     headers: { "Content-Type": "application/json" },
   }).catch(() => {});
 

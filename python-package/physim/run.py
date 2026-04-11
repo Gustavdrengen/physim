@@ -33,6 +33,7 @@ def run_script(
     webview: bool = False,
     no_audio: bool = False,
     no_throttle: bool = False,
+    max_traceback: int = 10,
 ) -> PhysimResult:
     """
     Run a physim script and capture its output.
@@ -44,6 +45,7 @@ def run_script(
         webview: Whether to run the simulation in a webview window.
         no_audio: Whether to disable audio playback.
         no_throttle: Whether to disable FPS throttling (run at maximum speed).
+        max_traceback: Maximum number of traceback frames to show in runtime errors.
 
     Returns:
         PhysimResult containing exit code and output
@@ -59,6 +61,7 @@ def run_script(
         args.append("--no-audio")
     if no_throttle:
         args.append("--no-throttle")
+    args.extend(["--max-traceback", str(max_traceback)])
     args.append(filepath)
     exit_code, stdout, stderr = _run_physim_command(args)
     return PhysimResult(exit_code=exit_code, stdout=stdout, stderr=stderr)
