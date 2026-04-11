@@ -15,9 +15,9 @@
  * particleSystem.emit({
  *   numParticles: 100,
  *   position: new Vec2(0, 0),
- *   particleLifetime: { min: 30, max: 60 },
- *   initialVelocity: { min: new 20, max: 800 },
- *   size: 5, // Constant size
+ *   particleLifetime: { min: 0.5, max: 1.0 },
+ *   initialVelocity: { min: 20, max: 800 },
+ *   scale: 5,
  *   color: { start: Color.fromHex("#ff0000"), end: Color.fromHex("#ffff00") },
  * });
  *

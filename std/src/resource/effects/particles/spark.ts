@@ -1,7 +1,7 @@
 import { Vec2 } from "../../../base/vec.ts";
 import { Color } from "../../../base/draw/color.ts";
 import { ParticleEmissionOptions, ColorStage } from "../../../feature/particles/particle.ts";
-import { createCircle } from "../../../feature/bodies/shape.ts";
+import { createRectangle } from "../../../feature/bodies/shape.ts";
 import { Body } from "../../../feature/bodies/body.ts";
 
 /**
@@ -100,14 +100,14 @@ export function createSparkEffect(options: SparkEffectOptions): ParticleEmission
   const coreColor = lerpColor(coolColor, hotColor, brightnessClamped);
   const midColor = lerpColor(warmColor, hotColor, brightnessClamped);
 
-  const lifetimeMin = quickFade ? 20 : 40;
-  const lifetimeMax = quickFade ? 40 : 70;
+  const lifetimeMin = quickFade ? 0.33 : 0.67;
+  const lifetimeMax = quickFade ? 0.67 : 1.17;
 
   const colorStages: ColorStage[] = [
     { position: 0, color: coreColor.withAlpha(1) },
-    { position: 0.1, color: midColor.withAlpha(0.9) },
-    { position: 0.4, color: new Color(255, 150, 50, 0.6) },
-    { position: 0.7, color: new Color(200, 80, 30, 0.3) },
+    { position: 0.2, color: midColor.withAlpha(0.95) },
+    { position: 0.5, color: new Color(255, 150, 50, 0.8) },
+    { position: 0.8, color: new Color(200, 80, 30, 0.4) },
     { position: 1, color: new Color(100, 50, 20, 0) },
   ];
 
@@ -116,16 +116,15 @@ export function createSparkEffect(options: SparkEffectOptions): ParticleEmission
     position: position,
     positionJitter: 5 * size,
     particleLifetime: { min: lifetimeMin * size, max: lifetimeMax * size },
-    initialVelocity: { min: velocity.min * size, max: velocity.max * size },
+    initialVelocity: { min: velocity.min * size * 60, max: velocity.max * size * 60 },
     directionBias: direction,
-    acceleration: new Vec2(0, gravity * size),
-    scale: { start: 0.2 * size * sizeVariation, end: 0 },
+    acceleration: new Vec2(0, gravity * size * 3600),
+    scale: { start: 0.5 * size * sizeVariation, end: 0 },
     scaleCurve: "easeOut",
-    body: Body.fromShape(createCircle(3 * size)),
+    body: Body.fromShape(createRectangle(8 * size, 2 * size)),
     colorStages,
     turbulence: { frequency: 0.5, amplitude: 0.2 },
-    rotation: { min: 0, max: Math.PI * 2 },
-    rotationSpeed: { min: -0.2, max: 0.2 },
+    orientToDirection: true,
     customUpdate: drag !== 1
       ? (particle, lifeRatio) => {
           particle.velocity = particle.velocity.scale(drag);

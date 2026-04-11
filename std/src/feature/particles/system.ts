@@ -18,6 +18,54 @@ export class ParticleSystem {
    * A component that can be added to entities to create a particle trail.
    * The particle system instance will automatically handle emitting particles
    * for any entity that has this component.
+   *
+   * @example
+   * ```ts
+   * import { ParticleSystem } from "physim/particles";
+   * import { Circle, Color, Vec2 } from "physim/base";
+   *
+   * const particleSystem = new ParticleSystem(simulation.display);
+   *
+   * const entity = simulation.entities.create({
+   *   pos: new Vec2(100, 100),
+   *   vel: new Vec2(50, 0),
+   * });
+   *
+   * entity.add(particleSystem.trailComponent, {
+   *   interval: 0.05,
+   *   particleLifetime: 0.5,
+   *   body: new Circle(3),
+   *   color: {
+   *     start: Color.fromHex("#00ffff"),
+   *     end: Color.fromHex("#0000ff"),
+   *   },
+   *   scale: { start: 1, end: 0 },
+   *   acceleration: { x: 0, y: 50 },
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * import { ParticleSystem } from "physim/particles";
+   * import { Square, Color, Vec2 } from "physim/base";
+   *
+   * const particleSystem = new ParticleSystem(simulation.display);
+   *
+   * const player = simulation.entities.create({ pos: new Vec2(200, 200) });
+   *
+   * player.add(particleSystem.trailComponent, {
+   *   interval: 0.02,
+   *   particleLifetime: 0.3,
+   *   body: new Square(4),
+   *   color: {
+   *     start: Color.fromHex("#ff6600"),
+   *     end: Color.fromHex("#ff0000"),
+   *   },
+   *   scale: 0.5,
+   *   positionJitter: 5,
+   *   orientToDirection: true,
+   * });
+   * ```
    */
   public readonly trailComponent: Component<TrailOptions | TrailOptions[]>;
 
@@ -35,20 +83,22 @@ export class ParticleSystem {
 
   // @profile "ParticleSystem.update"
   private update(): void {
+    const dt = 1 / 60;
+    
     // @profile-start "ParticleSystem.update.particles"
     for (let i = this.activeParticles.length - 1; i >= 0; i--) {
       const p = this.activeParticles[i];
-      p.age++;
+      p.age += dt;
 
-      p.velocity = p.velocity.add(p.acceleration);
+      p.velocity = p.velocity.add(p.acceleration.scale(dt));
       
       if (p.turbulence) {
         const noiseX = Math.sin(p.age * p.turbulence.frequency) * p.turbulence.amplitude;
         const noiseY = Math.cos(p.age * p.turbulence.frequency * 0.7) * p.turbulence.amplitude;
-        p.velocity = p.velocity.add(new Vec2(noiseX, noiseY));
+        p.velocity = p.velocity.add(new Vec2(noiseX * dt, noiseY * dt));
       }
 
-      p.position = p.position.add(p.velocity);
+      p.position = p.position.add(p.velocity.scale(dt));
 
       const lifeRatio = p.age / p.lifetime;
       
@@ -74,7 +124,7 @@ export class ParticleSystem {
         p.color = new Color(r, g, b, a);
       }
 
-      p.rotation += p.rotationSpeed;
+      p.rotation += p.rotationSpeed * dt;
 
       if (p.customUpdate) {
         p.customUpdate(p, lifeRatio);
@@ -92,9 +142,9 @@ export class ParticleSystem {
     for (const [entity, trailData] of this.trailComponent.entries()) {
       const trails = Array.isArray(trailData) ? trailData : [trailData];
       for (const trail of trails) {
-        trail._frameCounter = (trail._frameCounter ?? 0) + 1;
-        if (trail._frameCounter >= trail.interval) {
-          trail._frameCounter = 0;
+        trail._timeAccumulator = (trail._timeAccumulator ?? 0) + dt;
+        if (trail._timeAccumulator >= trail.interval) {
+          trail._timeAccumulator = 0;
           this.emit({
             numParticles: 1,
             position: entity.pos,

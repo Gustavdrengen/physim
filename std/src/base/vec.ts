@@ -84,6 +84,16 @@ export class Vec2 {
   }
 
   /**
+   * Checks if two vectors are equal.
+   *
+   * @param other The vector to compare.
+   * @returns Whether the vectors have the same x and y components.
+   */
+  equals(other: Vec2): boolean {
+    return this.x === other.x && this.y === other.y;
+  }
+
+  /**
    * Creates a new Vec2 with the same x and y components.
    *
    * @returns A new Vec2 with the same x and y components.

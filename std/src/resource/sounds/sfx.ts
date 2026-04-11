@@ -1,4 +1,4 @@
-import { Synth } from "../../base/audio/synthesize";
+import { Oscillator, Synth } from "../../base/audio/synthesize";
 import * as synth from "./synth.ts";
 
 /**
@@ -116,6 +116,10 @@ export namespace SFX {
   /**
    * Generates a ringing sound representing the resonance of an object being struck.
    *
+   * Uses Karplus-Strong pluck synthesis for natural decaying resonance with
+   * realistic harmonic content. Higher dampening reduces the decay time and
+   * filters out high frequencies faster.
+   *
    * @param fundamental - The fundamental frequency of resonance in Hz.
    * @param dampening - The amount of dampening (0 = long ring, 1 = short ring).
    * @param duration - Optional duration override in seconds.
@@ -127,7 +131,16 @@ export namespace SFX {
     duration?: number,
   ): Synth {
     const d = duration ?? 0.1 + 1.0 * (1 - dampening);
-    return synth.harmonicStack(d, fundamental, 5);
+    const decay = 0.2 + 2.0 * (1 - dampening);
+
+    return {
+      duration: d,
+      method: "pluck",
+      params: {
+        freq: fundamental,
+        decay: decay,
+      },
+    };
   }
 
   /**

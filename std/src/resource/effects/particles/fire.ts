@@ -119,20 +119,20 @@ export function createFireEffect(options: FireEffectOptions): ParticleEmissionOp
     numParticles: adjustedCount,
     position: position,
     positionJitter: 15 * size,
-    particleLifetime: { min: 40 * size, max: 80 * size },
-    initialVelocity: { min: 0.8 * size, max: 2.5 * size },
+    particleLifetime: { min: 0.67 * size, max: 1.33 * size },
+    initialVelocity: { min: 48 * size, max: 150 * size },
     directionBias: {
       angle: -Math.PI / 2,
       spread: 0.8,
     },
-    acceleration: new Vec2(wind * 0.5, updraft * size),
+    acceleration: new Vec2(wind * 30, updraft * size * 60),
     scale: { start: 0.3 * size, end: 1.5 * size },
     scaleCurve: "easeOut",
     body: Body.fromShape(createCircle(6 * size)),
     colorStages,
     turbulence,
     rotation: { min: 0, max: Math.PI * 2 },
-    rotationSpeed: { min: -0.1, max: 0.1 },
+    rotationSpeed: { min: -6, max: 6 },
     customUpdate: withSmoke
       ? (particle, lifeRatio) => {
           if (lifeRatio > 0.7 && Math.random() < smokeRate * 0.1) {

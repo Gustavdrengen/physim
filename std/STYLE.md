@@ -26,13 +26,14 @@
 - **Imports**: Examples **should** use public API import paths (e.g., `import { ... } from "physim/base"`) to demonstrate real-world usage.
 - **When to include examples**:
   - **Primary API Classes**: The main classes users interact with (e.g., `Simulation`, `Entity`, `Body`).
-  - **Main Behavior Coverage**: Examples should collectively ensure that all the main behavior of every module is documented and demonstrated, often done by a module-level example.
+  - **Main Behavior Coverage**: Examples should collectively ensure that all the main behavior (including all explicit features) of every module is documented and demonstrated, often done by a module-level example.
   - **Complex Interactions**: Examples that show how multiple components work together.
   - **Non-obvious Functions**: Functions with side effects, complex parameters, or static factory methods (e.g., `Vec2.average`).
 
 #### Guidelines for example code
 
 Always prefer simpler ways of doing things. Examples include:
+
 - Using the `Simulation` class over `Physics` and `Display` separately.
 - Using `Entity.create` over `new Entity` followed by `Entity.addComp`.
 

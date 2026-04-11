@@ -9,8 +9,8 @@ await test("createSparkEffect - defaults", () => {
 
   expect(options.numParticles).toBe(50);
   expect(options.position).toEqual(new Vec2(100, 100));
-  expect(options.initialVelocity.min).toBe(3);
-  expect(options.initialVelocity.max).toBe(8);
+  expect(options.initialVelocity.min).toBe(180);
+  expect(options.initialVelocity.max).toBe(480);
   expect(options.acceleration!.y).toBe(0.015);
   expect(options.turbulence).toEqual({ frequency: 0.5, amplitude: 0.2 });
 });
@@ -21,8 +21,8 @@ await test("createSparkEffect - custom velocity", () => {
     velocity: { min: 5, max: 15 },
   });
 
-  expect(options.initialVelocity.min).toBe(5);
-  expect(options.initialVelocity.max).toBe(15);
+  expect(options.initialVelocity.min).toBe(300);
+  expect(options.initialVelocity.max).toBe(900);
 });
 
 await test("createSparkEffect - custom direction", () => {
@@ -66,8 +66,8 @@ await test("createSparkEffect - quick fade", () => {
     quickFade: false,
   });
 
-  expect(quickOptions.particleLifetime.max).toBeLessThan(50);
-  expect(longOptions.particleLifetime.max).toBeGreaterThan(50);
+  expect(quickOptions.particleLifetime.max).toBeLessThan(0.5);
+  expect(longOptions.particleLifetime.max).toBeGreaterThan(0.5);
 });
 
 await test("createSparkEffect - drag custom update", () => {
@@ -95,6 +95,6 @@ await test("createSparkEffect - size variation", () => {
     sizeVariation: 1.5,
   });
 
-  expect((options.scale as { start: number; end: number }).start).toBeCloseTo(0.6);
+  expect((options.scale as { start: number; end: number }).start).toBeCloseTo(1.5);
   expect((options.scale as { start: number; end: number }).end).toBe(0);
 });

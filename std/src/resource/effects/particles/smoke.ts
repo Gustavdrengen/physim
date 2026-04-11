@@ -93,19 +93,19 @@ export function createSmokeEffect(options: SmokeEffectOptions): ParticleEmission
     numParticles: count,
     position: position,
     positionJitter: 8 * size,
-    particleLifetime: { min: 120 * size, max: 200 * size },
-    initialVelocity: { min: 0.3 * size, max: 0.8 * size },
+    particleLifetime: { min: 2 * size, max: 3.33 * size },
+    initialVelocity: { min: 18 * size, max: 48 * size },
     directionBias: {
       angle: -Math.PI / 2,
       spread: spread,
     },
-    acceleration: new Vec2(wind * 0.3, riseSpeed * size),
+    acceleration: new Vec2(wind * 18, riseSpeed * size * 60),
     scale: { start: 0.5 * size, end: 3 * size * expansion },
     scaleCurve: "easeInOut",
     body: Body.fromShape(createCircle(8 * size)),
     colorStages,
     turbulence,
     rotation: { min: 0, max: Math.PI * 2 },
-    rotationSpeed: { min: -0.05, max: 0.05 },
+    rotationSpeed: { min: -3, max: 3 },
   };
 }

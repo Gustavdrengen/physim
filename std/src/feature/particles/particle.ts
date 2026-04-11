@@ -5,7 +5,6 @@ import { Body } from "../bodies/body.ts";
 /**
  * @internal
  * Represents the state of a single particle.
- * This is not exported and is managed internally by the ParticleSystem.
  */
 export interface Particle {
   position: Vec2;
@@ -26,8 +25,8 @@ export interface Particle {
   rotation: number;
   rotationSpeed: number;
 
-  lifetime: number; // in frames
-  age: number; // in frames
+  lifetime: number; // in seconds
+  age: number; // in seconds
 
   turbulence?: {
     frequency: number;
@@ -57,9 +56,9 @@ export interface ParticleEmissionOptions {
   position: Vec2;
   /** A random offset from the center position. */
   positionJitter?: number;
-  /** The lifetime of particles in frames. */
+  /** The lifetime of particles in seconds. */
   particleLifetime: { min: number, max: number };
-  /** The initial velocity range for particles. */
+  /** The initial velocity range for particles (pixels per second). */
   initialVelocity: {
     min: number;
     max: number;
@@ -69,6 +68,7 @@ export interface ParticleEmissionOptions {
     angle: number;
     spread: number;
   };
+  /** Acceleration in pixels per second squared. */
   acceleration?: Vec2;
   scale?: { start: number; end: number } | number;
   /** Curve type for scale interpolation. */
@@ -84,7 +84,7 @@ export interface ParticleEmissionOptions {
   orientToDirection?: boolean;
   /** Initial rotation of the particle. */
   rotation?: { min: number; max: number };
-  /** Rotation speed in radians per frame. */
+  /** Rotation speed in radians per second. */
   rotationSpeed?: { min: number; max: number };
   /** Turbulence settings for natural drift. */
   turbulence?: {

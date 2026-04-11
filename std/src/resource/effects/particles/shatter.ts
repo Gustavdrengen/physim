@@ -10,9 +10,9 @@ import { Vec2 } from "../../../base/vec.ts";
 export interface ShatterOptions {
   /** The number of shards to split the body into. */
   numShards: number;
-  /** The lifetime of the shards in frames. */
+  /** The lifetime of the shards in seconds. */
   lifetime: { min: number; max: number };
-  /** The speed range for the shards. */
+  /** The speed range for the shards (pixels per second). */
   speed: { min: number; max: number };
   /** The color of the shards. Defaults to the body's display color if available. */
   color?: { start: Color; end: Color };

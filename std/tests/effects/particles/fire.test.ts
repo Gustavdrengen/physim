@@ -33,7 +33,7 @@ await test("createFireEffect - wind", () => {
     wind: 0.5,
   });
 
-  expect(options.acceleration!.x).toBeCloseTo(0.25);
+  expect(options.acceleration!.x).toBeCloseTo(15);
 });
 
 await test("createFireEffect - temperature affects color", () => {

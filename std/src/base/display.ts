@@ -1,4 +1,5 @@
 import { Camera } from "./camera.ts";
+import { Color } from "./draw/color.ts";
 import { Draw } from "./draw/shapes.ts";
 import { Component, Entity } from "./entity.ts";
 import { Vec2 } from "./vec.ts";
@@ -31,6 +32,9 @@ import { Vec2 } from "./vec.ts";
  * ```
  */
 export class Display {
+  /** The background color used when clearing the canvas each frame. */
+  backgroundColor: Color | string = Color.fromRGB(0, 0, 0);
+
   private drawComponents: Map<
     Component<any>[] | Component<any>,
     (entity: Entity, data: any) => void
@@ -94,7 +98,7 @@ export class Display {
     }
 
     // @profile-start "Display.draw.clear"
-    Draw.clear();
+    Draw.clear(this.backgroundColor);
     // @profile-end
     
     sim.ctx.save();

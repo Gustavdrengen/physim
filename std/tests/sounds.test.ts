@@ -31,13 +31,11 @@ await test("SFX.phaseChange - structure and duration", () => {
   expect(s.combine).toBe("product");
 });
 
-await test("SFX.resonance - harmonic series and duration", () => {
+await test("SFX.resonance - Karplus-Strong pluck synthesis", () => {
   const s = SFX.resonance(440, 0.5, 1.5);
   expect(s.duration).toBe(1.5);
-  const oscillators = s.oscillators as any[];
-  expect(oscillators.length).toBe(5);
-  expect(oscillators[0].freq).toBe(440);
-  expect(oscillators[4].freq).toBe(440 * 5);
+  expect(s.method).toBe("pluck");
+  expect(s.params!.freq).toBe(440);
 });
 
 await test("SFX.friction - manual duration", () => {

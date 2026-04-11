@@ -10,7 +10,7 @@ import {
   getRegularPolygonVertices,
   initBodyComponent,
 } from "physim/bodies";
-import { Vec2, Physics } from "physim/base";
+import { Vec2, Physics, Entity } from "physim/base";
 
 await test("Shape creation functions", () => {
   const circle = createCircle(10);

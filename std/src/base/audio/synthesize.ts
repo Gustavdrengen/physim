@@ -20,7 +20,7 @@ export type WaveformType =
  */
 export interface Oscillator {
     /**
-     * The type of oscillator.
+     * The type of waveform.
      */
     type: WaveformType;
     /**
@@ -46,6 +46,11 @@ export interface Oscillator {
 export type SynthCombine = "mix" | "amod" | "fmod" | "sum" | "product";
 
 /**
+ * Alternative synthesis methods beyond oscillator combinations.
+ */
+export type SynthMethod = "pluck" | "diff" | "intl" | "lin" | "sq" | "tri";
+
+/**
  * A human readable form of structuring a synthesis.
  * 
  * @example
@@ -65,13 +70,23 @@ export interface Synth {
     duration: number;
     /**
      * The oscillators to use for the synthesis.
+     * Optional when using method-based synthesis.
      */
-    oscillators: Oscillator | Oscillator[];
+    oscillators?: Oscillator | Oscillator[];
     /**
      * The way to combine the oscillators.
      * @default "mix"
      */
     combine?: SynthCombine;
+    /**
+     * Use a specific synthesis method instead of oscillators.
+     * Mutually exclusive with the oscillators field.
+     */
+    method?: SynthMethod;
+    /**
+     * Parameters for the synthesis method.
+     */
+    params?: Record<string, number>;
 }
 
 function noteNameToFreq(note: string): number {
@@ -98,6 +113,10 @@ function noteNameToFreq(note: string): number {
  * @internal
  */
 export function synthToSoxArgs(synth: Synth): string[] {
+    if (synth.method) {
+        return methodToSoxArgs(synth);
+    }
+
     const args: string[] = ["synth", synth.duration.toString()];
 
     const oscillators = Array.isArray(synth.oscillators)
@@ -142,18 +161,12 @@ export function synthToSoxArgs(synth: Synth): string[] {
             osc.p2 !== undefined ||
             osc.p3 !== undefined
         ) {
-            // If freq was omitted but we have phase/p1.., we must provide a frequency (default 0 or -)
             if (osc.freq === undefined) {
                 args.push("0");
             }
-
-            // Offset (off) - default 0
             args.push("0");
-
-            // Phase (phst)
             args.push(osc.phase !== undefined ? osc.phase.toString() : "0");
 
-            // Waveform specific parameters (p1, p2, p3)
             if (
                 osc.p1 !== undefined ||
                 osc.p2 !== undefined ||
@@ -167,6 +180,28 @@ export function synthToSoxArgs(synth: Synth): string[] {
                     }
                 }
             }
+        }
+    }
+
+    return args;
+}
+
+/**
+ * Converts a method-based Synth to SoX arguments.
+ * @internal
+ */
+function methodToSoxArgs(synth: Synth): string[] {
+    const args: string[] = ["synth", synth.duration.toString()];
+    const method = synth.method!;
+
+    if (method === "pluck") {
+        const freq = synth.params?.freq ?? 440;
+        const decay = synth.params?.decay ?? 0.5;
+        args.push(method, freq.toString(), decay.toString());
+    } else {
+        args.push(method);
+        if (synth.params?.freq) {
+            args.push(synth.params.freq.toString());
         }
     }
 

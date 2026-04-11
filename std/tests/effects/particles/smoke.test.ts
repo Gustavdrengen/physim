@@ -27,7 +27,7 @@ await test("createSmokeEffect - custom options", () => {
   expect(options.numParticles).toBe(60);
   expect(options.positionJitter).toBe(16);
   expect(options.scale).toEqual({ start: 1, end: 9 });
-  expect(options.acceleration!.x).toBeCloseTo(0.09);
+  expect(options.acceleration!.x).toBeCloseTo(5.4);
 });
 
 await test("createSmokeEffect - color stages", () => {
