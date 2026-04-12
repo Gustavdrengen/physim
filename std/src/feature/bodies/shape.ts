@@ -6,7 +6,7 @@ import { Vec2 } from "../../base/vec.ts";
 export type Shape = Circle | Polygon | Ring | HollowPolygon;
 
 /**
- * A circle shape.
+ * A circle shape — a filled disk approximated by a 32-sided polygon.
  */
 export interface Circle {
   /**
@@ -20,7 +20,7 @@ export interface Circle {
 }
 
 /**
- * A polygon shape.
+ * A polygon shape — a filled solid region bounded by straight edges.
  */
 export interface Polygon {
   /**
@@ -34,7 +34,8 @@ export interface Polygon {
 }
 
 /**
- * A ring shape
+ * A ring shape — a filled annular region between two concentric circles,
+ * with optional angular gaps that break the ring into separate segments.
  */
 export interface Ring {
   /**
@@ -59,7 +60,8 @@ export interface Ring {
 }
 
 /**
- * A hollow polygon shape.
+ * A hollow polygon shape — a filled border region around a polygon outline,
+ * with a configurable wall width and an empty interior.
  */
 export interface HollowPolygon {
   /**
@@ -77,7 +79,7 @@ export interface HollowPolygon {
 }
 
 /**
- * Creates a new circle shape.
+ * Creates a new circle shape — a filled disk.
  *
  * @param radius The radius of the circle.
  * @returns A new circle shape.
@@ -87,13 +89,12 @@ export function createCircle(radius: number): Circle {
 }
 
 /**
- * Creates a new ring shape.
+ * Creates a new ring shape — a filled annular region.
  *
  * @param innerRadius The inner radius of the ring.
  * @param outerRadius The outer radius of the ring.
- * @param gaps An array of gaps in the ring.
+ * @param gaps An array of gaps in the ring. Defaults to an empty array (solid ring).
  * @returns A new ring shape.
- *
  */
 export function createRing(
   innerRadius: number,
@@ -109,7 +110,7 @@ export function createRing(
 }
 
 /**
- * Creates a new polygon shape.
+ * Creates a new filled polygon shape.
  *
  * @param vertices The vertices of the polygon in local space.
  * @returns A new polygon shape.
@@ -119,7 +120,7 @@ export function createPolygon(vertices: Vec2[]): Polygon {
 }
 
 /**
- * Creates a new hollow polygon shape.
+ * Creates a new hollow polygon shape — a filled border with an empty interior.
  *
  * @param vertices The vertices of the polygon in local space.
  * @param width The width of the polygon walls.

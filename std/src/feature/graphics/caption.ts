@@ -50,7 +50,7 @@ export function addCaption(display: Display, options: CaptionOptions): void {
   display.addStatic((camera) => {
     const textStr = typeof options.text === "function" ? options.text() : options.text;
     const pos = typeof options.pos === "function" ? options.pos() : options.pos;
-    
+
     const font = options.font ?? "16px Arial";
     const color = options.color ?? Color.fromRGB(255, 255, 255);
     const textAlign = options.textAlign ?? "center";
@@ -58,17 +58,17 @@ export function addCaption(display: Display, options: CaptionOptions): void {
     const lineHeight = options.lineHeight ?? (parseInt(font) || 20);
 
     const lines = textStr.split("\n");
-    
+
     // Calculate background if needed
     if (options.backgroundColor || options.outlineColor) {
       sim.ctx.font = font;
-      
+
       let maxWidth = 0;
       for (const line of lines) {
         const metrics = sim.ctx.measureText(line);
         maxWidth = Math.max(maxWidth, metrics.width);
       }
-      
+
       let padX = 0;
       let padY = 0;
       if (typeof options.padding === "number") {
@@ -78,21 +78,25 @@ export function addCaption(display: Display, options: CaptionOptions): void {
         padX = options.padding.x;
         padY = options.padding.y;
       }
-      
+
       const totalWidth = maxWidth + padX * 2;
       const totalHeight = (lines.length * lineHeight) + padY * 2;
-      
+
       let bgX = pos.x;
       if (textAlign === "left" || textAlign === "start") {
         bgX += (totalWidth / 2) - padX;
       } else if (textAlign === "right" || textAlign === "end") {
         bgX -= (totalWidth / 2) - padX;
       }
-      
+
       let bgY = pos.y;
       if (textBaseline === "top" || textBaseline === "hanging") {
         bgY += (totalHeight / 2) - padY;
-      } else if (textBaseline === "bottom" || textBaseline === "alphabetic" || textBaseline === "ideographic") {
+      } else if (
+        textBaseline === "bottom" ||
+        textBaseline === "alphabetic" ||
+        textBaseline === "ideographic"
+      ) {
         bgY -= (totalHeight / 2) - padY;
       } else if (textBaseline === "middle") {
         bgY += ((lines.length - 1) * lineHeight) / 2;
@@ -103,10 +107,12 @@ export function addCaption(display: Display, options: CaptionOptions): void {
       if (options.outlineColor && options.outlineWidth) {
         const outWidth = totalWidth + options.outlineWidth * 2;
         const outHeight = totalHeight + options.outlineWidth * 2;
-        const outRad = options.borderRadius !== undefined ? options.borderRadius + options.outlineWidth : undefined;
+        const outRad = options.borderRadius !== undefined
+          ? options.borderRadius + options.outlineWidth
+          : undefined;
         Draw.rect(rectPos, outWidth, outHeight, options.outlineColor, outRad);
       }
-      
+
       if (options.backgroundColor) {
         Draw.rect(rectPos, totalWidth, totalHeight, options.backgroundColor, options.borderRadius);
       }

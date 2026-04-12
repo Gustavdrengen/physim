@@ -65,7 +65,11 @@ export class Body {
    * @param initialRotation The initial rotation of the body in radians.
    * @param initialAngularVelocity The initial angular velocity of the body in radians per second.
    */
-  constructor(parts: BodyPart[], initialRotation: number = 0, initialAngularVelocity: number = 0) {
+  constructor(
+    parts: BodyPart[],
+    initialRotation: number = 0,
+    initialAngularVelocity: number = 0,
+  ) {
     this.parts = parts;
     this.rotation = initialRotation;
     this.angularVelocity = initialAngularVelocity;
@@ -89,7 +93,13 @@ export class Body {
    * @param scale The scale of the body.
    */
   // @profile "Body.draw"
-  public draw(pos: Vec2, color: Color, fill: boolean = true, lineWidth: number = 1, scale: number = 1): void {
+  public draw(
+    pos: Vec2,
+    color: Color,
+    fill: boolean = true,
+    lineWidth: number = 1,
+    scale: number = 1,
+  ): void {
     const rot = this.rotation;
     // @profile-start "Body.draw.transformVertices"
     for (const poly of this.vertices) {
@@ -116,7 +126,11 @@ export class Body {
    * @param initialAngularVelocity The initial angular velocity of the body in radians per second.
    * @returns A new Body instance.
    */
-  static fromShape(shape: Shape, initialRotation: number = 0, initialAngularVelocity: number = 0): Body {
+  static fromShape(
+    shape: Shape,
+    initialRotation: number = 0,
+    initialAngularVelocity: number = 0,
+  ): Body {
     return new Body([
       {
         shape,
@@ -133,20 +147,28 @@ export class Body {
     outerRadius: number,
   ): Vec2[] {
     const vertices: Vec2[] = [];
-    const segments = Math.ceil((endAngle - startAngle) / (Math.PI / 16)); // 32 segments for a full circle
+    const segments = Math.ceil((endAngle - startAngle) / (Math.PI / 16));
 
     const angleStep = (endAngle - startAngle) / segments;
 
-    // Outer arc
     for (let i = 0; i <= segments; i++) {
       const angle = startAngle + i * angleStep;
-      vertices.push(new Vec2(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius));
+      vertices.push(
+        new Vec2(
+          Math.cos(angle) * outerRadius,
+          Math.sin(angle) * outerRadius,
+        ),
+      );
     }
 
-    // Inner arc (reversed)
     for (let i = segments; i >= 0; i--) {
       const angle = startAngle + i * angleStep;
-      vertices.push(new Vec2(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius));
+      vertices.push(
+        new Vec2(
+          Math.cos(angle) * innerRadius,
+          Math.sin(angle) * innerRadius,
+        ),
+      );
     }
 
     return vertices;
@@ -277,15 +299,15 @@ export class Body {
       if (v.y > maxY) maxY = v.y;
     }
 
-  return { min: new Vec2(minX, minY), max: new Vec2(maxX, maxY) };
+    return { min: new Vec2(minX, minY), max: new Vec2(maxX, maxY) };
   }
 
   /**
    * Splits a body into multiple shards.
    *
    * @param body The body to split.
-   * @param numShards The number of shards to create.
-   * @returns An array of new Body instances, each representing a shard.
+   * @param numShards The number of shards to create per polygon in the body.
+   * @returns An array of new Body instances, one shard per polygon per shard count.
    */
   // @profile "Body.split"
   static split(body: Body, numShards: number): Body[] {
@@ -314,10 +336,10 @@ export class Body {
           if (i === numShards - 1) {
             endIdx = poly.length;
           } else {
-             continue;
+            continue;
           }
         }
-        
+
         if (endIdx === startIdx) continue;
 
         const shardVertices: Vec2[] = [center];

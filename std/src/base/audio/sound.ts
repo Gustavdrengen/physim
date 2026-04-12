@@ -116,8 +116,7 @@ export class Sound {
   }
 
   /**
-   * Creates a new sound using synthesis from raw arguments to the SoX command line tool.
-   * @see {@link https://linux.die.net/man/1/sox} for the SoX CLI documentation and available options.
+   * Creates a new sound from synthesis parameters.
    *
    * @param args The arguments to pass to the synthesis engine.
    * @param effects Optional effects to apply to the sound.

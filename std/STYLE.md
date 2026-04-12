@@ -7,10 +7,16 @@
 
 ## 2. Documentation
 
-- All exported/public entities must have TSDoc comments.
+- TSDoc comments are required only for entities exposed through the public API — i.e., anything exported from `src/public/` modules. Entities exported between internal modules (e.g., `src/feature/`, `src/resource/`, `src/base/`) do not need TSDoc unless they are re-exported through the public API.
 - Internal/private entities should not have TSDoc comments, with the exception of the `/** @internal */` tag.
 - Documentation should never contain implementation details or any information about what the function does internally.
 - Documentation should describe all the behavior of the function fully, even if concisely.
+
+#### Clarity and Misconceptions
+
+- Anticipate what a reader might naturally assume and make sure the documentation rules that out by stating clearly what the thing *is*. Do not warn about what something isn't — instead, describe what it actually is in a way that prevents the misconception.
+- When a name or term could be interpreted multiple ways, disambiguate with a precise description. For example, "circle" in this library refers to a filled disk approximation, not a geometric outline.
+- Keep this positive: state the actual behavior precisely, not the absence of a mistaken one.
 
 ### Documentation Priority
 

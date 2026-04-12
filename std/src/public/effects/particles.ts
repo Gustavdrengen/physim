@@ -1,5 +1,6 @@
 /**
- * This module provides a library of pre-configured particle effects that can be used with the ParticleSystem.
+ * This module provides a library of pre-configured particle effects for use
+ * with the ParticleSystem.
  * @module
  */
 

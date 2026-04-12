@@ -4,7 +4,7 @@ import { Physics } from "./physics.ts";
 
 /**
  * The `Simulation` class is the main entry point for creating and managing a simulation.
- * It integrates a `Physics` instance for handling physics calculations and a `Display` instance for rendering.
+ * It integrates physics calculations and display rendering into a single cohesive API.
  *
  * @example
  * ```ts
@@ -69,9 +69,9 @@ export class Simulation {
 
   /**
    * Runs the simulation loop.
-   * This method sets up a continuous update cycle at 60 fps that calls the provided `onUpdate` callback
-   * on each frame, after physics updates and display rendering.
-   * 
+   * Sets up a continuous update cycle at 60 fps that calls the provided
+   * `onUpdate` callback on each frame, after physics updates and display rendering.
+   *
    * This function resolves when the simulation is finished.
    *
    * @param onUpdate An optional callback function to be executed on each frame.
@@ -89,11 +89,11 @@ export class Simulation {
       // @profile-start "Simulation.physics.update"
       this.physics.update();
       // @profile-end
-      
+
       // @profile-start "Simulation.display.draw"
       this.display.draw(this.camera);
       // @profile-end
-      
+
       // @profile-start "Simulation.onUpdate"
       onUpdate();
       // @profile-end

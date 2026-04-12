@@ -3,7 +3,8 @@ import { Vec2 } from "./vec.ts";
 
 /**
  * The `Physics` class is responsible for updating entities based on forces.
- * It manages the application of various forces (like velocity and acceleration) to entities that possess the relevant components.
+ * It applies forces like velocity and acceleration to entities that possess
+ * the relevant components.
  *
  * @example
  * ```ts
@@ -156,8 +157,12 @@ export class Physics {
     let staticIndex = 0;
 
     while (forceIndex < this.forces.length || staticIndex < this.staticForces.length) {
-      const forcePriority = forceIndex < this.forces.length ? this.forces[forceIndex]?.[2] ?? Infinity : Infinity;
-      const staticPriority = staticIndex < this.staticForces.length ? this.staticForces[staticIndex]?.[1] ?? Infinity : Infinity;
+      const forcePriority = forceIndex < this.forces.length
+        ? this.forces[forceIndex]?.[2] ?? Infinity
+        : Infinity;
+      const staticPriority = staticIndex < this.staticForces.length
+        ? this.staticForces[staticIndex]?.[1] ?? Infinity
+        : Infinity;
 
       if (forcePriority <= staticPriority && forceIndex < this.forces.length) {
         const [comps, forceFunc] = this.forces[forceIndex]!;

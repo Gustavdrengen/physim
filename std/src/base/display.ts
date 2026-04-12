@@ -100,7 +100,7 @@ export class Display {
     // @profile-start "Display.draw.clear"
     Draw.clear(this.backgroundColor);
     // @profile-end
-    
+
     sim.ctx.save();
     // @profile-start "Display.draw.applyCamera"
     effectiveCamera._applyTransforms(sim.ctx);

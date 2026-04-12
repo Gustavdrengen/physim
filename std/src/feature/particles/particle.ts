@@ -10,7 +10,7 @@ export interface Particle {
   position: Vec2;
   velocity: Vec2;
   acceleration: Vec2;
-  
+
   color: Color;
   startColor: Color;
   endColor: Color;
@@ -73,6 +73,7 @@ export interface ParticleEmissionOptions {
   scale?: { start: number; end: number } | number;
   /** Curve type for scale interpolation. */
   scaleCurve?: "linear" | "easeIn" | "easeOut" | "easeInOut";
+  /** The body to use for each particle. */
   body: Body;
   /** Simple two-color gradient. */
   color?: {

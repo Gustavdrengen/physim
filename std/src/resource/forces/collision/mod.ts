@@ -40,7 +40,8 @@ export type CollisionForce = {
  *
  * @param physics The main physics instance.
  * @param bodyComponent The component that stores the body data for entities.
- * @param defaultCollisionProperties Default properties for colliders. Note: restitution defaults to 1.0 (perfect bounce) unless specified.
+ * @param defaultCollisionProperties Default properties for colliders.
+ *   Note: restitution defaults to 1.0 (perfect bounce) unless specified.
  * @returns A promise that resolves to a `CollisionForce` object which contains a `staticComponent` and a function to add a collision callback.
  */
 export async function initCollisionForce(

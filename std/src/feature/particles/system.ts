@@ -22,7 +22,7 @@ export class ParticleSystem {
    * @example
    * ```ts
    * import { ParticleSystem } from "physim/particles";
-   * import { Circle, Color, Vec2 } from "physim/base";
+   * import { Body, createCircle, Color, Vec2 } from "physim/bodies";
    *
    * const particleSystem = new ParticleSystem(simulation.display);
    *
@@ -34,7 +34,7 @@ export class ParticleSystem {
    * entity.add(particleSystem.trailComponent, {
    *   interval: 0.05,
    *   particleLifetime: 0.5,
-   *   body: new Circle(3),
+   *   body: Body.fromShape(createCircle(3)),
    *   color: {
    *     start: Color.fromHex("#00ffff"),
    *     end: Color.fromHex("#0000ff"),
@@ -47,7 +47,7 @@ export class ParticleSystem {
    * @example
    * ```ts
    * import { ParticleSystem } from "physim/particles";
-   * import { Square, Color, Vec2 } from "physim/base";
+   * import { Body, createRectangle, Color, Vec2 } from "physim/bodies";
    *
    * const particleSystem = new ParticleSystem(simulation.display);
    *
@@ -56,7 +56,7 @@ export class ParticleSystem {
    * player.add(particleSystem.trailComponent, {
    *   interval: 0.02,
    *   particleLifetime: 0.3,
-   *   body: new Square(4),
+   *   body: Body.fromShape(createRectangle(4, 4)),
    *   color: {
    *     start: Color.fromHex("#ff6600"),
    *     end: Color.fromHex("#ff0000"),
@@ -84,14 +84,14 @@ export class ParticleSystem {
   // @profile "ParticleSystem.update"
   private update(): void {
     const dt = 1 / 60;
-    
+
     // @profile-start "ParticleSystem.update.particles"
     for (let i = this.activeParticles.length - 1; i >= 0; i--) {
       const p = this.activeParticles[i];
       p.age += dt;
 
       p.velocity = p.velocity.add(p.acceleration.scale(dt));
-      
+
       if (p.turbulence) {
         const noiseX = Math.sin(p.age * p.turbulence.frequency) * p.turbulence.amplitude;
         const noiseY = Math.cos(p.age * p.turbulence.frequency * 0.7) * p.turbulence.amplitude;
@@ -101,15 +101,15 @@ export class ParticleSystem {
       p.position = p.position.add(p.velocity.scale(dt));
 
       const lifeRatio = p.age / p.lifetime;
-      
+
       let scaleRatio = lifeRatio;
       if (p.scaleCurve === "easeIn") {
         scaleRatio = lifeRatio * lifeRatio;
       } else if (p.scaleCurve === "easeOut") {
         scaleRatio = 1 - (1 - lifeRatio) * (1 - lifeRatio);
       } else if (p.scaleCurve === "easeInOut") {
-        scaleRatio = lifeRatio < 0.5 
-          ? 2 * lifeRatio * lifeRatio 
+        scaleRatio = lifeRatio < 0.5
+          ? 2 * lifeRatio * lifeRatio
           : 1 - Math.pow(-2 * lifeRatio + 2, 2) / 2;
       }
       p.scale = p.startScale + (p.endScale - p.startScale) * scaleRatio;

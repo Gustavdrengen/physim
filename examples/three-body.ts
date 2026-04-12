@@ -65,8 +65,6 @@ for (const body of bodies) {
       {
         color: body.color,
         fill: true,
-        glow: body.color,
-        glowRadius: 15,
       },
     ],
     [sim.physics.velocity, body.vel],

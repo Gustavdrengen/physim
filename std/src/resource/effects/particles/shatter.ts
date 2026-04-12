@@ -22,7 +22,8 @@ export interface ShatterOptions {
 
 /**
  * Shatters an entity into multiple shards that are emitted as particles.
- * 
+ * The original entity is destroyed in the process.
+ *
  * @param entity The entity to shatter.
  * @param body The body of the entity.
  * @param particleSystem The particle system to emit shards into.
@@ -35,7 +36,7 @@ export function shatter(
   options: ShatterOptions
 ): void {
   const shards = Body.split(body, options.numShards);
-  
+
   const shardColor = options.color || {
     start: new Color(255, 255, 255, 1),
     end: new Color(255, 255, 255, 0),
@@ -44,7 +45,7 @@ export function shatter(
   for (const shard of shards) {
     const angle = Math.random() * Math.PI * 2;
     const speed = options.speed.min + Math.random() * (options.speed.max - options.speed.min);
-    
+
     particleSystem.emit({
       numParticles: 1,
       position: entity.pos,

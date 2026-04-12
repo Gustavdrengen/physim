@@ -116,9 +116,8 @@ export namespace SFX {
   /**
    * Generates a ringing sound representing the resonance of an object being struck.
    *
-   * Uses Karplus-Strong pluck synthesis for natural decaying resonance with
-   * realistic harmonic content. Higher dampening reduces the decay time and
-   * filters out high frequencies faster.
+   * Produces a natural decaying resonance with realistic harmonic content.
+   * Higher dampening reduces the decay time and filters out high frequencies faster.
    *
    * @param fundamental - The fundamental frequency of resonance in Hz.
    * @param dampening - The amount of dampening (0 = long ring, 1 = short ring).

@@ -32,19 +32,23 @@ export interface FireEffectOptions {
 
 /**
  * Creates a realistic fire-like particle emission.
- * 
- * The fire effect uses multi-stage color gradients to simulate the temperature
- * variation in flames (hot white/yellow core → orange → red → smoke gray).
- * Particles have turbulence for natural flickering and rise with an updraft.
- * 
+ *
+ * Produces particles that rise with an updraft, displaying a hot bright core
+ * that transitions through orange and red tones before fading. Particles have
+ * turbulence for natural flickering.
+ *
+ * When `withSmoke` is enabled, secondary smoke particles are emitted at the
+ * top of the flame. The `smokeRate` option controls how frequently smoke
+ * particles are spawned.
+ *
  * @example
  * ```ts
  * import { ParticleSystem } from "physim/particles";
  * import { createFireEffect } from "physim/effects/particles";
  * import { Vec2 } from "physim/base";
- * 
+ *
  * const particleSystem = new ParticleSystem(simulation.display);
- * 
+ *
  * // Basic campfire
  * particleSystem.emit(createFireEffect({
  *   position: new Vec2(400, 500),
@@ -52,7 +56,7 @@ export interface FireEffectOptions {
  *   count: 100,
  *   intensity: 1.5,
  * }));
- * 
+ *
  * // Intense blaze with wind
  * particleSystem.emit(createFireEffect({
  *   position: new Vec2(200, 400),
@@ -63,7 +67,7 @@ export interface FireEffectOptions {
  *   turbulence: { frequency: 0.5, amplitude: 1 },
  * }));
  * ```
- * 
+ *
  * @param options The options for the fire effect.
  * @returns A `ParticleEmissionOptions` object ready to be used with a `ParticleSystem`.
  */
@@ -82,21 +86,21 @@ export function createFireEffect(options: FireEffectOptions): ParticleEmissionOp
   } = options;
 
   const adjustedCount = Math.floor(count * intensity);
-  
+
   const tempClamped = Math.max(0, Math.min(1, temperature));
-  
+
   const coreColor = lerpColor(
     new Color(255, 200, 50),
     new Color(255, 255, 200),
     tempClamped
   );
-  
+
   const midColor = lerpColor(
     new Color(255, 150, 50),
     new Color(255, 200, 50),
     tempClamped
   );
-  
+
   const outerColor = lerpColor(
     new Color(255, 80, 20),
     new Color(255, 150, 50),

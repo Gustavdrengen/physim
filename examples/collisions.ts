@@ -63,9 +63,8 @@ const ringBody = Body.fromShape(
     { startAngle: 1, size: 0.3 },
     { startAngle: 4, size: 0.1 },
   ]),
-  3,
 );
-ringBody.angularVelocity = 0.6; // radians per second (0.01 * 60fps)
+ringBody.angularVelocity = 0.6; // radians per second
 
 Entity.create(new Vec2(50, 50), [
   [bodyComp, ringBody],

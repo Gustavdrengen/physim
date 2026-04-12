@@ -304,10 +304,10 @@ export class Color {
   }
 
   // --- internal utils --------------------------------------------------
-  private static _clampInt(v: number) {
+  private static _clampInt(v: number): number {
     return Math.round(Math.min(255, Math.max(0, v)));
   }
-  private static _clamp01(v: number) {
+  private static _clamp01(v: number): number {
     return Math.min(1, Math.max(0, v));
   }
 }

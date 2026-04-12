@@ -64,13 +64,13 @@ export interface TrailOptions {
   scale?: { start: number; end: number } | number;
 
   /**
-   * The body shape to use for each particle.
+   * The body to use for each particle.
    *
    * @example
    * ```ts
-   * body: new Circle(3)
-   * body: new Square(4)
-   * body: new Polygon([new Vec2(0, -5), new Vec2(4, 5), new Vec2(-4, 5)])
+   * body: Body.fromShape(createCircle(3))
+   * body: Body.fromShape(createRectangle(6, 6))
+   * body: Body.fromShape(createPolygon([new Vec2(0, -5), new Vec2(4, 5), new Vec2(-4, 5)]))
    * ```
    */
   body: Body;
