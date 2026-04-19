@@ -41,6 +41,7 @@ export class Display {
   > = new Map();
 
   private statics: ((camera: Camera) => void)[] = [];
+  private shaders: { shader: Shader; uniforms?: Record<string, any> }[] = [];
 
   /**
    * Registers a draw function for a component or multiple components.
@@ -78,6 +79,23 @@ export class Display {
    */
   addStatic(callback: (camera: Camera) => void): void {
     this.statics.push(callback);
+  }
+
+  /**
+   * Adds a shader to the post-processing stack.
+   * @param shader The shader to add.
+   * @param uniforms Optional uniforms to pass to the shader.
+   */
+  addShader(shader: Shader, uniforms?: Record<string, any>): void {
+    this.shaders.push({ shader, uniforms });
+  }
+
+  /**
+   * Removes a shader from the post-processing stack.
+   * @param shader The shader to remove.
+   */
+  removeShader(shader: Shader): void {
+    this.shaders = this.shaders.filter((s) => s.shader !== shader);
   }
 
   /**
@@ -144,5 +162,13 @@ export class Display {
       staticDraw(effectiveCamera);
     }
     // @profile-end
+
+    // Apply post-processing shaders
+    for (const entry of this.shaders) {
+      Draw.applyShader(entry.shader, entry.uniforms);
+    }
+
+    // Final flush to ensure everything is rendered to the main canvas
+    Draw.applyShader(0 as any);
   }
 }

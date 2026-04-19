@@ -29,8 +29,10 @@ export namespace Draw {
   export function clear(color: Color | string = Color.fromRGB(0, 0, 0)): void {
     const ctx = sim.ctx;
     const canvas = ctx.canvas;
-    ctx.fillStyle = _colorToCss(color);
+    const colorStr = _colorToCss(color);
+    ctx.fillStyle = colorStr;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    sim.clear(colorStr);
   }
 
   /**
@@ -199,4 +201,15 @@ export namespace Draw {
    * @param textBaseline The vertical alignment of the text.
    */
   export const text = _text;
+
+  /**
+   * Applies a shader to the current canvas content and renders it to the main canvas.
+   * After calling this, the 2D canvas is cleared.
+   * 
+   * @param shader The shader to apply.
+   * @param uniforms Optional runtime uniforms to pass to the shader.
+   */
+  export function applyShader(shader: Shader, uniforms?: Record<string, any>): void {
+    sim.applyShader(shader, uniforms);
+  }
 }
