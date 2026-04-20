@@ -2,13 +2,14 @@
 Python wrapper for physim.
 """
 
-from .run import PhysimResult, run_script
+from .run import PhysimResult, run_script, Restrictions
 from .docs import generate_markdown_docs, get_docs_path
 from ._internal import _run_physim_command
 
 __all__ = [
     "PhysimResult",
     "run_script",
+    "Restrictions",
     "generate_markdown_docs",
     "get_docs_path",
     "init_project",

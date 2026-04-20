@@ -37,6 +37,7 @@ export enum InputFailureTag {
   AssetFailure = "ASSET_FAILURE",
   AssetFetchFailure = "ASSET_FETCH_FAILURE",
   SoundFailure = "SOUND_FAILURE",
+  RestrictionFailure = "RESTRICTION_FAILURE",
 }
 
 export enum SystemFailureTag {

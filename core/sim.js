@@ -736,6 +736,18 @@ sim.run = (onUpdate) => {
         frameCount++;
         framesThisSecond++;
 
+        if (typeof MAX_TIME !== "undefined" && (frameCount / 60) > MAX_TIME) {
+          fetch("/terminate_requirement", {
+            method: "POST",
+            body: JSON.stringify({
+              message: `In-simulation time limit exceeded (${MAX_TIME}s)`
+            }),
+            headers: { "Content-Type": "application/json" },
+          }).catch(() => {});
+          stopSimulation();
+          return;
+        }
+
         const result = onUpdate();
         if (result instanceof Promise) {
           await result.catch(errorHandler);

@@ -8,6 +8,13 @@ from ._internal import _run_physim_command
 
 
 @dataclass
+class Restrictions:
+    """Restrictions for running a physim script."""
+
+    error_on_time: float | None = None
+
+
+@dataclass
 class PhysimResult:
     """Result from running a physim script."""
 
@@ -34,6 +41,7 @@ def run_script(
     no_audio: bool = False,
     no_throttle: bool = False,
     max_traceback: int = 10,
+    restrictions: Restrictions | None = None,
 ) -> PhysimResult:
     """
     Run a physim script and capture its output.
@@ -46,6 +54,7 @@ def run_script(
         no_audio: Whether to disable audio playback.
         no_throttle: Whether to disable FPS throttling (run at maximum speed).
         max_traceback: Maximum number of traceback frames to show in runtime errors.
+        restrictions: Optional restrictions for the simulation.
 
     Returns:
         PhysimResult containing exit code and output
@@ -61,6 +70,8 @@ def run_script(
         args.append("--no-audio")
     if no_throttle:
         args.append("--no-throttle")
+    if restrictions and restrictions.error_on_time is not None:
+        args.extend(["--_error-on-time", str(restrictions.error_on_time)])
     args.extend(["--max-traceback", str(max_traceback)])
     args.append(filepath)
     exit_code, stdout, stderr = _run_physim_command(args)

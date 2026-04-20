@@ -42,11 +42,12 @@ const cmd = new Command()
     "Maximum number of traceback frames to show in runtime errors.",
     { default: 10 },
   )
-  .action(async ({ raw, record, webview, audio, profiling, throttle, maxTraceback }, entrypoint) => {
+  .option("--_error-on-time <n:number>", "Throw an error if the simulation time exceeds this value.")
+  .action(async ({ raw, record, webview, audio, profiling, throttle, maxTraceback, errorOnTime }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false, maxTraceback));
+    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime));
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {

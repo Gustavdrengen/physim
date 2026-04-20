@@ -38,6 +38,7 @@ export async function runServer(
   noThrottle: boolean,
   maxTraceback: number,
   baseDir: string,
+  errorOnTime: number | undefined,
 ): Promise<Result<string | undefined>> {
   const bundleDir = dirname(bundle);
   let server: Deno.HttpServer<Deno.NetAddr>;
@@ -79,6 +80,12 @@ export async function runServer(
     htmlContent = htmlContent.replaceAll("NO_THROTTLE", "true");
   } else {
     htmlContent = htmlContent.replaceAll("NO_THROTTLE", "false");
+  }
+
+  if (errorOnTime !== undefined) {
+    htmlContent = htmlContent.replaceAll("MAX_TIME", errorOnTime.toString());
+  } else {
+    htmlContent = htmlContent.replaceAll("MAX_TIME", "undefined");
   }
 
   let ret;
@@ -212,6 +219,7 @@ export async function runServer(
       } else if (url.pathname === "/err") {
         const body = req.body ? await req.text() : "Unknown error";
         let formattedError: string;
+        let tag: InputFailureTag = InputFailureTag.RuntimeFailure;
         try {
           const parsed = JSON.parse(body);
           const message = parsed.message ?? "Unknown error";
@@ -220,15 +228,22 @@ export async function runServer(
             ? formatStackTrace(stack, traceMap, maxTraceback, baseDir, bundleDir)
             : "";
           formattedError = trace ? `${message}\n${trace}` : message;
+          if (parsed.tag && Object.values(InputFailureTag).includes(parsed.tag)) {
+            tag = parsed.tag;
+          }
         } catch {
           formattedError = body;
         }
         endAndFail(
           fail(
-            InputFailureTag.RuntimeFailure,
+            tag,
             formattedError,
           ),
         );
+        return new Response(null, { status: 200 });
+      } else if (url.pathname === "/terminate_requirement") {
+        const body = await req.json();
+        endAndFail(fail(InputFailureTag.RestrictionFailure, body.message));
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/finish") {
         setTimeout(async () => {

@@ -15,6 +15,7 @@ export async function run(
   profiling: boolean,
   noThrottle: boolean,
   maxTraceback: number,
+  errorOnTime: number | undefined,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -59,6 +60,7 @@ export async function run(
     noThrottle,
     maxTraceback,
     dirname(entrypoint),
+    errorOnTime,
   );
 
   if (failed(runResult)) {
