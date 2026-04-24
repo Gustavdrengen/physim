@@ -31,6 +31,7 @@ export function setGlobalErrorHandler() {
 
 export enum InputFailureTag {
   EntryPointNotFoundFailure = "ENTRY_POINT_NOT_FOUND_FAILURE",
+  TsConfigMissingFailure = "TS_CONFIG_MISSING_FAILURE",
   TypeCheckFailure = "TYPE_CHECK_FAILURE",
   BuildFailure = "BUILD_FAILURE",
   RuntimeFailure = "RUNTIME_FAILURE",

@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { typeCheck } from "./tsc.ts";
-import { fail, InputFailureTag, Result } from "../err.ts";
+import { fail, failed, InputFailureTag, Result } from "../err.ts";
 const scriptDir = dirname(fromFileUrl(import.meta.url));
 
 const aliasPlugin = {
@@ -44,8 +44,8 @@ export async function buildSimulation(
   profiling: boolean,
 ): Promise<Result<undefined>> {
   const check = await typeCheck(entrypoint);
-  if (!check.success) {
-    return fail(InputFailureTag.TypeCheckFailure, check.stdout);
+  if (failed(check)) {
+    return check;
   }
 
   await esbuild.build({

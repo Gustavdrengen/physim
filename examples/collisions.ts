@@ -17,8 +17,9 @@ import { SFX } from "physim/sounds";
 // --- Configuration ---
 const WIDTH = 1920;
 const HEIGHT = 1080;
-const ZOOM = 1;
-const RESTITUTION = 1.1;
+const ZOOM = 0.8;
+const RESTITUTION = 0.8;
+const CONSTANT_PULL = 50;
 const TRAIL_COLOR_START = new Color(255, 255, 255);
 const TRAIL_COLOR_END = new Color(255, 255, 255, 0);
 
@@ -27,6 +28,7 @@ Draw.setCanvasSize(WIDTH, HEIGHT);
 
 // --- Simulation Setup ---
 const sim = new Simulation();
+sim.physics.constantPull = new Vec2(0, CONSTANT_PULL);
 sim.camera.zoom = ZOOM;
 
 // --- Component Initialization ---
