@@ -41,7 +41,7 @@ export class Display {
   > = new Map();
 
   private statics: ((camera: Camera) => void)[] = [];
-  private shaders: { shader: Shader; uniforms?: Record<string, any> }[] = [];
+  private shaders: Shader[] = [];
 
   /**
    * Registers a draw function for a component or multiple components.
@@ -84,10 +84,9 @@ export class Display {
   /**
    * Adds a shader to the post-processing stack.
    * @param shader The shader to add.
-   * @param uniforms Optional uniforms to pass to the shader.
    */
-  addShader(shader: Shader, uniforms?: Record<string, any>): void {
-    this.shaders.push({ shader, uniforms });
+  addShader(shader: Shader): void {
+    this.shaders.push(shader);
   }
 
   /**
@@ -95,7 +94,7 @@ export class Display {
    * @param shader The shader to remove.
    */
   removeShader(shader: Shader): void {
-    this.shaders = this.shaders.filter((s) => s.shader !== shader);
+    this.shaders = this.shaders.filter((s) => s !== shader);
   }
 
   /**
@@ -164,11 +163,8 @@ export class Display {
     // @profile-end
 
     // Apply post-processing shaders
-    for (const entry of this.shaders) {
-      Draw.applyShader(entry.shader, entry.uniforms);
+    for (const shader of this.shaders) {
+      Draw.applyShader(shader);
     }
-
-    // Final flush to ensure everything is rendered to the main canvas
-    Draw.applyShader(0 as any);
   }
 }

@@ -1,6 +1,6 @@
-import { Vec2 } from "../vec.ts";
-import { Color } from "./color.ts";
-import { text as _text } from "./text.ts";
+import { Vec2 } from '../vec.ts';
+import { Color } from './color.ts';
+import { text as _text } from './text.ts';
 
 function _colorToCss(c: Color | string): string {
   if (c instanceof Color) return c.toCSS();
@@ -9,14 +9,14 @@ function _colorToCss(c: Color | string): string {
 
 /**
  * A collection of drawing functions.
- * 
+ *
  * @example
  * ```ts
- * import { Draw, Vec2 } from "physim/base";
- * 
- * Draw.circle(new Vec2(100, 100), 10, "red");
- * Draw.rect(new Vec2(200, 200), 50, 50, "blue");
- * Draw.text(new Vec2(300, 300), "Hello", "20px Arial", "white");
+ * import { Draw, Vec2 } from 'physim/base';
+ *
+ * Draw.circle(new Vec2(100, 100), 10, 'red');
+ * Draw.rect(new Vec2(200, 200), 50, 50, 'blue');
+ * Draw.text(new Vec2(300, 300), 'Hello', '20px Arial', 'white');
  * ```
  */
 export namespace Draw {
@@ -25,7 +25,7 @@ export namespace Draw {
    *
    * @param color The color to clear the canvas with.
    */
-  // @profile "Draw.clear"
+  // @profile 'Draw.clear'
   export function clear(color: Color | string = Color.fromRGB(0, 0, 0)): void {
     const ctx = sim.ctx;
     const canvas = ctx.canvas;
@@ -42,7 +42,7 @@ export namespace Draw {
    * @param radius The radius of the circle.
    * @param color The color of the circle.
    */
-  // @profile "Draw.circle"
+  // @profile 'Draw.circle'
   export function circle(
     pos: Vec2,
     radius: number,
@@ -64,7 +64,7 @@ export namespace Draw {
    * @param color The color of the rectangle.
    * @param borderRadius Optional border radius for rounded corners.
    */
-  // @profile "Draw.rect"
+  // @profile 'Draw.rect'
   export function rect(
     pos: Vec2,
     width: number,
@@ -91,7 +91,7 @@ export namespace Draw {
    * @param color The color of the line.
    * @param lineWidth The width of the line.
    */
-  // @profile "Draw.line"
+  // @profile 'Draw.line'
   export function line(
     start: Vec2,
     end: Vec2,
@@ -161,7 +161,7 @@ export namespace Draw {
    * @param fill Whether to fill the polygon.
    * @param lineWidth The width of the line if not filled.
    */
-  // @profile "Draw.polygon"
+  // @profile 'Draw.polygon'
   export function polygon(
     vertices: Vec2[],
     color: Color | string = Color.fromRGB(255, 255, 255),
@@ -205,11 +205,45 @@ export namespace Draw {
   /**
    * Applies a shader to the current canvas content and renders it to the main canvas.
    * After calling this, the 2D canvas is cleared.
-   * 
+   *
    * @param shader The shader to apply.
-   * @param uniforms Optional runtime uniforms to pass to the shader.
    */
-  export function applyShader(shader: Shader, uniforms?: Record<string, any>): void {
-    sim.applyShader(shader, uniforms);
+  export function applyShader(shader: Shader): void {
+    sim.applyShader(shader);
+  }
+
+  /**
+   * Creates a shader program from fragment shader source.
+   *
+   * @param fragment The fragment shader source code.
+   * @param vertex Optional custom vertex shader source.
+   * @returns The created shader program.
+   */
+  export function createShaderProgram(fragment: string, vertex?: string): ShaderProgram {
+    return sim.createShaderProgram(fragment, vertex);
+  }
+
+  /**
+   * Creates a shader instance from a program with specified configuration.
+   *
+   * @param program The shader program to use.
+   * @param config Optional configuration including uniforms and blend mode.
+   * @returns The created shader instance.
+   */
+  export function createShader(program: ShaderProgram, config?: ShaderConfig): Shader {
+    return sim.createShader(program, config);
+  }
+
+  /**
+   * Updates uniforms on an existing shader instance.
+   *
+   * @param shader The shader to update.
+   * @param uniforms The new uniform values.
+   */
+  export function setShaderUniforms(
+    shader: Shader,
+    uniforms: Record<string, UniformDefinition>,
+  ): void {
+    sim.setShaderUniforms(shader, uniforms);
   }
 }

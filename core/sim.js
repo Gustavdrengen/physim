@@ -284,7 +284,9 @@ const __profiling = {
   exit() {
     if (!this.enabled) return;
     if (!this.stack.length) {
-      throw new Error("Profiling error: __PROFILE_EXIT called without matching __PROFILE_ENTER");
+      throw new Error(
+        "Profiling error: __PROFILE_EXIT called without matching __PROFILE_ENTER",
+      );
     }
     const frame = this.stack.pop();
     const duration = performance.now() - frame.start;
@@ -310,8 +312,10 @@ const __profiling = {
 
   getStats() {
     if (this.stack.length > 0) {
-      const remaining = this.stack.map(s => s.fullName).join(", ");
-      throw new Error(`Profiling error: ${this.stack.length} unclosed profiling region(s) remain: ${remaining}`);
+      const remaining = this.stack.map((s) => s.fullName).join(", ");
+      throw new Error(
+        `Profiling error: ${this.stack.length} unclosed profiling region(s) remain: ${remaining}`,
+      );
     }
     const result = [];
     for (const [fullName, stat] of this.stats) {
@@ -332,24 +336,52 @@ hiddenCanvas.width = canvas.width;
 hiddenCanvas.height = canvas.height;
 const hiddenCtx = hiddenCanvas.getContext("2d");
 
-const gl = canvas.getContext("webgl", { alpha: false, preserveDrawingBuffer: true });
+const gl = canvas.getContext("webgl", {
+  alpha: false,
+  preserveDrawingBuffer: true,
+});
 if (!gl) {
   throw new Error("WebGL not supported");
 }
+
+const programs = new Map();
+let nextProgramId = 1;
 
 const shaders = new Map();
 let nextShaderId = 1;
 
 const quadBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-  -1, -1, 0, 0,
-   1, -1, 1, 0,
-  -1,  1, 0, 1,
-  -1,  1, 0, 1,
-   1, -1, 1, 0,
-   1,  1, 1, 1,
-]), gl.STATIC_DRAW);
+gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array([
+    -1,
+    -1,
+    0,
+    0,
+    1,
+    -1,
+    1,
+    0,
+    -1,
+    1,
+    0,
+    1,
+    -1,
+    1,
+    0,
+    1,
+    1,
+    -1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    1,
+  ]),
+  gl.STATIC_DRAW,
+);
 
 const defaultVertexShader = `
 attribute vec2 position;
@@ -396,14 +428,102 @@ function createProgram(vSource, fSource) {
   return program;
 }
 
-const defaultProgram = createProgram(defaultVertexShader, defaultFragmentShader);
-const texture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, texture);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+const defaultProgram = createProgram(
+  defaultVertexShader,
+  defaultFragmentShader,
+);
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+// Offscreen framebuffer for shader processing
+const offscreenFramebuffer = gl.createFramebuffer();
+let offscreenTexture = gl.createTexture();
+let readTexture, writeTexture;
+let readFramebuffer, writeFramebuffer;
+
+function setupOffscreenTexture() {
+  gl.bindTexture(gl.TEXTURE_2D, offscreenTexture);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    canvas.width,
+    canvas.height,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null,
+  );
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, offscreenFramebuffer);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    offscreenTexture,
+    0,
+  );
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+setupOffscreenTexture();
+
+// Initialize ping-pong textures and framebuffers
+readTexture = gl.createTexture();
+writeTexture = gl.createTexture();
+
+readFramebuffer = gl.createFramebuffer();
+writeFramebuffer = gl.createFramebuffer();
+
+function setupPingPongTextures() {
+  const width = canvas.width;
+  const height = canvas.height;
+
+  for (const tex of [readTexture, writeTexture]) {
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      width,
+      height,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      null,
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  }
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, readFramebuffer);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    readTexture,
+    0,
+  );
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, writeFramebuffer);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    writeTexture,
+    0,
+  );
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+setupPingPongTextures();
+
+// Copy shader for blitting offscreen to visible canvas
+const copyProgram = defaultProgram;
 
 function fixCanvasDisplay() {
   const windowRatio = window.innerWidth / window.innerHeight;
@@ -465,8 +585,12 @@ const sim = {
     }
   },
   ctx: hiddenCtx,
+  document: window.parent.document,
   clear: (color) => {
-    let r = 0, g = 0, b = 0, a = 1;
+    let r = 0,
+      g = 0,
+      b = 0,
+      a = 1;
     if (typeof color === "string") {
       if (color.startsWith("#")) {
         const hex = color.slice(1);
@@ -480,7 +604,9 @@ const sim = {
           b = parseInt(hex.slice(4, 6), 16) / 255;
         }
       } else if (color.startsWith("rgb")) {
-        const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+        const match = color.match(
+          /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
+        );
         if (match) {
           r = parseInt(match[1]) / 255;
           g = parseInt(match[2]) / 255;
@@ -498,6 +624,7 @@ const sim = {
     hiddenCanvas.width = width;
     hiddenCanvas.height = height;
     gl.viewport(0, 0, width, height);
+    setupPingPongTextures();
     fixCanvasDisplay();
   },
   addSound: async (soundProps) => {
@@ -537,83 +664,119 @@ const sim = {
     __profiling.exit();
   },
 
-  createShader: (descriptor) => {
+  createShaderProgram: (fragment, vertex) => {
+    const id = nextProgramId++;
+    const program = createProgram(vertex || defaultVertexShader, fragment);
+    programs.set(id, program);
+    return id;
+  },
+
+  createShader: (programId, config = {}) => {
+    const program = programs.get(programId);
+    if (!program) throw new Error("Invalid program id");
+
     const id = nextShaderId++;
-    const program = createProgram(descriptor.vertex || defaultVertexShader, descriptor.fragment);
-    
     const uniformLocations = new Map();
-    if (descriptor.uniforms) {
-      for (const name in descriptor.uniforms) {
-        uniformLocations.set(name, gl.getUniformLocation(program, name));
-      }
+    const uniforms = config.uniforms || {};
+
+    for (const name in uniforms) {
+      uniformLocations.set(name, gl.getUniformLocation(program, name));
     }
 
     shaders.set(id, {
-      program,
-      uniforms: descriptor.uniforms || {},
+      programId,
+      uniforms: { ...uniforms },
       uniformLocations,
-      blend: descriptor.blend || "alpha"
+      blend: config.blend || "alpha",
     });
     return id;
   },
 
-  applyShader: (shaderId, runtimeUniforms = {}) => {
+  setShaderUniforms: (shaderId, newUniforms) => {
     const shader = shaders.get(shaderId);
-    const program = shader ? shader.program : defaultProgram;
+    if (!shader) throw new Error("Invalid shader id");
+
+    const program = programs.get(shader.programId);
+    if (!program) return;
+
+    for (const name in newUniforms) {
+      shader.uniforms[name] = newUniforms[name];
+      shader.uniformLocations.set(name, gl.getUniformLocation(program, name));
+    }
+  },
+  applyShader: (shaderId) => {
+    const pixel = new Uint8Array(4);
+
+    const shader = shaders.get(shaderId);
+    const programId = shader ? shader.programId : null;
+    const program = programId ? programs.get(programId) : defaultProgram;
+
     const uniformLocations = shader ? shader.uniformLocations : new Map();
-    const baseUniforms = shader ? shader.uniforms : {};
+    const uniforms = shader ? shader.uniforms : {};
     const blend = shader ? shader.blend : "alpha";
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
+    // First pass: upload hiddenCanvas into READ texture
+    if (firstShaderInFrame) {
+      gl.bindTexture(gl.TEXTURE_2D, readTexture);
 
-    if (shaderId !== 0) {
-      // 1. Flush 2D to WebGL using default program
-      gl.useProgram(defaultProgram);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, hiddenCanvas);
-      
-      const uImgLocDefault = gl.getUniformLocation(defaultProgram, "u_image");
-      if (uImgLocDefault !== null) gl.uniform1i(uImgLocDefault, 0);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        hiddenCanvas,
+      );
 
-      const posLoc = gl.getAttribLocation(defaultProgram, "position");
-      const texLoc = gl.getAttribLocation(defaultProgram, "texCoord");
-      gl.enableVertexAttribArray(posLoc);
-      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 16, 0);
-      gl.enableVertexAttribArray(texLoc);
-      gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 16, 8);
-      
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-      
-      hiddenCtx.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-
-      // 2. Copy the result back to texture for processing
-      gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 0, 0, canvas.width, canvas.height, 0);
-    } else {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, hiddenCanvas);
+      firstShaderInFrame = false;
     }
 
-    // Apply the requested shader
+    anyShaderRun = true;
+
+// Render INTO write framebuffer
+    gl.bindFramebuffer(gl.FRAMEBUFFER, writeFramebuffer);
+
+    const fbStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (fbStatus !== gl.FRAMEBUFFER_COMPLETE) {
+      console.error('Framebuffer incomplete:', fbStatus);
+      return;
+    }
+
+    // Use program BEFORE uniforms
     gl.useProgram(program);
-    
+
+    // Use READ texture as shader input
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, readTexture);
+
+    const uImageLoc = gl.getUniformLocation(program, "u_image");
+    if (uImageLoc !== null) {
+      gl.uniform1i(uImageLoc, 0);
+    }
+
+    // Vertex setup
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+
     const positionLoc = gl.getAttribLocation(program, "position");
     const texCoordLoc = gl.getAttribLocation(program, "texCoord");
+
     if (positionLoc !== -1) {
       gl.enableVertexAttribArray(positionLoc);
       gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 16, 0);
     }
+
     if (texCoordLoc !== -1) {
       gl.enableVertexAttribArray(texCoordLoc);
       gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 16, 8);
     }
 
+    // Apply uniforms
     for (const [name, location] of uniformLocations) {
-      const def = baseUniforms[name];
+      const def = uniforms[name];
       if (!def) continue;
-      const value = runtimeUniforms[name] !== undefined ? runtimeUniforms[name] : def.value;
-      
+
+      const value = def.value;
+
       if (def.type === "float") gl.uniform1f(location, value);
       else if (def.type === "vec2") gl.uniform2fv(location, value);
       else if (def.type === "vec3") gl.uniform3fv(location, value);
@@ -623,9 +786,7 @@ const sim = {
       else if (def.type === "sampler2D") gl.uniform1i(location, 0);
     }
 
-    const uImageLoc = gl.getUniformLocation(program, "u_image");
-    if (uImageLoc !== null) gl.uniform1i(uImageLoc, 0);
-
+    // Blend
     if (blend === "alpha") {
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -642,10 +803,113 @@ const sim = {
       gl.disable(gl.BLEND);
     }
 
+    // Draw
     gl.drawArrays(gl.TRIANGLES, 0, 6);
-    hiddenCtx.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-  }
+
+    // Debug pixel AFTER draw
+    gl.finish(); // debugging only
+    gl.readPixels(100, 100, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+
+    console.log(pixel);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // Swap textures/framebuffers (ping-pong)
+    [readTexture, writeTexture] = [writeTexture, readTexture];
+
+    [readFramebuffer, writeFramebuffer] = [writeFramebuffer, readFramebuffer];
+  },
 };
+
+let needsFlush = false;
+let anyShaderRun = false;
+let firstShaderInFrame = true;
+
+function _flushFrame() {
+  // If no shader ran this frame, upload 2D canvas into read texture
+  if (needsFlush && !anyShaderRun) {
+    gl.bindTexture(gl.TEXTURE_2D, readTexture);
+
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      hiddenCanvas,
+    );
+  }
+
+  // Clear 2D staging canvas
+  hiddenCtx.clearRect(
+    0,
+    0,
+    hiddenCanvas.width,
+    hiddenCanvas.height,
+  );
+
+  needsFlush = false;
+  anyShaderRun = false;
+
+  // Draw final texture to screen
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+  gl.viewport(
+    0,
+    0,
+    gl.canvas.width,
+    gl.canvas.height,
+  );
+
+  gl.useProgram(copyProgram);
+
+  gl.activeTexture(gl.TEXTURE0);
+
+  // IMPORTANT: use final ping-pong result
+  gl.bindTexture(gl.TEXTURE_2D, readTexture);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+
+  const positionLoc = gl.getAttribLocation(copyProgram, "position");
+
+  const texCoordLoc = gl.getAttribLocation(copyProgram, "texCoord");
+
+  if (positionLoc !== -1) {
+    gl.enableVertexAttribArray(positionLoc);
+    gl.vertexAttribPointer(
+      positionLoc,
+      2,
+      gl.FLOAT,
+      false,
+      16,
+      0,
+    );
+  }
+
+  if (texCoordLoc !== -1) {
+    gl.enableVertexAttribArray(texCoordLoc);
+    gl.vertexAttribPointer(
+      texCoordLoc,
+      2,
+      gl.FLOAT,
+      false,
+      16,
+      8,
+    );
+  }
+
+  const uImageLoc = gl.getUniformLocation(copyProgram, "u_image");
+
+  if (uImageLoc !== null) {
+    gl.uniform1i(uImageLoc, 0);
+  }
+
+  gl.disable(gl.BLEND);
+
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+  needsFlush = true;
+}
 
 fetch("/begin", {
   method: "POST",
@@ -736,11 +1000,11 @@ sim.run = (onUpdate) => {
         frameCount++;
         framesThisSecond++;
 
-        if (typeof MAX_TIME !== "undefined" && (frameCount / 60) > MAX_TIME) {
+        if (typeof MAX_TIME !== "undefined" && frameCount / 60 > MAX_TIME) {
           fetch("/terminate_requirement", {
             method: "POST",
             body: JSON.stringify({
-              message: `In-simulation time limit exceeded (${MAX_TIME}s)`
+              message: `In-simulation time limit exceeded (${MAX_TIME}s)`,
             }),
             headers: { "Content-Type": "application/json" },
           }).catch(() => {});
@@ -748,11 +1012,13 @@ sim.run = (onUpdate) => {
           return;
         }
 
+        needsFlush = true;
+        firstShaderInFrame = true;
         const result = onUpdate();
         if (result instanceof Promise) {
           await result.catch(errorHandler);
         }
-        sim.applyShader(0);
+        _flushFrame();
       } catch (err) {
         errorHandler(err);
       }

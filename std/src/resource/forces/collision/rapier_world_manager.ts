@@ -63,7 +63,7 @@ export class RapierWorldManager {
     await RAPIER.init();
     this._eventQueue = new RAPIER.EventQueue(true);
     this._rapierWorld = new RAPIER.World(new RAPIER.Vector2(0, 0));
-    this._rapierWorld.numSolverIterations = 8;
+    this._rapierWorld.numSolverIterations = 16;
   }
 
   // @profile "RapierWorldManager.step"
@@ -348,13 +348,17 @@ export class RapierWorldManager {
             innerVertices[i],
           ];
 
-          const transformedVertices = wallVerts.map((v) => {
-            const rx = v.x * cosR - v.y * sinR + position.x;
-            const ry = v.x * sinR + v.y * cosR + position.y;
-            return [rx, ry];
-          }).flat();
+          const transformedVertices = wallVerts
+            .map((v) => {
+              const rx = v.x * cosR - v.y * sinR + position.x;
+              const ry = v.x * sinR + v.y * cosR + position.y;
+              return [rx, ry];
+            })
+            .flat();
 
-          const desc = RAPIER.ColliderDesc.convexHull(new Float32Array(transformedVertices));
+          const desc = RAPIER.ColliderDesc.convexHull(
+            new Float32Array(transformedVertices),
+          );
           if (!desc) continue;
 
           applyProps(desc);
@@ -485,7 +489,10 @@ export class RapierWorldManager {
     rapierObjects.bodySignature = nextSignature;
 
     if (rapierObjects.rigidBody.isDynamic()) {
-      const mass = this._physics.mass.get(entity) ?? rapierObjects.defaultProps.mass ?? 1.0;
+      const mass =
+        this._physics.mass.get(entity) ??
+        rapierObjects.defaultProps.mass ??
+        1.0;
       const inertia = this.computeApproximateInertiaForBody(body, mass);
       rapierObjects.rigidBody.setAdditionalMassProperties(
         mass,
@@ -612,7 +619,9 @@ export class RapierWorldManager {
         const { vertices, width } = part.shape;
         let totalLen = 0;
         for (let i = 0; i < vertices.length; i++) {
-          totalLen += vertices[(i + 1) % vertices.length].sub(vertices[i]).length();
+          totalLen += vertices[(i + 1) % vertices.length]
+            .sub(vertices[i])
+            .length();
         }
 
         if (totalLen > 0) {
