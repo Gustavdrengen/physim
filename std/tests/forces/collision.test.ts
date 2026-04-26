@@ -1,9 +1,9 @@
-import { test, expect } from "../../test.ts";
-import { initCollisionForce } from "physim/forces/collision";
-import { Physics, Entity, Vec2 } from "physim/base";
-import { initBodyComponent, Body, createCircle } from "physim/bodies";
+import { test, expect } from '../../test.ts';
+import { initCollisionForce } from 'physim/forces/collision';
+import { Physics, Entity, Vec2 } from 'physim/base';
+import { initBodyComponent, Body, createCircle } from 'physim/bodies';
 
-await test("initCollisionForce - collision callback", async () => {
+await test('initCollisionForce - collision callback', async () => {
   const physics = new Physics();
   const bodyComponent = initBodyComponent(physics);
   const collisionForce = await initCollisionForce(physics, bodyComponent);
@@ -41,7 +41,7 @@ await test("initCollisionForce - collision callback", async () => {
   }
 });
 
-await test("initCollisionForce - constantPull matches base physics timing", async () => {
+await test('initCollisionForce - constantPull matches base physics timing', async () => {
   const physics = new Physics();
   physics.constantPull = new Vec2(0, 10);
 
@@ -58,7 +58,7 @@ await test("initCollisionForce - constantPull matches base physics timing", asyn
   expect(physics.velocity.get(entity)?.y).toBe(10);
 });
 
-await test("initCollisionForce - angular velocity sync with Rapier", async () => {
+await test('initCollisionForce - angular velocity sync with Rapier', async () => {
   const physics = new Physics();
   const bodyComponent = initBodyComponent(physics);
   const collisionForce = await initCollisionForce(physics, bodyComponent);
@@ -75,7 +75,7 @@ await test("initCollisionForce - angular velocity sync with Rapier", async () =>
 
   // Angular velocity should be preserved after sync
   expect(body.angularVelocity).toBeCloseTo(Math.PI, 4);
-  
+
   // Rotation should have increased due to angular velocity integration
   expect(body.rotation).toBeGreaterThan(0);
 });

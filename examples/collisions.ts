@@ -17,9 +17,9 @@ import { SFX } from "physim/sounds";
 // --- Configuration ---
 const WIDTH = 1920;
 const HEIGHT = 1080;
-const ZOOM = 0.8;
+const ZOOM = 1;
 const RESTITUTION = 0.8;
-const CONSTANT_PULL = 50;
+const CONSTANT_PULL = 1;
 const TRAIL_COLOR_START = new Color(255, 255, 255);
 const TRAIL_COLOR_END = new Color(255, 255, 255, 0);
 
