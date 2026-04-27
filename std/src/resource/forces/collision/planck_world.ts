@@ -8,6 +8,8 @@ import { WorldPort } from "./world_port.ts";
 
 export type { DefaultCollisionProperties };
 
+const SCALE = 50;
+
 interface EntityData {
   body: planck.Body;
   bodySignature: string;
@@ -62,10 +64,10 @@ export class PlanckWorldManager implements WorldPort {
 
       if (wm.pointCount > 0) {
         const wp = wm.points[0];
-        position = new Vec2(wp.x, wp.y);
+        position = new Vec2(wp.x * SCALE, wp.y * SCALE);
       } else {
         const posA = fixtureA.getBody().getPosition();
-        position = new Vec2(posA.x, posA.y);
+        position = new Vec2(posA.x * SCALE, posA.y * SCALE);
       }
 
       this._pendingCollisions.push({
@@ -98,7 +100,7 @@ export class PlanckWorldManager implements WorldPort {
 
     const bodyDef: any = {
       type: isStatic ? "static" : "dynamic",
-      position: { x: entity.pos.x, y: entity.pos.y },
+      position: { x: entity.pos.x / SCALE, y: entity.pos.y / SCALE },
       angle: body.rotation,
       allowSleep: false,
       awake: true,
@@ -131,7 +133,7 @@ export class PlanckWorldManager implements WorldPort {
       const density = isStatic
         ? 0
         : (this._physics.mass.get(entity) ?? defaultProps.mass ?? 1.0) /
-        this.computeArea(part.shape);
+          this.computeArea(part.shape);
       for (const shape of shapes) {
         const fixture = planckBody.createFixture(shape, {
           density: Math.max(density, 0.001),
@@ -182,12 +184,15 @@ export class PlanckWorldManager implements WorldPort {
       if (!bodyComp) continue;
 
       if (data.body.isStatic()) {
-        data.body.setPosition({ x: entity.pos.x, y: entity.pos.y });
+        data.body.setPosition({
+          x: entity.pos.x / SCALE,
+          y: entity.pos.y / SCALE,
+        });
         data.body.setAngle(bodyComp.rotation);
       } else {
         const velocity = this._physics.velocity.get(entity);
         const vel = velocity ?? { x: 0, y: 0 };
-        data.body.setLinearVelocity(vel);
+        data.body.setLinearVelocity({ x: vel.x / SCALE, y: vel.y / SCALE });
         data.body.setAngularVelocity(bodyComp.angularVelocity);
         data.body.setAngle(bodyComp.rotation);
       }
@@ -210,13 +215,13 @@ export class PlanckWorldManager implements WorldPort {
       }
 
       const pos = data.body.getPosition();
-      entity.pos.x = pos.x;
-      entity.pos.y = pos.y;
+      entity.pos.x = pos.x * SCALE;
+      entity.pos.y = pos.y * SCALE;
 
       const linvel = data.body.getLinearVelocity();
       (this._physics.velocity as Component<Vec2>).set(
         entity,
-        new Vec2(linvel.x, linvel.y),
+        new Vec2(linvel.x * SCALE, linvel.y * SCALE),
       );
       const syncedVel = this._physics.velocity.get(entity);
 
@@ -252,18 +257,23 @@ export class PlanckWorldManager implements WorldPort {
     }
   }
 
-  syncRigidBodyToEntity(entity: Entity): void { }
+  syncRigidBodyToEntity(entity: Entity): void {}
 
-  syncEntityToRigidBody(entity: Entity): void { }
+  syncEntityToRigidBody(entity: Entity): void {}
 
   private createPlanckShapes(shape: Body["parts"][0]["shape"]): planck.Shape[] {
     switch (shape.type) {
       case "circle": {
-        return [planck.Circle(shape.radius)];
+        return [planck.Circle(shape.radius / SCALE)];
       }
       case "polygon": {
         return [
-          planck.Polygon(shape.vertices.map((v: Vec2) => ({ x: v.x, y: v.y }))),
+          planck.Polygon(
+            shape.vertices.map((v: Vec2) => ({
+              x: v.x / SCALE,
+              y: v.y / SCALE,
+            })),
+          ),
         ];
       }
       case "ring": {
@@ -294,8 +304,8 @@ export class PlanckWorldManager implements WorldPort {
         const segmentShapes = this.createRingSegmentShapes(
           currentAngle,
           gap.startAngle,
-          shape.innerRadius,
-          shape.outerRadius,
+          shape.innerRadius / SCALE,
+          shape.outerRadius / SCALE,
         );
         shapes.push(...segmentShapes);
       }
@@ -306,8 +316,8 @@ export class PlanckWorldManager implements WorldPort {
       const segmentShapes = this.createRingSegmentShapes(
         currentAngle,
         2 * Math.PI,
-        shape.innerRadius,
-        shape.outerRadius,
+        shape.innerRadius / SCALE,
+        shape.outerRadius / SCALE,
       );
       shapes.push(...segmentShapes);
     }
@@ -360,7 +370,7 @@ export class PlanckWorldManager implements WorldPort {
     vertices: Vec2[];
     width: number;
   }): planck.Shape[] {
-    const halfWidth = shape.width / 2;
+    const halfWidth = shape.width / 2 / SCALE;
     const innerVertices: Vec2[] = [];
     const outerVertices: Vec2[] = [];
 
@@ -390,10 +400,10 @@ export class PlanckWorldManager implements WorldPort {
       const next = (i + 1) % shape.vertices.length;
 
       const quad: { x: number; y: number }[] = [
-        { x: outerVertices[i].x, y: outerVertices[i].y },
-        { x: outerVertices[next].x, y: outerVertices[next].y },
-        { x: innerVertices[next].x, y: innerVertices[next].y },
-        { x: innerVertices[i].x, y: innerVertices[i].y },
+        { x: outerVertices[i].x / SCALE, y: outerVertices[i].y / SCALE },
+        { x: outerVertices[next].x / SCALE, y: outerVertices[next].y / SCALE },
+        { x: innerVertices[next].x / SCALE, y: innerVertices[next].y / SCALE },
+        { x: innerVertices[i].x / SCALE, y: innerVertices[i].y / SCALE },
       ];
 
       shapes.push(planck.Polygon(quad));

@@ -87,7 +87,6 @@ export function incrementFrameCount(): void {
 }
 
 export function updateFPS(): void {
-  console.log("this should only be called once per second");
   frameCountState.currentFPS = frameCountState.framesThisSecond;
   frameCountState.currentFrameTime =
     frameCountState.currentFPS > 0 ? 1000 / frameCountState.currentFPS : 0;
