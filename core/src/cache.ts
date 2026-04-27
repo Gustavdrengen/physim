@@ -1,5 +1,7 @@
 import { ensureDir } from "@std/fs";
+import { join } from "@std/path";
 import * as print from "./print.ts";
+import { CACHE_DIR } from "./paths.ts";
 
 interface CacheMetadata {
   url: string;
@@ -7,24 +9,7 @@ interface CacheMetadata {
   size: number;
 }
 
-function getPlatformCacheDir(appName = "physim"): string {
-  const os = Deno.build.os;
-  const home = Deno.env.get("HOME") ?? Deno.env.get("USERPROFILE") ?? ".";
-  if (os === "windows") {
-    const local = Deno.env.get("LOCALAPPDATA") ?? `${home}\\AppData\\Local`;
-    return `${local}\\${appName}\\Cache`;
-  }
-  if (os === "darwin") {
-    return `${home}/Library/Caches/${appName}`;
-  }
-  // linux and other unix-like
-  const xdg = Deno.env.get("XDG_CACHE_HOME") ?? `${home}/.cache`;
-  return `${xdg}/${appName}`;
-}
-
-const PATH_SEP = Deno.build.os === "windows" ? "\\" : "/";
-const CACHE_DIR = getPlatformCacheDir("physim");
-const METADATA_FILE = `${CACHE_DIR}${PATH_SEP}metadata.json`;
+const METADATA_FILE = join(CACHE_DIR, "metadata.json");
 const MAX_CACHE_SIZE = 200 * 1024 * 1024;
 
 async function loadMetadata(): Promise<Map<string, CacheMetadata>> {

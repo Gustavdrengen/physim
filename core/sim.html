@@ -1,71 +1,108 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physim</title>
+    <style>
+      CSS
+    </style>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Physim</title>
-  <style>
-    CSS
-  </style>
-</head>
+  <body>
+    <canvas id="sim" width="1920" height="1080"></canvas>
 
-<body>
-  <canvas id="sim" width="1920" height="1080"></canvas>
+    <nav class="navbar" id="navbar">
+      <div class="nav-content">
+        <button class="stop-btn" id="stopBtn" title="Stop Simulation">
+          <svg class="icon stop-icon" viewBox="0 0 24 24">
+            <rect x="6" y="6" width="12" height="12" rx="2" />
+          </svg>
+        </button>
+        <button class="terminal-btn" id="terminalBtn" title="Toggle Terminal">
+          <svg class="icon terminal-icon" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </button>
+        <button class="debug-btn" id="debugBtn" title="Toggle Debug Info">
+          <svg class="icon debug-icon" viewBox="0 0 24 24">
+            <path
+              d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c.45.78 1.07 1.45 1.82 1.96L7 21.59 8.41 23l2.17-2.17c.45.11.92.17 1.41.17.49 0 .96-.06 1.41-.17L15.59 23 17 21.59l-1.62-1.63c.75-.51 1.37-1.18 1.82-1.96H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-2v-2h2v2zm0-4h-2V9h2v2z"
+            />
+          </svg>
+        </button>
+        <button class="hide-nav-btn" id="hideNavBtn" title="Hide Navbar">
+          <svg class="icon hide-icon" viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </button>
+      </div>
+    </nav>
 
-  <nav class="navbar" id="navbar">
-    <div class="nav-content">
-      <button class="stop-btn" id="stopBtn" title="Stop Simulation">
-        <svg class="icon stop-icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-      </button>
-      <button class="terminal-btn" id="terminalBtn" title="Toggle Terminal">
-        <svg class="icon terminal-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button class="debug-btn" id="debugBtn" title="Toggle Debug Info">
-        <svg class="icon debug-icon" viewBox="0 0 24 24"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5c-.49 0-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c.45.78 1.07 1.45 1.82 1.96L7 21.59 8.41 23l2.17-2.17c.45.11.92.17 1.41.17.49 0 .96-.06 1.41-.17L15.59 23 17 21.59l-1.62-1.63c.75-.51 1.37-1.18 1.82-1.96H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-2v-2h2v2zm0-4h-2V9h2v2z"/></svg>
-      </button>
-      <button class="hide-nav-btn" id="hideNavBtn" title="Hide Navbar">
-        <svg class="icon hide-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
+    <button class="show-nav-btn" id="showNavBtn" title="Show Navbar">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+      </svg>
+    </button>
+
+    <div class="terminal-container" id="terminal">
+      <div class="terminal-header">
+        <span class="terminal-title">Terminal</span>
+        <button class="close-btn" id="closeTerminalBtn">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="terminal-body" id="terminalBody"></div>
     </div>
-  </nav>
 
-  <button class="show-nav-btn" id="showNavBtn" title="Show Navbar">
-    <svg class="icon" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-  </button>
-
-  <div class="terminal-container" id="terminal">
-    <div class="terminal-header">
-      <span class="terminal-title">Terminal</span>
-      <button class="close-btn" id="closeTerminalBtn">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="terminal-body" id="terminalBody"></div>
-  </div>
-
-  <div class="debug-container" id="debug">
-    <div class="debug-header">
-      <span class="debug-title">Debug Info</span>
-      <button class="close-btn" id="closeDebugBtn">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <div class="debug-body" id="debugBody">
-      <div class="debug-item">Frame: <span id="debugFrame">Loading...</span></div>
-      <div class="debug-item">Time: <span id="debugTime">Loading...</span></div>
-      <div class="debug-item">FPS: <span id="debugFPS">Loading...</span></div>
-      <div class="debug-item">Frame Time: <span id="debugFrameTime">Loading...</span></div>
-      <div class="debug-section" id="debugProfilingSection" style="display: none;">
-        <div class="debug-subtitle">Profiling</div>
-        <div id="debugProfiling"></div>
+    <div class="debug-container" id="debug">
+      <div class="debug-header">
+        <span class="debug-title">Debug Info</span>
+        <button class="close-btn" id="closeDebugBtn">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="debug-body" id="debugBody">
+        <div class="debug-item">
+          Frame: <span id="debugFrame">Loading...</span>
+        </div>
+        <div class="debug-item">
+          Time: <span id="debugTime">Loading...</span>
+        </div>
+        <div class="debug-item">FPS: <span id="debugFPS">Loading...</span></div>
+        <div class="debug-item">
+          Frame Time: <span id="debugFrameTime">Loading...</span>
+        </div>
+        <div
+          class="debug-section"
+          id="debugProfilingSection"
+          style="display: none"
+        >
+          <div class="debug-subtitle">Profiling</div>
+          <div id="debugProfiling"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script type="module">
-    //JS
-  </script>
-</body>
-
+    <script>
+      // Global configuration - these are referenced in the bundled sim.js
+      window.PROFILING = false;
+      window.SHOULD_RECORD = false;
+      window.NO_THROTTLE = false;
+      window.MAX_TIME = undefined;
+    </script>
+    <script type="module">
+      //JS
+    </script>
+  </body>
 </html>

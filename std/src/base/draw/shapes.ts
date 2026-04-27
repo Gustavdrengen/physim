@@ -1,6 +1,6 @@
-import { Vec2 } from '../vec.ts';
-import { Color } from './color.ts';
-import { text as _text } from './text.ts';
+import { Vec2 } from "../vec.ts";
+import { Color } from "./color.ts";
+import { text as _text } from "./text.ts";
 
 function _colorToCss(c: Color | string): string {
   if (c instanceof Color) return c.toCSS();
@@ -76,7 +76,13 @@ export namespace Draw {
     ctx.fillStyle = _colorToCss(color);
     if (borderRadius !== undefined) {
       ctx.beginPath();
-      ctx.roundRect(pos.x - width / 2, pos.y - height / 2, width, height, borderRadius);
+      ctx.roundRect(
+        pos.x - width / 2,
+        pos.y - height / 2,
+        width,
+        height,
+        borderRadius,
+      );
       ctx.fill();
     } else {
       ctx.fillRect(pos.x - width / 2, pos.y - height / 2, width, height);
@@ -144,13 +150,26 @@ export namespace Draw {
     }
   }
 
+  let width = 1920;
+  let height = 1080;
+
   /**
    * Sets the size of the canvas.
    * @param width The new width of the canvas.
    * @param height The new height of the canvas.
    */
   export function setCanvasSize(width: number, height: number): void {
+    width = width;
+    height = height;
     sim.resizeCanvas(width, height);
+  }
+
+  /**
+   * Gets the current size of the canvas.
+   * @returns An object containing the width and height of the canvas.
+   */
+  export function getCanvasSize(): { width: number; height: number } {
+    return { width, height };
   }
 
   /**
@@ -219,7 +238,10 @@ export namespace Draw {
    * @param vertex Optional custom vertex shader source.
    * @returns The created shader program.
    */
-  export function createShaderProgram(fragment: string, vertex?: string): ShaderProgram {
+  export function createShaderProgram(
+    fragment: string,
+    vertex?: string,
+  ): ShaderProgram {
     return sim.createShaderProgram(fragment, vertex);
   }
 
@@ -230,7 +252,10 @@ export namespace Draw {
    * @param config Optional configuration including uniforms and blend mode.
    * @returns The created shader instance.
    */
-  export function createShader(program: ShaderProgram, config?: ShaderConfig): Shader {
+  export function createShader(
+    program: ShaderProgram,
+    config?: ShaderConfig,
+  ): Shader {
     return sim.createShader(program, config);
   }
 

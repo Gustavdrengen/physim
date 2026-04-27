@@ -3,6 +3,7 @@ import { Display } from "./display.ts";
 import { Physics } from "./physics.ts";
 
 /**
+
  * The `Simulation` class is the main entry point for creating and managing a simulation.
  * It integrates physics calculations and display rendering into a single cohesive API.
  *

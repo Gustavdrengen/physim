@@ -15,18 +15,11 @@ import { AssetManager } from "./assets.ts";
 import * as print from "../print.ts";
 import { openWebview } from "./webview.ts";
 import { TraceMap } from "@jridgewell/trace-mapping";
+import { CACHE_DIR } from "../paths.ts";
 
 const coreDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
 const htmlPath = join(coreDir, "sim.html");
-const jsPath = join(coreDir, "sim.js");
 const cssPath = join(coreDir, "sim.css");
-
-const htmlContentRaw = await Deno.readTextFile(htmlPath);
-const jsContent = await Deno.readTextFile(jsPath);
-const cssContent = await Deno.readTextFile(cssPath);
-let htmlContent = htmlContentRaw
-  .replace("//JS", jsContent)
-  .replace("CSS", cssContent);
 
 export async function runServer(
   bundle: string,
@@ -52,6 +45,15 @@ export async function runServer(
   let frame = 0;
   const logs: string[] = [];
 
+  const jsPath = join(CACHE_DIR, 'sim.js');
+  const jsContent = await Deno.readTextFile(jsPath);
+
+  const htmlContentRaw = await Deno.readTextFile(htmlPath);
+  const cssContent = await Deno.readTextFile(cssPath);
+  let htmlContent = htmlContentRaw
+    .replace('//JS', jsContent)
+    .replace('CSS', cssContent);
+
   const simCode = await Deno.readFile(bundle);
 
   let traceMap: TraceMap | null = null;
@@ -64,28 +66,26 @@ export async function runServer(
 
   const videoPath = record;
 
-  if (record) {
-    htmlContent = htmlContent.replaceAll("SHOULD_RECORD", "true");
+if (record) {
+    htmlContent = htmlContent.replace(/window\\.SHOULD_RECORD = false/g, 'window.SHOULD_RECORD = true');
   } else {
-    htmlContent = htmlContent.replaceAll("SHOULD_RECORD", "false");
-  }
-  
-  if (profiling) {
-    htmlContent = htmlContent.replaceAll("PROFILING", "true");
-  } else {
-    htmlContent = htmlContent.replaceAll("PROFILING", "false");
-  }
-  
-  if (noThrottle) {
-    htmlContent = htmlContent.replaceAll("NO_THROTTLE", "true");
-  } else {
-    htmlContent = htmlContent.replaceAll("NO_THROTTLE", "false");
+    htmlContent = htmlContent.replace(/window\\.SHOULD_RECORD = true/g, 'window.SHOULD_RECORD = false');
   }
 
-  if (errorOnTime !== undefined) {
-    htmlContent = htmlContent.replaceAll("MAX_TIME", errorOnTime.toString());
+  if (profiling) {
+    htmlContent = htmlContent.replace(/window\\.PROFILING = false/g, 'window.PROFILING = true');
   } else {
-    htmlContent = htmlContent.replaceAll("MAX_TIME", "undefined");
+    htmlContent = htmlContent.replace(/window\\.PROFILING = true/g, 'window.PROFILING = false');
+  }
+
+  if (noThrottle) {
+    htmlContent = htmlContent.replace(/window\\.NO_THROTTLE = false/g, 'window.NO_THROTTLE = true');
+  } else {
+    htmlContent = htmlContent.replace(/window\\.NO_THROTTLE = true/g, 'window.NO_THROTTLE = false');
+  }
+
+if (errorOnTime !== undefined) {
+    htmlContent = htmlContent.replace(/window\\.MAX_TIME = undefined/g, `window.MAX_TIME = ${errorOnTime}`);
   }
 
   let ret;

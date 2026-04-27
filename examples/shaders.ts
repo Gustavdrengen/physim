@@ -97,13 +97,13 @@ gui.addSlider({
   onChange: (v) => colorGrading.setSaturation(v),
 });
 
-const pixelation = createPixelationEffect(0.1);
+const pixelation = createPixelationEffect(1);
 sim.display.addShader(pixelation.shader);
 gui.addSlider({
-  label: 'Pixel Size',
-  min: 0.01,
-  max: 0.5,
-  value: 0.1,
+  label: "Pixel Size",
+  min: 1,
+  max: 100,
+  value: 1,
   onChange: (v) => pixelation.setPixelSize(v),
 });
 

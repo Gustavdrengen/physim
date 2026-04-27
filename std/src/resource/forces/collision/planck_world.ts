@@ -55,18 +55,8 @@ export class PlanckWorldManager implements WorldPort {
       const velA = bodyA.getLinearVelocity();
       const velB = bodyB.getLinearVelocity();
 
-      console.log("=== COLLISION DEBUG ===");
-      console.log("Fixture A restitution:", fixtureA.getRestitution());
-      console.log("Fixture B restitution:", fixtureB.getRestitution());
-      console.log("Body A velocity before:", velA.x, velA.y);
-      console.log("Body B velocity before:", velB.x, velB.y);
-      console.log("Body A isStatic:", bodyA.isStatic());
-      console.log("Body B isStatic:", bodyB.isStatic());
-
       const wm = new planck.WorldManifold();
       (contact as any).getWorldManifold(wm);
-      console.log("WorldManifold normal:", wm.normal?.x, wm.normal?.y);
-      console.log("WorldManifold pointCount:", wm.pointCount);
 
       let position = new Vec2(0, 0);
 
@@ -141,7 +131,7 @@ export class PlanckWorldManager implements WorldPort {
       const density = isStatic
         ? 0
         : (this._physics.mass.get(entity) ?? defaultProps.mass ?? 1.0) /
-          this.computeArea(part.shape);
+        this.computeArea(part.shape);
       for (const shape of shapes) {
         const fixture = planckBody.createFixture(shape, {
           density: Math.max(density, 0.001),
@@ -205,13 +195,10 @@ export class PlanckWorldManager implements WorldPort {
 
     this._world.step(1 / 60);
 
-    console.log("=== POST STEP DEBUG ===");
     for (const [entity, data] of this._entityToData) {
       if (data.body.isStatic()) continue;
       const vel = data.body.getLinearVelocity();
-      console.log("Post-step velocity:", vel.x, vel.y);
     }
-    console.log("=== END POST STEP ===");
 
     for (const [entity, data] of this._entityToData) {
       this.updateRestitution(entity, data);
@@ -223,18 +210,15 @@ export class PlanckWorldManager implements WorldPort {
       }
 
       const pos = data.body.getPosition();
-      console.log("Syncing position to entity:", pos.x, pos.y);
       entity.pos.x = pos.x;
       entity.pos.y = pos.y;
 
       const linvel = data.body.getLinearVelocity();
-      console.log("Syncing TO entity velocity:", linvel.x, linvel.y);
       (this._physics.velocity as Component<Vec2>).set(
         entity,
         new Vec2(linvel.x, linvel.y),
       );
       const syncedVel = this._physics.velocity.get(entity);
-      console.log("Entity velocity AFTER sync:", syncedVel?.x, syncedVel?.y);
 
       bodyComp.angularVelocity = data.body.getAngularVelocity();
       bodyComp.rotation = data.body.getAngle();
@@ -268,9 +252,9 @@ export class PlanckWorldManager implements WorldPort {
     }
   }
 
-  syncRigidBodyToEntity(entity: Entity): void {}
+  syncRigidBodyToEntity(entity: Entity): void { }
 
-  syncEntityToRigidBody(entity: Entity): void {}
+  syncEntityToRigidBody(entity: Entity): void { }
 
   private createPlanckShapes(shape: Body["parts"][0]["shape"]): planck.Shape[] {
     switch (shape.type) {

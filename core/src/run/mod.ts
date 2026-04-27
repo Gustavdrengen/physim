@@ -1,11 +1,12 @@
-import { dirname } from "@std/path";
-import { buildSimulation } from "./build.ts";
-import { failed, Failure, Result } from "../err.ts";
-import { runServer } from "./serve.ts";
-import { AssetManager } from "./assets.ts";
-import { AudioPlayer } from "./audio/mod.ts";
-import { fail, InputFailureTag } from "../err.ts";
-import * as print from "../print.ts";
+import { dirname } from '@std/path';
+import { buildSimulation } from './build.ts';
+import { buildSimIfNeeded } from './build_sim.ts';
+import { failed, Failure, Result } from '../err.ts';
+import { runServer } from './serve.ts';
+import { AssetManager } from './assets.ts';
+import { AudioPlayer } from './audio/mod.ts';
+import { fail, InputFailureTag } from '../err.ts';
+import * as print from '../print.ts';
 
 export async function run(
   entrypoint: string,
@@ -30,6 +31,8 @@ export async function run(
       `Entrypoint not found: ${entrypoint}`,
     );
   }
+
+  await buildSimIfNeeded({});
 
   const tempDirName = await Deno.makeTempDir();
   const outfile = `${tempDirName}/out.js`;

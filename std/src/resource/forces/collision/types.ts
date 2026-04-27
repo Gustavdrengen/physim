@@ -1,5 +1,5 @@
-import { Entity } from '../../../base/entity.ts';
-import { Vec2 } from '../../../base/vec.ts';
+import { Entity } from "../../../base/entity.ts";
+import { Vec2 } from "../../../base/vec.ts";
 
 /**
  * Represents a collision event between two entities.
@@ -8,8 +8,8 @@ import { Vec2 } from '../../../base/vec.ts';
  * @example
  * ```ts
  * addCollisionCallback((event) => {
- *   console.log('Collision between', event.entityA, 'and', event.entityB);
- *   console.log('Position:', event.position.x, event.position.y);
+ *   log('Collision between', event.entityA, 'and', event.entityB);
+ *   log('Position:', event.position.x, event.position.y);
  * });
  * ```
  */

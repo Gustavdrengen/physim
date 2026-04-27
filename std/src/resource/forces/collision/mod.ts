@@ -1,10 +1,13 @@
-import { Physics } from '../../../base/physics.ts';
-import { Vec2 } from '../../../base/vec.ts';
-import { Component, Entity } from '../../../base/entity.ts';
-import { CollisionEvent } from './types.ts';
-import { PlanckWorldManager, DefaultCollisionProperties } from './planck_world.ts';
-import { CollisionSystem } from './system.ts';
-import { Body } from '../../../feature/bodies/body.ts';
+import { Physics } from "../../../base/physics.ts";
+import { Vec2 } from "../../../base/vec.ts";
+import { Component, Entity } from "../../../base/entity.ts";
+import { CollisionEvent } from "./types.ts";
+import {
+  PlanckWorldManager,
+  DefaultCollisionProperties,
+} from "./planck_world.ts";
+import { CollisionSystem } from "./system.ts";
+import { Body } from "../../../feature/bodies/body.ts";
 
 /**
  * Callback function invoked when a collision occurs between two entities.
@@ -43,7 +46,7 @@ export type CollisionForce = {
    * const { addCollisionCallback } = await initCollisionForce(...);
    *
    * addCollisionCallback((event) => {
-   *   console.log('Bodies collided at', event.position.x, event.position.y);
+   *   log('Bodies collided at', event.position.x, event.position.y);
    * });
    * ```
    */
@@ -106,6 +109,7 @@ export type CollisionForce = {
  * import { Simulation, Entity, Vec2 } from 'physim/base';
  * import { initCollisionForce } from 'physim/forces/collision';
  * import { initBodyComponent, Body, createCircle } from 'physim/bodies';
+ * import { log } from 'physim/logging';
  *
  * const sim = new Simulation();
  * const bodyComp = initBodyComponent(sim.physics);
@@ -119,7 +123,7 @@ export type CollisionForce = {
  *
  * // Add collision callback for effects
  * addCollisionCallback((event) => {
- *   console.log('Collision at', event.position);
+ *   log('Collision at', event.position);
  * });
  *
  * // Create a static wall
