@@ -32,6 +32,7 @@ export async function runServer(
   maxTraceback: number,
   baseDir: string,
   errorOnTime: number | undefined,
+  errorOnFrameTime: number | undefined,
 ): Promise<Result<string | undefined>> {
   const bundleDir = dirname(bundle);
   let server: Deno.HttpServer<Deno.NetAddr>;
@@ -90,10 +91,29 @@ if (errorOnTime !== undefined) {
 
   let ret;
 
-  function endAndFail(failure: Failure) {
+  let lastPingTime = Date.now();
+  let frameTimeInterval: number | undefined;
+  let pingTimeoutInterval: number | undefined;
+
+  async function endAndFail(failure: Failure) {
     ret = failure;
+    if (frameTimeInterval !== undefined) {
+      clearInterval(frameTimeInterval);
+    }
+    if (pingTimeoutInterval !== undefined) {
+      clearInterval(pingTimeoutInterval);
+    }
     webviewProcess?.kill();
-    ffmpegProcess?.kill();
+    if (ffmpegWriter) {
+      try {
+        await ffmpegWriter.close();
+      } catch {}
+      try {
+        await ffmpegProcess?.status;
+      } catch {}
+    } else {
+      ffmpegProcess?.kill();
+    }
     server.shutdown();
   }
 
@@ -173,6 +193,8 @@ if (errorOnTime !== undefined) {
     },
     async (req) => {
       const url = new URL(req.url);
+
+      lastPingTime = Date.now();
 
       if (url.pathname === "/") {
         return new Response(htmlContent, {
@@ -303,7 +325,28 @@ if (errorOnTime !== undefined) {
     },
   );
 
+  if (errorOnFrameTime !== undefined) {
+    frameTimeInterval = setInterval(() => {
+      if (started && Date.now() - lastPingTime > errorOnFrameTime * 1000) {
+        endAndFail(fail(InputFailureTag.RestrictionFailure, `Frame execution time limit exceeded (${errorOnFrameTime}s)`));
+      }
+    }, 50);
+  }
+
+  pingTimeoutInterval = setInterval(() => {
+    if (started && Date.now() - lastPingTime > 3000) {
+      endAndFail(fail(SystemFailureTag.NetworkFailure, "Connection lost"));
+    }
+  }, 1000);
+
   await server.finished;
+
+  if (frameTimeInterval !== undefined) {
+    clearInterval(frameTimeInterval);
+  }
+  if (pingTimeoutInterval !== undefined) {
+    clearInterval(pingTimeoutInterval);
+  }
 
   if (ret) {
     return ret;

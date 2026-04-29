@@ -1,5 +1,5 @@
 import { __profiling } from "./profiling.ts";
-import { frameCountState, getIsFinished } from "./state.ts";
+import { frameCountState, getIsFinished, setIsStopped } from "./state.ts";
 import { setDebugUpdateFn, stopSimulation } from "./sim_api.ts";
 import { showStoppedOverlay } from "./overlays.ts";
 
@@ -92,6 +92,7 @@ export function setupUI(writeTerminalFn: (text: string) => void): void {
   }
 
   function handleStop() {
+    setIsStopped(true);
     fetch("/finish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -131,6 +132,7 @@ export function startPinging(): ReturnType<typeof setInterval> {
     fetch("/ping")
       .then((res) => {
         if (!res.ok && !getIsFinished()) {
+          setIsStopped(true);
           stopSimulation();
           showStoppedOverlay();
           waitForNext();
@@ -138,6 +140,7 @@ export function startPinging(): ReturnType<typeof setInterval> {
       })
       .catch(() => {
         if (!getIsFinished()) {
+          setIsStopped(true);
           stopSimulation();
           showStoppedOverlay();
           waitForNext();

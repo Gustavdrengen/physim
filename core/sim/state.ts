@@ -37,6 +37,8 @@ export const shaderIds: ShaderIds = {
 };
 
 let isFinished = false;
+let hasError = false;
+let isStopped = false;
 let pingInterval: ReturnType<typeof setInterval> | null = null;
 let fpsTimer: ReturnType<typeof setInterval> | null = null;
 let runResolve: (() => void) | null = null;
@@ -47,6 +49,22 @@ export function getIsFinished(): boolean {
 
 export function setIsFinished(val: boolean): void {
   isFinished = val;
+}
+
+export function getHasError(): boolean {
+  return hasError;
+}
+
+export function setHasError(val: boolean): void {
+  hasError = val;
+}
+
+export function getIsStopped(): boolean {
+  return isStopped;
+}
+
+export function setIsStopped(val: boolean): void {
+  isStopped = val;
 }
 
 export function getPingInterval(): typeof pingInterval {

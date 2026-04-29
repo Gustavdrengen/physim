@@ -12,6 +12,7 @@ class Restrictions:
     """Restrictions for running a physim script."""
 
     error_on_time: float | None = None
+    error_on_frame_time: float | None = None
 
 
 @dataclass
@@ -72,6 +73,8 @@ def run_script(
         args.append("--no-throttle")
     if restrictions and restrictions.error_on_time is not None:
         args.extend(["--_error-on-time", str(restrictions.error_on_time)])
+    if restrictions and restrictions.error_on_frame_time is not None:
+        args.extend(["--_error-on-frame-time", str(restrictions.error_on_frame_time)])
     args.extend(["--max-traceback", str(max_traceback)])
     args.append(filepath)
     exit_code, stdout, stderr = _run_physim_command(args)

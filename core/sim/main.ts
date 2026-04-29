@@ -25,6 +25,9 @@ import {
   setRunResolve,
   updateFPS,
   updateLastFrameTime,
+  getHasError,
+  setHasError,
+  getIsStopped,
 } from "./state.ts";
 
 export function setFinished(val: boolean): void {
@@ -75,6 +78,7 @@ export function runSimulation(onUpdate: () => unknown): Promise<void> {
             }),
             headers: { "Content-Type": "application/json" },
           }).catch(() => {});
+          setHasError(true);
           stopSimulation();
           return;
         }
@@ -140,6 +144,7 @@ export function runSimulation(onUpdate: () => unknown): Promise<void> {
 }
 
 function errorHandler(err: unknown): void {
+  setHasError(true);
   console.error(err);
   showErrorOverlay(err);
 
@@ -165,6 +170,8 @@ async function main(): Promise<void> {
   fixCanvasDisplay();
   window.addEventListener("resize", fixCanvasDisplay);
 
+  startPinging();
+
   const response = await fetch("/bundle.js");
   const code = await response.text();
 
@@ -174,7 +181,9 @@ async function main(): Promise<void> {
   });
   (window as Record<string, unknown>).simFrame = val;
 
-  startPinging();
+  if (getHasError() || getIsStopped()) {
+    return;
+  }
 
   setIsFinished(true);
   fetch("/finish", {

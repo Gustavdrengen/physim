@@ -43,11 +43,12 @@ const cmd = new Command()
     { default: 10 },
   )
   .option("--_error-on-time <n:number>", "Throw an error if the simulation time exceeds this value.")
-  .action(async ({ raw, record, webview, audio, profiling, throttle, maxTraceback, errorOnTime }, entrypoint) => {
+  .option("--_error-on-frame-time <n:number>", "Throw an error if the time to run a frame exceeds this value.")
+  .action(async ({ raw, record, webview, audio, profiling, throttle, maxTraceback, errorOnTime, errorOnFrameTime }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime));
+    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime, errorOnFrameTime));
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {
