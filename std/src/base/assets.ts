@@ -6,6 +6,11 @@ type FetchAsset = {
 /**
  * Represents an asset.
  * It can be a local path (string) or a remote asset to be fetched.
+ *
+ * Local paths are typically strings relative to the project root or the
+ * configured asset base directory. Remote assets should be created
+ * using {@link fetchAsset}.
+ *
  * Use {@link fetchAsset} to create a fetchable asset.
  */
 export type Asset = string | FetchAsset;

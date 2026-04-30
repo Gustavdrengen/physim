@@ -26,7 +26,8 @@ export async function runServer(
   record: string | undefined,
   assetManager: AssetManager,
   audioPlayer: AudioPlayer,
-  useWebview: boolean,
+  useClient: boolean,
+  headless: boolean,
   profiling: boolean,
   noThrottle: boolean,
   maxTraceback: number,
@@ -39,6 +40,8 @@ export async function runServer(
   let webviewProcess: Deno.ChildProcess | undefined;
   let ffmpegProcess: Deno.ChildProcess | undefined;
   let ffmpegWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
+
+  let browser: any | undefined;
 
   let started = false;
   let pingNexted = false;
@@ -67,43 +70,56 @@ export async function runServer(
 
   const videoPath = record;
 
-if (record) {
-    htmlContent = htmlContent.replace(/window\\.SHOULD_RECORD = false/g, 'window.SHOULD_RECORD = true');
+  if (record) {
+    htmlContent = htmlContent.replace(/window\.SHOULD_RECORD = false/g, 'window.SHOULD_RECORD = true');
   } else {
-    htmlContent = htmlContent.replace(/window\\.SHOULD_RECORD = true/g, 'window.SHOULD_RECORD = false');
+    htmlContent = htmlContent.replace(/window\.SHOULD_RECORD = true/g, 'window.SHOULD_RECORD = false');
   }
 
   if (profiling) {
-    htmlContent = htmlContent.replace(/window\\.PROFILING = false/g, 'window.PROFILING = true');
+    htmlContent = htmlContent.replace(/window\.PROFILING = false/g, 'window.PROFILING = true');
   } else {
-    htmlContent = htmlContent.replace(/window\\.PROFILING = true/g, 'window.PROFILING = false');
+    htmlContent = htmlContent.replace(/window\.PROFILING = true/g, 'window.PROFILING = false');
   }
 
   if (noThrottle) {
-    htmlContent = htmlContent.replace(/window\\.NO_THROTTLE = false/g, 'window.NO_THROTTLE = true');
+    htmlContent = htmlContent.replace(/window\.NO_THROTTLE = false/g, 'window.NO_THROTTLE = true');
   } else {
-    htmlContent = htmlContent.replace(/window\\.NO_THROTTLE = true/g, 'window.NO_THROTTLE = false');
+    htmlContent = htmlContent.replace(/window\.NO_THROTTLE = true/g, 'window.NO_THROTTLE = false');
   }
 
-if (errorOnTime !== undefined) {
-    htmlContent = htmlContent.replace(/window\\.MAX_TIME = undefined/g, `window.MAX_TIME = ${errorOnTime}`);
+  if (errorOnTime !== undefined) {
+    htmlContent = htmlContent.replace(/window\.MAX_TIME = undefined/g, `window.MAX_TIME = ${errorOnTime}`);
   }
 
-  let ret;
+  let ret: Result<string | undefined>;
+  let isFinished = false;
 
   let lastPingTime = Date.now();
   let frameTimeInterval: number | undefined;
   let pingTimeoutInterval: number | undefined;
 
-  async function endAndFail(failure: Failure) {
+  async function endAndFail(failure: Failure | undefined) {
+    if (isFinished) return;
+    isFinished = true;
+
     ret = failure;
+
     if (frameTimeInterval !== undefined) {
       clearInterval(frameTimeInterval);
     }
     if (pingTimeoutInterval !== undefined) {
       clearInterval(pingTimeoutInterval);
     }
+
+    if (browser) {
+      try {
+        await browser.close();
+      } catch {}
+    }
+
     webviewProcess?.kill();
+
     if (ffmpegWriter) {
       try {
         await ffmpegWriter.close();
@@ -114,10 +130,32 @@ if (errorOnTime !== undefined) {
     } else {
       ffmpegProcess?.kill();
     }
-    server.shutdown();
+
+    try {
+      await server.shutdown();
+    } catch {}
   }
 
   let servePort: number;
+
+  // Monitor stdin for EOF (Ctrl+D)
+  (async () => {
+    const buf = new Uint8Array(1024);
+    while (!isFinished) {
+      try {
+        const n = await Deno.stdin.read(buf);
+        if (n === null) {
+          if (!isFinished) {
+            print.info("EOF detected, terminating simulation...");
+            await endAndFail(undefined);
+          }
+          break;
+        }
+      } catch {
+        break;
+      }
+    }
+  })();
 
   // Start FFmpeg process if recording is enabled
   if (record) {
@@ -150,7 +188,22 @@ if (errorOnTime !== undefined) {
   setTimeout(async () => {
     if (!started) {
       const url = `http://127.0.0.1:${servePort}/`;
-      if (useWebview) {
+      if (headless) {
+        try {
+          // @ts-ignore: Playwright might not be in the type system but is available via npm:
+          const { chromium } = await import("npm:playwright");
+          browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage();
+          await page.goto(url);
+        } catch (err) {
+          endAndFail(
+            fail(
+              SystemFailureTag.OpenFailure,
+              `Failed to launch headless browser (Playwright): ${String(err)}`,
+            ),
+          );
+        }
+      } else if (useClient) {
         webviewProcess = openWebview(url);
         setTimeout(() => {
           if (!started) {
@@ -275,14 +328,7 @@ if (errorOnTime !== undefined) {
             });
           }
           print.info("Simulation finished");
-
-          if (ffmpegWriter) {
-            await ffmpegWriter.close();
-            await ffmpegProcess!.status;
-          }
-
-          webviewProcess?.kill();
-          server.shutdown();
+          await endAndFail(undefined);
         }, 100);
 
         return new Response(null, { status: 200 });

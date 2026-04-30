@@ -34,6 +34,7 @@ const cmd = new Command()
     "Record the simulation and save it as an mp4 in outfile.",
   )
   .option("-w --webview", "Run the simulation in a webview window.")
+  .option("--headless", "Run the simulation in a headless browser (Playwright).")
   .option("--no-audio", "Disables audio playback.")
   .option("--profiling", "Enable performance profiling with live stats in debug panel.")
   .option("--no-throttle", "Disable FPS throttling, runs at maximum speed.")
@@ -44,11 +45,12 @@ const cmd = new Command()
   )
   .option("--_error-on-time <n:number>", "Throw an error if the simulation time exceeds this value.")
   .option("--_error-on-frame-time <n:number>", "Throw an error if the time to run a frame exceeds this value.")
-  .action(async ({ raw, record, webview, audio, profiling, throttle, maxTraceback, errorOnTime, errorOnFrameTime }, entrypoint) => {
+  .action(async ({ raw, record, webview, headless, audio, profiling, throttle, maxTraceback, errorOnTime, errorOnFrameTime }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record, webview, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime, errorOnFrameTime));
+    unwrap(await run(entrypoint, record, !!headless || !!webview, !!headless, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime, errorOnFrameTime));
+    Deno.exit(0);
   })
   .command("init", "Adds typescript configuration to the current directory")
   .action(async () => {

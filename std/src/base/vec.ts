@@ -150,6 +150,21 @@ export class Vec2 {
   }
 
   /**
+   * Rotates the vector by a given angle in radians.
+   *
+   * @param angle The angle to rotate by in radians.
+   * @returns The rotated vector.
+   */
+  rotate(angle: number): Vec2 {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return new Vec2(
+      this.x * cos - this.y * sin,
+      this.x * sin + this.y * cos,
+    );
+  }
+
+  /**
    * Creates a random vector with a given magnitude.
    * @param magnitude The magnitude of the vector.
    * @returns The random vector.

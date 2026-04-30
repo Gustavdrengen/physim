@@ -14,9 +14,12 @@
 
 #### Clarity and Misconceptions
 
-- Anticipate what a reader might naturally assume and make sure the documentation rules that out by stating clearly what the thing *is*. Do not warn about what something isn't — instead, describe what it actually is in a way that prevents the misconception.
-- When a name or term could be interpreted multiple ways, disambiguate with a precise description. For example, "circle" in this library refers to a filled disk approximation, not a geometric outline.
-- Keep this positive: state the actual behavior precisely, not the absence of a mistaken one.
+- Anticipate what a reader might naturally assume and make sure the documentation rules that out by stating clearly what the thing _is_. Do not warn about what something isn't — instead, describe what it actually is in a way that prevents the misconception.
+- When a name or term could be interpreted multiple ways, disambiguate with a precise description.
+  - For example, "circle" in this library refers to a filled disk approximation, not a geometric outline.
+- Keep this positive: state the actual behavior precisely, not the absence of a mistaken one (unless its to specify another point).
+- Make sure all behaviour of all properties, arguments and settings are also deducible from documentation.
+  - For example, the `staticComponent` in the collision system, still allows object to be moved, they are just not moved by collisions and cant have nonzero velocity.
 
 ### Documentation Priority
 

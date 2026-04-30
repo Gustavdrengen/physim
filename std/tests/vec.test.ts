@@ -92,6 +92,26 @@ await test("Vec2.angle", () => {
   expect(v4.angle()).toBe(-Math.PI / 2);
 });
 
+await test("Vec2.rotate", () => {
+  const v = new Vec2(1, 0);
+  
+  const v90 = v.rotate(Math.PI / 2);
+  expect(v90.x).toBeCloseTo(0);
+  expect(v90.y).toBeCloseTo(1);
+
+  const v180 = v.rotate(Math.PI);
+  expect(v180.x).toBeCloseTo(-1);
+  expect(v180.y).toBeCloseTo(0);
+
+  const v270 = v.rotate(3 * Math.PI / 2);
+  expect(v270.x).toBeCloseTo(0);
+  expect(v270.y).toBeCloseTo(-1);
+
+  const v0 = v.rotate(2 * Math.PI);
+  expect(v0.x).toBeCloseTo(1);
+  expect(v0.y).toBeCloseTo(0);
+});
+
 await test("Vec2.random", () => {
     const magnitude = 5;
     const v = Vec2.random(magnitude);

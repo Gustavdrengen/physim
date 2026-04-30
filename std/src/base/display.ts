@@ -99,7 +99,16 @@ export class Display {
 
   /**
    * Clears the screen and draws all registered components.
-   * @param camera The camera to use for rendering. If not provided, a default camera is used.
+   *
+   * The rendering order is:
+   * 1. Clear the canvas with `backgroundColor`.
+   * 2. Apply camera transforms (position, zoom, rotation, shake).
+   * 3. Draw all entities via `registerDrawComponent`.
+   * 4. Restore camera transforms.
+   * 5. Draw static overlays via `addStatic` (rendered in screen space).
+   * 6. Apply post-processing shaders via `addShader`.
+   *
+   * @param camera The camera to use for rendering. If not provided, a default camera at (0,0) is used.
    */
   // @profile "Display.draw"
   draw(camera?: Camera): void {

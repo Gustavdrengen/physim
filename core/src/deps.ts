@@ -74,6 +74,15 @@ export const dependencies: Dependency[] = [
     manualInstallInstructions:
       "Please install FFmpeg manually. On Debian/Ubuntu: `sudo apt install ffmpeg`. On macOS: `brew install ffmpeg`.",
   },
+  {
+    name: "playwright",
+    checkCommand: "deno",
+    checkArgs: ["run", "-A", "npm:playwright", "--version"],
+    installCommand: "manual",
+    installMethod: "manual",
+    manualInstallInstructions:
+      "Playwright browsers may need to be installed. Run: `deno run -A npm:playwright install chromium`",
+  },
 ];
 
 export async function checkDependency(dep: Dependency): Promise<boolean> {

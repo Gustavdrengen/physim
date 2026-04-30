@@ -101,6 +101,31 @@ export class Camera {
   }
 
   /**
+   * Checks if a point in world space is within the camera's viewport.
+   *
+   * This method transforms the world-space point into viewport space,
+   * accounting for the camera's position, rotation, zoom level, and
+   * any active screen shake.
+   *
+   * @param point The point in world space to check.
+   * @param width The width of the viewport. Defaults to the simulation canvas width.
+   * @param height The height of the viewport. Defaults to the simulation canvas height.
+   * @returns Whether the point is visible within the camera's bounds.
+   */
+  contains(point: Vec2, width?: number, height?: number): boolean {
+    const w = width ?? sim.ctx.canvas.width;
+    const h = height ?? sim.ctx.canvas.height;
+
+    const pos = this.position.add(this.shakeOffset);
+    const rel = point.sub(pos).rotate(this.rotation).scale(this.zoom);
+
+    const vx = rel.x + w / 2;
+    const vy = rel.y + h / 2;
+
+    return vx >= 0 && vx <= w && vy >= 0 && vy <= h;
+  }
+
+  /**
    * @internal
    */
   // @profile "Camera._applyTransforms"

@@ -84,8 +84,11 @@ export class Entity {
   }
 
   /**
-   * Destroys the entity.
-   * This removes the entity from all components it is associated with.
+   * Destroys the entity by removing it from all simulation systems.
+   *
+   * This method removes the entity from all `Component` maps. It does not delete
+   * the JavaScript object itself, but it effectively removes it from physics,
+   * display, and any other systems tracking it via components.
    */
   destroy(): void {
     for (const component of ALL_COMPONENTS) {

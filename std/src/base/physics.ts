@@ -53,13 +53,16 @@ export class Physics {
   /**
    * The velocity component.
    * Velocity is expressed in units per second.
-   * If an entity has this component, it will be moved by its velocity every second.
+   * Entities with this component will have their position updated every frame
+   * based on this velocity: pos += velocity * (1/60).
    */
   velocity: Component<Vec2> = new Component<Vec2>();
   /**
    * The acceleration component.
    * This component is used to accumulate forces on an entity.
-   * Acceleration is expressed in units per second squared.
+   * Note: The value in this component is added directly to the velocity every frame
+   * and then cleared. To treat this as units per second squared, you should
+   * scale your forces by (1/60) before adding them to this component.
    */
   acceleration: Component<Vec2> = new Component<Vec2>();
 
@@ -72,7 +75,8 @@ export class Physics {
 
   /**
    * Constant directional pull (gravity) applied to all entities with a velocity component.
-   * This effectively acts as a uniform acceleration field.
+   * Note: This value is added directly to the velocity every frame.
+   * To treat this as units per second squared, scale by (1/60).
    */
   constantPull: Vec2 = new Vec2(0, 0);
 

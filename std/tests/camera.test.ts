@@ -43,3 +43,57 @@ await test("Camera - follow multiple entities", () => {
   (camera as any).update();
   expect(camera.position).toEqual(new Vec2(200, 200));
 });
+
+await test("Camera - contains", () => {
+  const camera = new Camera();
+  camera.position = new Vec2(100, 100);
+  camera.zoom = 1;
+  camera.rotation = 0;
+
+  const width = 800;
+  const height = 600;
+
+  // Center should be contained
+  expect(camera.contains(new Vec2(100, 100), width, height)).toBeTruthy();
+
+  // Points within bounds
+  expect(camera.contains(new Vec2(150, 150), width, height)).toBeTruthy();
+  // 100 + 400 = 500 is edge, so 499 is inside
+  expect(camera.contains(new Vec2(499, 399), width, height)).toBeTruthy();
+  // 100 - 400 = -300 is edge, so -299 is inside
+  expect(camera.contains(new Vec2(-299, -199), width, height)).toBeTruthy();
+
+  // Points outside bounds
+  expect(camera.contains(new Vec2(501, 100), width, height)).toBeFalsy();
+  expect(camera.contains(new Vec2(100, 401), width, height)).toBeFalsy();
+});
+
+await test("Camera - contains with zoom", () => {
+  const camera = new Camera();
+  camera.position = new Vec2(0, 0);
+  camera.zoom = 2; // Viewport covers half the world area
+
+  const width = 100;
+  const height = 100;
+
+  // Viewport at zoom=1: [-50, 50] x [-50, 50]
+  // Viewport at zoom=2: [-25, 25] x [-25, 25]
+
+  expect(camera.contains(new Vec2(20, 20), width, height)).toBeTruthy();
+  expect(camera.contains(new Vec2(30, 30), width, height)).toBeFalsy();
+});
+
+await test("Camera - contains with rotation", () => {
+  const camera = new Camera();
+  camera.position = new Vec2(0, 0);
+  camera.rotation = Math.PI / 2; // 90 deg clockwise
+
+  const width = 100;
+  const height = 10;
+
+  // Viewport at rotation=0: [-50, 50] x [-5, 5]
+  // Viewport at rotation=90: [-5, 5] x [-50, 50] (world coordinates)
+
+  expect(camera.contains(new Vec2(0, 40), width, height)).toBeTruthy();
+  expect(camera.contains(new Vec2(40, 0), width, height)).toBeFalsy();
+});

@@ -71,6 +71,11 @@ export class ParticleSystem {
 
   /**
    * Creates a new particle system.
+   *
+   * The particle system automatically registers itself with the provided
+   * `display` to update and render particles each frame. You do not need
+   * to call update or draw manually.
+   *
    * @param display The display to automatically render the particles to.
    */
   constructor(display: Display) {

@@ -54,7 +54,7 @@ export type CollisionForce = {
 
   /**
    * A component to mark entities as static (immovable) in collisions.
-   * Static entities do not move when collided with and do not collide
+   * Static entities do not move when collided with and cannot have nonzero velocity.
    * with other static or kinematic bodies.
    *
    * Add this component with value `true` to make an entity static.
@@ -94,9 +94,14 @@ export type CollisionForce = {
 /**
  * Initializes the collision force for a physics simulation.
  *
- * This function sets up collision detection using Planck.js as the underlying
- * physics engine. It registers necessary forces with the physics system and
- * returns components and callbacks for collision handling.
+ * This function sets up collision detection and response using Planck.js
+ * (a port of Box2D).
+ *
+ * IMPORTANT: When this force is active, it takes over the position and
+ * rotation updates for all entities that have a `Body` component. The
+ * standard `Physics` position integration (priority 2) is effectively
+ * bypassed for these entities to ensure they follow the rigid body
+ * simulation constraints.
  *
  * @param physics - The physics system instance.
  * @param bodyComponent - The body component obtained from `initBodyComponent`.

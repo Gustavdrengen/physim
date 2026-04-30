@@ -15,19 +15,19 @@ import { fixCanvasDisplay, hiddenCtx } from "./webgl.ts";
 import { __profiling } from "./profiling.ts";
 import {
   frameCountState,
+  getHasError,
+  getIsStopped,
   getRunResolve,
   incrementFrameCount,
   markNeedsFlush,
   resetFrameCountState,
   resetShaderIds,
   setFpsTimer,
+  setHasError,
   setIsFinished,
   setRunResolve,
   updateFPS,
   updateLastFrameTime,
-  getHasError,
-  setHasError,
-  getIsStopped,
 } from "./state.ts";
 
 export function setFinished(val: boolean): void {

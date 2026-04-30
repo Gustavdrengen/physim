@@ -39,6 +39,7 @@ def run_script(
     raw: bool = False,
     video_output_path: str | None = None,
     webview: bool = False,
+    headless: bool = False,
     no_audio: bool = False,
     no_throttle: bool = False,
     max_traceback: int = 10,
@@ -52,6 +53,7 @@ def run_script(
         raw: Whether to use --raw flag for machine-parsable output
         video_output_path: Optional path to save a video of the simulation.
         webview: Whether to run the simulation in a webview window.
+        headless: Whether to run the simulation in a headless browser (Playwright).
         no_audio: Whether to disable audio playback.
         no_throttle: Whether to disable FPS throttling (run at maximum speed).
         max_traceback: Maximum number of traceback frames to show in runtime errors.
@@ -65,7 +67,9 @@ def run_script(
         args.append("--raw")
     if video_output_path:
         args.extend(["--record", video_output_path])
-    if webview:
+    if headless:
+        args.append("--headless")
+    elif webview:
         args.append("--webview")
     if no_audio:
         args.append("--no-audio")
