@@ -1,6 +1,5 @@
 import { Confirm, prompt, Select } from "@cliffy/prompt";
 import * as print from "./print.ts";
-import { join } from "@std/path";
 
 const decoder = new TextDecoder();
 
@@ -50,22 +49,6 @@ export const dependencies: Dependency[] = [
       "Please install Deno manually from https://deno.land/#installation",
   },
   {
-    name: "typedoc",
-    checkCommand: "typedoc",
-    checkArgs: ["--version"],
-    installCommand: "npm",
-    installArgs: ["install", "-g", "typedoc"],
-    installMethod: "npm",
-  },
-  {
-    name: "typedoc-plugin-markdown",
-    checkCommand: "npm", // Check if it's installed globally via npm list
-    checkArgs: ["list", "-g", "typedoc-plugin-markdown"],
-    installCommand: "npm",
-    installArgs: ["install", "-g", "typedoc-plugin-markdown"],
-    installMethod: "npm",
-  },
-  {
     name: "ffmpeg",
     checkCommand: "ffmpeg",
     checkArgs: ["-version"],
@@ -86,18 +69,6 @@ export const dependencies: Dependency[] = [
 ];
 
 export async function checkDependency(dep: Dependency): Promise<boolean> {
-  if (dep.name === "typedoc-plugin-markdown") {
-    // Special check for npm global packages
-    try {
-      const npmRootResult = await run("npm", ["root", "-g"]);
-      if (!npmRootResult.success) return false;
-      const npmRoot = npmRootResult.stdout.trim();
-      await Deno.stat(join(npmRoot, dep.name));
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
   try {
     const result = await run(dep.checkCommand, dep.checkArgs);
     return result.success;

@@ -12,6 +12,7 @@ import { dirname, join } from "node:path";
 const scriptDir = dirname(new URL(import.meta.url).pathname);
 const stdlibAbs = join(scriptDir, "../../std");
 const sandboxAbs = join(scriptDir, "../../sandbox.d.ts");
+const soundAbs = join(scriptDir, "../../sound.ts");
 
 /**
  * Recursively copy a directory.
@@ -80,6 +81,9 @@ async function setupNodeModules(): Promise<void> {
   if (!existsSync(sandboxAbs)) {
     throw new Error(`sandbox.d.ts not found at ${sandboxAbs}. Is physim installed correctly?`);
   }
+  if (!existsSync(soundAbs)) {
+    throw new Error(`sound.ts not found at ${soundAbs}. Is physim installed correctly?`);
+  }
 
   const nodeModulesPhysim = join(Deno.cwd(), "node_modules/physim");
 
@@ -98,6 +102,10 @@ async function setupNodeModules(): Promise<void> {
   // Copy sandbox.d.ts
   const destSandbox = join(nodeModulesPhysim, "sandbox.d.ts");
   copyDirFile(sandboxAbs, destSandbox);
+
+  // Copy sound.ts
+  const destSound = join(nodeModulesPhysim, "sound.ts");
+  copyDirFile(soundAbs, destSound);
 
   // Copy stdlib
   const destStd = join(nodeModulesPhysim, "std");
@@ -118,10 +126,10 @@ async function generateTsconfig(): Promise<void> {
       moduleResolution: "bundler",
       strict: true,
       lib: ["esnext", "dom"],
-      types: ["node_modules/physim/sandbox.d.ts"],
+      types: ["./node_modules/physim/sandbox.d.ts"],
       allowImportingTsExtensions: true,
       paths: {
-        "physim/*": ["node_modules/physim/std/src/public/*"],
+        "physim/*": ["./node_modules/physim/std/src/public/*"],
       },
     },
   };

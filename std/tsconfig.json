@@ -12,7 +12,6 @@
       "../sandbox.d.ts"
     ],
     "allowImportingTsExtensions": true,
-    "baseUrl": "/"
   },
   "include": [
     "src/**/*.ts"
