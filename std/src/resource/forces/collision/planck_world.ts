@@ -54,26 +54,43 @@ export class PlanckWorldManager implements WorldPort {
 
       const bodyA = fixtureA.getBody();
       const bodyB = fixtureB.getBody();
-      const velA = bodyA.getLinearVelocity();
-      const velB = bodyB.getLinearVelocity();
 
       const wm = new planck.WorldManifold();
       (contact as any).getWorldManifold(wm);
 
       let position = new Vec2(0, 0);
+      let normal = new Vec2(0, 0);
+      let relativeVelocity = new Vec2(0, 0);
+      let impactSpeed = 0;
 
       if (wm.pointCount > 0) {
         const wp = wm.points[0];
         position = new Vec2(wp.x * SCALE, wp.y * SCALE);
+        normal = new Vec2(wm.normal.x, wm.normal.y);
+
+        const contactPt = { x: wp.x, y: wp.y };
+        const velA = bodyA.getLinearVelocityFromWorldPoint(contactPt);
+        const velB = bodyB.getLinearVelocityFromWorldPoint(contactPt);
+        const relVel = { x: velA.x - velB.x, y: velA.y - velB.y };
+
+        relativeVelocity = new Vec2(relVel.x * SCALE, relVel.y * SCALE);
+        const approachSpeed = relVel.x * normal.x + relVel.y * normal.y;
+        impactSpeed = Math.max(0, approachSpeed) * SCALE;
       } else {
-        const posA = fixtureA.getBody().getPosition();
+        const posA = bodyA.getPosition();
         position = new Vec2(posA.x * SCALE, posA.y * SCALE);
+        normal = new Vec2(0, 0);
+        relativeVelocity = new Vec2(0, 0);
+        impactSpeed = 0;
       }
 
       this._pendingCollisions.push({
         entityA,
         entityB,
         position,
+        relativeVelocity,
+        impactSpeed,
+        normal,
       });
     });
   }

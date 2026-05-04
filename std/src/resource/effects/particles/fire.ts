@@ -16,7 +16,12 @@ export interface FireEffectOptions {
   count?: number;
   /** The upward acceleration of the particles. Defaults to -0.02. */
   updraft?: number;
-  /** The intensity of the fire (affects particle count and size). Defaults to 1. */
+  /**
+   * Multiplier for the intensity of the fire.
+   * Scales particle count, velocity, size, and turbulence proportionally.
+   * A value of 0.5 produces a gentle flame, 1 is the default, and 2 is an inferno.
+   * Defaults to 1.
+   */
   intensity?: number;
   /** Wind affecting the fire horizontally. Defaults to 0. */
   wind?: number;
@@ -85,7 +90,8 @@ export function createFireEffect(options: FireEffectOptions): ParticleEmissionOp
     smokeRate = 0.3,
   } = options;
 
-  const adjustedCount = Math.floor(count * intensity);
+  const i = Math.max(0, intensity);
+  const adjustedCount = Math.floor(count * i);
 
   const tempClamped = Math.max(0, Math.min(1, temperature));
 
@@ -122,9 +128,9 @@ export function createFireEffect(options: FireEffectOptions): ParticleEmissionOp
   return {
     numParticles: adjustedCount,
     position: position,
-    positionJitter: 15 * size,
+    positionJitter: 15 * size * i,
     particleLifetime: { min: 0.67 * size, max: 1.33 * size },
-    initialVelocity: { min: 48 * size, max: 150 * size },
+    initialVelocity: { min: 48 * size * i, max: 150 * size * i },
     directionBias: {
       angle: -Math.PI / 2,
       spread: 0.8,
@@ -134,7 +140,9 @@ export function createFireEffect(options: FireEffectOptions): ParticleEmissionOp
     scaleCurve: "easeOut",
     body: Body.fromShape(createCircle(6 * size)),
     colorStages,
-    turbulence,
+    turbulence: turbulence
+      ? { frequency: turbulence.frequency, amplitude: turbulence.amplitude * i }
+      : undefined,
     rotation: { min: 0, max: Math.PI * 2 },
     rotationSpeed: { min: -6, max: 6 },
     customUpdate: withSmoke

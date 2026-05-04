@@ -12,6 +12,13 @@ export interface SparkEffectOptions {
   position: Vec2;
   /** The overall size multiplier for the effect. Defaults to 1. */
   size?: number;
+  /**
+   * Multiplier for the intensity of the effect.
+   * Scales particle count, velocity, and size proportionally.
+   * A value of 0.5 produces a subtle spark, 1 is the default, and 2 is an intense burst.
+   * Defaults to 1.
+   */
+  intensity?: number;
   /** The number of particles to emit per burst. Defaults to 50. */
   count?: number;
   /** The initial velocity of sparks. Defaults to { min: 3, max: 8 }. */
@@ -81,6 +88,7 @@ export function createSparkEffect(options: SparkEffectOptions): ParticleEmission
   const {
     position,
     size = 1,
+    intensity = 1,
     count = 50,
     velocity = { min: 3, max: 8 },
     gravity = 0.015,
@@ -91,6 +99,7 @@ export function createSparkEffect(options: SparkEffectOptions): ParticleEmission
     sizeVariation = 1,
   } = options;
 
+  const i = Math.max(0, intensity);
   const brightnessClamped = Math.max(0, Math.min(1, brightness));
 
   const hotColor = new Color(255, 255, 200);
@@ -112,11 +121,11 @@ export function createSparkEffect(options: SparkEffectOptions): ParticleEmission
   ];
 
   return {
-    numParticles: count,
+    numParticles: Math.round(count * i),
     position: position,
-    positionJitter: 5 * size,
+    positionJitter: 5 * size * i,
     particleLifetime: { min: lifetimeMin * size, max: lifetimeMax * size },
-    initialVelocity: { min: velocity.min * size * 60, max: velocity.max * size * 60 },
+    initialVelocity: { min: velocity.min * size * 60 * i, max: velocity.max * size * 60 * i },
     directionBias: direction,
     acceleration: new Vec2(0, gravity * size * 3600),
     scale: { start: 0.5 * size * sizeVariation, end: 0 },

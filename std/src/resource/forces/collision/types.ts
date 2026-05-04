@@ -7,9 +7,21 @@ import { Vec2 } from "../../../base/vec.ts";
  *
  * @example
  * ```ts
+ * import { impactFactor } from "physim/forces/collision";
+ * import { createSparkEffect } from "physim/effects/particles";
+ *
  * addCollisionCallback((event) => {
- *   log('Collision between', event.entityA, 'and', event.entityB);
- *   log('Position:', event.position.x, event.position.y);
+ *   // Scale effects based on collision intensity
+ *   const f = impactFactor(event.impactSpeed);
+ *
+ *   // Camera shake proportional to impact
+ *   simulation.camera.shake(f * 60, f * 20);
+ *
+ *   // Particle burst scaled to collision strength
+ *   particleSystem.emit(createSparkEffect({
+ *     position: event.position,
+ *     intensity: f,
+ *   }));
  * });
  * ```
  */
@@ -22,6 +34,24 @@ export interface CollisionEvent {
 
   /** The world position where the collision occurred. */
   position: Vec2;
+
+  /**
+   * The relative velocity of the two bodies at the contact point,
+   * in simulation units per second.
+   */
+  relativeVelocity: Vec2;
+
+  /**
+   * The magnitude of the relative velocity along the collision normal,
+   * in simulation units per second. This is the key scalar for scaling
+   * effects like camera shake, particle count, and sound volume.
+   */
+  impactSpeed: number;
+
+  /**
+   * The collision normal in world space, pointing from entityA toward entityB.
+   */
+  normal: Vec2;
 }
 
 /**

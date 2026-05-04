@@ -12,23 +12,65 @@ import { Body } from "../../../feature/bodies/body.ts";
 /**
  * Callback function invoked when a collision occurs between two entities.
  *
- * @param event - The collision event containing information about the collision.
+ * @param event - The collision event containing information about the collision,
+ *                including the impact speed for scaling effects.
  *
  * @example
  * ```ts
+ * import { impactFactor } from "physim/forces/collision";
+ * import { createSparkEffect } from "physim/effects/particles";
+ *
  * addCollisionCallback((event) => {
- *   // Create visual effect at collision point
- *   particles.emit(createSparkEffect({ position: event.position }));
+ *   // Scale effects based on collision intensity
+ *   const f = impactFactor(event.impactSpeed);
  *
- *   // Play sound
- *   collisionSound.play();
+ *   // Camera shake proportional to collision strength
+ *   simulation.camera.shake(f * 60, f * 20);
  *
- *   // Shake camera
- *   camera.shake(20, 10);
+ *   // Particles that scale with impact
+ *   particles.emit(createSparkEffect({
+ *     position: event.position,
+ *     intensity: f,
+ *   }));
+ *
+ *   // Sound volume proportional to impact
+ *   collisionSound.play(f * 0.8);
  * });
  * ```
  */
 export type CollisionCallback = (event: CollisionEvent) => void;
+
+/**
+ * Normalizes a raw impact speed into a 0–1 factor for scaling effects.
+ *
+ * Use this to map the raw impact speed from a collision event onto a
+ * convenient 0–1 range for controlling effect intensity (camera shake,
+ * particle count, sound volume, etc.).
+ *
+ * @param impactSpeed - Raw impact speed from `CollisionEvent.impactSpeed`
+ *                      (simulation units per second).
+ * @param minSpeed - Impact speed that maps to a factor of 0.
+ *                   Defaults to 50 units/second.
+ * @param maxSpeed - Impact speed that maps to a factor of 1.
+ *                   Defaults to 1000 units/second.
+ * @returns A value between 0 and 1 (clamped).
+ *
+ * @example
+ * ```ts
+ * addCollisionCallback((event) => {
+ *   const f = impactFactor(event.impactSpeed);
+ *   simulation.camera.shake(f * 60, f * 20);
+ * });
+ * ```
+ */
+export function impactFactor(
+  impactSpeed: number,
+  minSpeed = 50,
+  maxSpeed = 1000,
+): number {
+  if (maxSpeed <= minSpeed) return impactSpeed >= minSpeed ? 1 : 0;
+  return Math.max(0, Math.min(1, (impactSpeed - minSpeed) / (maxSpeed - minSpeed)));
+}
 
 /**
  * The collision force interface returned by `initCollisionForce`.
@@ -94,8 +136,9 @@ export type CollisionForce = {
 /**
  * Initializes the collision force for a physics simulation.
  *
- * This function sets up collision detection and response using Planck.js
- * (a port of Box2D).
+ * This function sets up collision detection and response between entities
+ * that have a `Body` component. Collision callbacks can be registered to
+ * trigger visual effects, sounds, and camera shake in response to collisions.
  *
  * IMPORTANT: When this force is active, it takes over the position and
  * rotation updates for all entities that have a `Body` component. The
@@ -112,12 +155,14 @@ export type CollisionForce = {
  * @example
  * ```ts
  * import { Simulation, Entity, Vec2 } from 'physim/base';
- * import { initCollisionForce } from 'physim/forces/collision';
+ * import { initCollisionForce, impactFactor } from 'physim/forces/collision';
  * import { initBodyComponent, Body, createCircle } from 'physim/bodies';
- * import { log } from 'physim/logging';
+ * import { ParticleSystem } from 'physim/particles';
+ * import { createSparkEffect } from 'physim/effects/particles';
  *
  * const sim = new Simulation();
  * const bodyComp = initBodyComponent(sim.physics);
+ * const particles = new ParticleSystem(sim.display);
  *
  * const { staticComponent, addCollisionCallback, restitutionComponent } =
  *   await initCollisionForce(sim.physics, bodyComp, {
@@ -126,9 +171,14 @@ export type CollisionForce = {
  *     mass: 1.0
  *   });
  *
- * // Add collision callback for effects
+ * // Add collision callback with intensity-based effects
  * addCollisionCallback((event) => {
- *   log('Collision at', event.position);
+ *   const f = impactFactor(event.impactSpeed);
+ *   simulation.camera.shake(f * 60, f * 20);
+ *   particles.emit(createSparkEffect({
+ *     position: event.position,
+ *     intensity: f,
+ *   }));
  * });
  *
  * // Create a static wall

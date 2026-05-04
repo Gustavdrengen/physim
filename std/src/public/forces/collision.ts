@@ -1,10 +1,10 @@
 /**
- * Collision detection and response using Planck.js.
+ * Collision detection and response.
  *
  * This module provides collision force for the physics engine, enabling:
  * - Collision detection between entities with bodies
  * - Physical response (bouncing, friction) via restitution
- * - Collision callbacks for game logic, effects, sounds
+ * - Collision callbacks with impact speed data for scaling effects
  * - Static vs dynamic body distinction
  * - Per-entity restitution override
  *
@@ -12,11 +12,13 @@
  * @example
  * ```ts
  * import { Simulation, Entity, Vec2, Color, ParticleSystem } from 'physim/base';
- * import { initCollisionForce } from 'physim/forces/collision';
+ * import { initCollisionForce, impactFactor } from 'physim/forces/collision';
  * import { initBodyComponent, Body, createCircle, createRectangle } from 'physim/bodies';
+ * import { createSparkEffect } from 'physim/effects/particles';
  *
  * const simulation = new Simulation();
  * const bodyComponent = initBodyComponent(simulation.physics);
+ * const particles = new ParticleSystem(simulation.display);
  *
  * // Initialize collision with default restitution of 0.8 (bouncy)
  * const { staticComponent, restitutionComponent, addCollisionCallback } =
@@ -25,16 +27,19 @@
  *     friction: 0.3
  *   });
  *
- * // Register collision callback for effects
+ * // Register collision callback with intensity-based effects
  * addCollisionCallback((event) => {
- *   // Create particle burst at collision point
- *   particles.emit(createSparkEffect({ position: event.position }));
+ *   // Scale effects based on collision strength
+ *   const f = impactFactor(event.impactSpeed);
  *
- *   // Camera shake
- *   simulation.camera.shake(10, 5);
+ *   // Particle burst at collision point
+ *   particles.emit(createSparkEffect({
+ *     position: event.position,
+ *     intensity: f,
+ *   }));
  *
- *   // Play collision sound
- *   collisionSound.play();
+ *   // Camera shake proportional to impact
+ *   simulation.camera.shake(f * 60, f * 20);
  * });
  *
  * // Create a static wall

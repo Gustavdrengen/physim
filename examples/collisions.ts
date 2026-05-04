@@ -9,7 +9,7 @@ import {
   getRegularPolygonVertices,
   initBodyComponent,
 } from "physim/bodies";
-import { initCollisionForce } from "physim/forces/collision";
+import { initCollisionForce, impactFactor } from "physim/forces/collision";
 import { ParticleSystem } from "physim/particles";
 import { createSparkEffect } from "physim/effects/particles";
 import { SFX } from "physim/sounds";
@@ -45,13 +45,17 @@ const collisionSound = await Sound.fromSynth(SFX.collision(0.5, 0.8));
 
 // --- Event Handlers ---
 addCollisionCallback((event) => {
-  // Visual feedback
+  // Scale effects based on collision intensity
+  const f = impactFactor(event.impactSpeed);
+
+  // Visual feedback scaled to impact strength
   particles.emit(
     createSparkEffect({
       position: event.position,
+      intensity: f,
     }),
   );
-  sim.camera.shake(20, 10);
+  sim.camera.shake(f * 40, f * 20);
 
   // Audio feedback
   collisionSound.play();

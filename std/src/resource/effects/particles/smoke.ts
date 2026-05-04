@@ -12,6 +12,13 @@ export interface SmokeEffectOptions {
   position: Vec2;
   /** The overall size multiplier for the effect. Defaults to 1. */
   size?: number;
+  /**
+   * Multiplier for the intensity of the effect.
+   * Scales particle count, rise speed, and expansion proportionally.
+   * A value of 0.5 produces a light wisp, 1 is the default, and 2 is a thick cloud.
+   * Defaults to 1.
+   */
+  intensity?: number;
   /** The number of particles to emit per burst. Defaults to 40. */
   count?: number;
   /** The upward acceleration of the particles. Defaults to -0.008. */
@@ -68,6 +75,7 @@ export function createSmokeEffect(options: SmokeEffectOptions): ParticleEmission
   const {
     position,
     size = 1,
+    intensity = 1,
     count = 40,
     riseSpeed = -0.008,
     wind = 0.1,
@@ -77,6 +85,7 @@ export function createSmokeEffect(options: SmokeEffectOptions): ParticleEmission
     spread = 0.5,
   } = options;
 
+  const i = Math.max(0, intensity);
   const densityClamped = Math.max(0, Math.min(1, density));
 
   const baseGray = Math.floor(100 + densityClamped * 100);
@@ -90,11 +99,11 @@ export function createSmokeEffect(options: SmokeEffectOptions): ParticleEmission
   ];
 
   return {
-    numParticles: count,
+    numParticles: Math.round(count * i),
     position: position,
-    positionJitter: 8 * size,
+    positionJitter: 8 * size * i,
     particleLifetime: { min: 2 * size, max: 3.33 * size },
-    initialVelocity: { min: 18 * size, max: 48 * size },
+    initialVelocity: { min: 18 * size * i, max: 48 * size * i },
     directionBias: {
       angle: -Math.PI / 2,
       spread: spread,

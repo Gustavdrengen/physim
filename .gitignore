@@ -5,7 +5,7 @@ node_modules
 build/
 *.egg-info/
 
-out.mp4
+tmp/
 std/docs/bin
 
 target/
