@@ -58,6 +58,15 @@ export const dependencies: Dependency[] = [
       "Please install FFmpeg manually. On Debian/Ubuntu: `sudo apt install ffmpeg`. On macOS: `brew install ffmpeg`.",
   },
   {
+    name: "sox",
+    checkCommand: "sox",
+    checkArgs: ["--version"],
+    installCommand: "manual",
+    installMethod: "manual",
+    manualInstallInstructions:
+      "Please install SoX manually. On Debian/Ubuntu: `sudo apt install sox`. On macOS: `brew install sox`.",
+  },
+  {
     name: "playwright",
     checkCommand: "deno",
     checkArgs: ["run", "-A", "npm:playwright", "--version"],

@@ -1,5 +1,8 @@
 import { Draw } from '../../../base/draw/shapes.ts';
 
+// Unrolled 5x5 Gaussian-like blur with asymmetric weights.
+// 25 explicit texture2D calls avoids loop overhead and allows better
+// instruction scheduling by the GPU compiler.
 const _fragment = `
   precision mediump float;
   uniform sampler2D u_image;
@@ -14,18 +17,45 @@ const _fragment = `
     float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
     float contribution = max(0.0, brightness - u_threshold);
 
+    float s = u_blurSize * 0.01;
     vec4 blur = vec4(0.0);
-    float total = 0.0;
-    for (float x = -2.0; x <= 2.0; x += 1.0) {
-      for (float y = -2.0; y <= 2.0; y += 1.0) {
-        vec2 offset = vec2(x, y) * u_blurSize * 0.01;
-        vec4 sample = texture2D(u_image, v_texCoord + offset);
-        float w = 1.0 - abs(x) * 0.2 - abs(y) * 0.2;
-        blur += sample * w;
-        total += w;
-      }
-    }
-    blur /= total;
+
+    // Row y=-2: weights 0.2, 0.4, 0.6, 0.4, 0.2
+    blur += texture2D(u_image, v_texCoord + vec2(-2.0*s, -2.0*s)) * 0.2;
+    blur += texture2D(u_image, v_texCoord + vec2(-1.0*s, -2.0*s)) * 0.4;
+    blur += texture2D(u_image, v_texCoord + vec2( 0.0,    -2.0*s)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2( 1.0*s, -2.0*s)) * 0.4;
+    blur += texture2D(u_image, v_texCoord + vec2( 2.0*s, -2.0*s)) * 0.2;
+
+    // Row y=-1: weights 0.4, 0.6, 0.8, 0.6, 0.4
+    blur += texture2D(u_image, v_texCoord + vec2(-2.0*s, -1.0*s)) * 0.4;
+    blur += texture2D(u_image, v_texCoord + vec2(-1.0*s, -1.0*s)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2( 0.0,    -1.0*s)) * 0.8;
+    blur += texture2D(u_image, v_texCoord + vec2( 1.0*s, -1.0*s)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2( 2.0*s, -1.0*s)) * 0.4;
+
+    // Row y=0: weights 0.6, 0.8, 1.0, 0.8, 0.6
+    blur += texture2D(u_image, v_texCoord + vec2(-2.0*s,  0.0)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2(-1.0*s,  0.0)) * 0.8;
+    blur += texture2D(u_image, v_texCoord + vec2( 0.0,     0.0)) * 1.0;
+    blur += texture2D(u_image, v_texCoord + vec2( 1.0*s,  0.0)) * 0.8;
+    blur += texture2D(u_image, v_texCoord + vec2( 2.0*s,  0.0)) * 0.6;
+
+    // Row y=1: weights 0.4, 0.6, 0.8, 0.6, 0.4
+    blur += texture2D(u_image, v_texCoord + vec2(-2.0*s,  1.0*s)) * 0.4;
+    blur += texture2D(u_image, v_texCoord + vec2(-1.0*s,  1.0*s)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2( 0.0,     1.0*s)) * 0.8;
+    blur += texture2D(u_image, v_texCoord + vec2( 1.0*s,  1.0*s)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2( 2.0*s,  1.0*s)) * 0.4;
+
+    // Row y=2: weights 0.2, 0.4, 0.6, 0.4, 0.2
+    blur += texture2D(u_image, v_texCoord + vec2(-2.0*s,  2.0*s)) * 0.2;
+    blur += texture2D(u_image, v_texCoord + vec2(-1.0*s,  2.0*s)) * 0.4;
+    blur += texture2D(u_image, v_texCoord + vec2( 0.0,     2.0*s)) * 0.6;
+    blur += texture2D(u_image, v_texCoord + vec2( 1.0*s,  2.0*s)) * 0.4;
+    blur += texture2D(u_image, v_texCoord + vec2( 2.0*s,  2.0*s)) * 0.2;
+
+    blur /= 13.0;
 
     float blurBrightness = dot(blur.rgb, vec3(0.2126, 0.7152, 0.0722));
     float glowAmount = max(0.0, blurBrightness - u_threshold) * contribution * u_intensity;

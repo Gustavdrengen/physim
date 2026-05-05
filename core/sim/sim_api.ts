@@ -5,18 +5,22 @@ import {
   defaultProgram,
   defaultVertexShader,
   fixCanvasDisplay,
+  getProgramLocations,
   gl,
   hiddenCanvas,
+  hiddenCtx,
   programs,
   quadBuffer,
   readTexture,
   setupPingPongTextures,
   type ShaderConfig,
   shaders,
+  showCanvasWebGL,
   swapPingPong,
   writeFramebuffer,
 } from "./webgl.ts";
 import {
+  activateShaderMode,
   frameCountState,
   frameState,
   getFpsTimer,
@@ -24,7 +28,9 @@ import {
   getNextShaderId,
   getPingInterval,
   getRunResolve,
+  isShaderModeActive,
   markShaderRun,
+  setClearColor,
   setFpsTimer,
   setPingInterval,
   setRunResolve,
@@ -151,8 +157,17 @@ export const sim: {
         }
       }
     }
-    gl.clearColor(r, g, b, a);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    // Store clear color for 2D mode fills
+    setClearColor(r, g, b, a);
+
+    if (isShaderModeActive()) {
+      gl.clearColor(r, g, b, a);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    } else {
+      // 2D mode: fill the visible canvas directly
+      hiddenCtx.fillStyle = `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
+      hiddenCtx.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+    }
   },
   resizeCanvas: (width: number, height: number) => {
     canvas.width = width;
@@ -212,11 +227,11 @@ export const sim: {
     if (!program) throw new Error("Invalid program id");
 
     const id = getNextShaderId();
-    const uniformLocations = new Map<WebGLUniformLocation | null, string>();
+    const uniformLocations = new Map<string, WebGLUniformLocation | null>();
     const uniforms = config.uniforms || {};
 
     for (const name in uniforms) {
-      uniformLocations.set(gl.getUniformLocation(program, name), name);
+      uniformLocations.set(name, gl.getUniformLocation(program, name));
     }
 
     shaders.set(id, {
@@ -240,7 +255,13 @@ export const sim: {
 
     for (const name in newUniforms) {
       shader.uniforms[name] = newUniforms[name];
-      shader.uniformLocations.set(gl.getUniformLocation(program, name), name);
+      // Only query location if not already cached
+      if (!shader.uniformLocations.has(name)) {
+        shader.uniformLocations.set(
+          name,
+          gl.getUniformLocation(program, name),
+        );
+      }
     }
   },
 
@@ -251,9 +272,15 @@ export const sim: {
 
     const uniformLocations = shader
       ? shader.uniformLocations
-      : new Map<WebGLUniformLocation | null, string>();
+      : new Map<string, WebGLUniformLocation | null>();
     const uniforms = shader ? shader.uniforms : {};
     const blend = shader ? shader.blend : "alpha";
+
+    // Transition from 2D mode to WebGL mode on first shader use
+    if (!isShaderModeActive()) {
+      activateShaderMode();
+      showCanvasWebGL();
+    }
 
     if (frameState.firstShaderInFrame) {
       gl.bindTexture(gl.TEXTURE_2D, readTexture);
@@ -284,27 +311,25 @@ export const sim: {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, readTexture);
 
-    const uImageLoc = gl.getUniformLocation(program, "u_image");
-    if (uImageLoc !== null) {
-      gl.uniform1i(uImageLoc, 0);
+    // Use cached locations instead of querying every frame
+    const locs = getProgramLocations(program);
+    if (locs.uImage !== null) {
+      gl.uniform1i(locs.uImage, 0);
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
 
-    const positionLoc = gl.getAttribLocation(program, "position");
-    const texCoordLoc = gl.getAttribLocation(program, "texCoord");
-
-    if (positionLoc !== -1) {
-      gl.enableVertexAttribArray(positionLoc);
-      gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 16, 0);
+    if (locs.position !== -1) {
+      gl.enableVertexAttribArray(locs.position);
+      gl.vertexAttribPointer(locs.position, 2, gl.FLOAT, false, 16, 0);
     }
 
-    if (texCoordLoc !== -1) {
-      gl.enableVertexAttribArray(texCoordLoc);
-      gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 16, 8);
+    if (locs.texCoord !== -1) {
+      gl.enableVertexAttribArray(locs.texCoord);
+      gl.vertexAttribPointer(locs.texCoord, 2, gl.FLOAT, false, 16, 8);
     }
 
-    for (const [location, name] of uniformLocations) {
+    for (const [name, location] of uniformLocations) {
       const def = uniforms[name];
       if (!def) continue;
 
@@ -340,7 +365,6 @@ export const sim: {
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    gl.finish();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     swapPingPong();

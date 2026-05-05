@@ -40,10 +40,9 @@ export function playAudio(path: string): Result<undefined> {
   if (status === 1) {
     return fail(SystemFailureTag.AudioPlaybackFailure, "Invalid audio path");
   } else if (status === 2) {
-    return fail(
-      SystemFailureTag.AudioPlaybackFailure,
-      "Audio thread not available",
-    );
+    // Audio device not available (e.g. headless, no sound card, no PulseAudio).
+    // This is not fatal — just silently skip playback.
+    return undefined;
   }
 
   return undefined;

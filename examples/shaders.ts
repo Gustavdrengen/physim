@@ -54,7 +54,8 @@ gui.addSlider({
 });
 
 const blur = createBlurEffect(1.0);
-sim.display.addShader(blur.shader);
+sim.display.addShader(blur.shaders[0]);
+sim.display.addShader(blur.shaders[1]);
 gui.addSlider({
   label: "Blur Amount",
   min: 0,

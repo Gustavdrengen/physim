@@ -43,6 +43,29 @@ let pingInterval: ReturnType<typeof setInterval> | null = null;
 let fpsTimer: ReturnType<typeof setInterval> | null = null;
 let runResolve: (() => void) | null = null;
 
+// Tracks whether any shader has ever been applied.
+// Once true, we use the WebGL pipeline permanently.
+let shaderModeActive = false;
+
+export function activateShaderMode(): void {
+  shaderModeActive = true;
+}
+
+export function isShaderModeActive(): boolean {
+  return shaderModeActive;
+}
+
+// Cached clear color for 2D mode fills (r, g, b, a)
+let clearColor = { r: 0, g: 0, b: 0, a: 1 };
+
+export function setClearColor(r: number, g: number, b: number, a: number): void {
+  clearColor = { r, g, b, a };
+}
+
+export function getClearColor(): { r: number; g: number; b: number; a: number } {
+  return clearColor;
+}
+
 export function getIsFinished(): boolean {
   return isFinished;
 }

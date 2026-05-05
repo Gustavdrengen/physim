@@ -6,14 +6,18 @@ export interface ShaderConfig {
 export interface Shader {
   programId: number;
   uniforms: Record<string, { type: string; value: unknown }>;
-  uniformLocations: Map<WebGLUniformLocation | null, string>;
+  uniformLocations: Map<string, WebGLUniformLocation | null>;
   blend: string;
 }
 
 export const canvas = document.getElementById("sim") as HTMLCanvasElement;
 export const hiddenCanvas = document.createElement("canvas");
+hiddenCanvas.id = "sim-2d";
 hiddenCanvas.width = canvas.width;
 hiddenCanvas.height = canvas.height;
+hiddenCanvas.style.display = "none";
+// Insert hidden canvas into DOM right after the WebGL canvas
+canvas.insertAdjacentElement("afterend", hiddenCanvas);
 export const hiddenCtx = hiddenCanvas.getContext("2d")!;
 
 export const gl = canvas.getContext("webgl", {
@@ -59,7 +63,32 @@ void main() {
 }
 `;
 
-export function createProgram(vSource: string, fSource: string): WebGLProgram {
+// Cached attribute and uniform locations for WebGL programs
+export interface ProgramLocations {
+  position: number;
+  texCoord: number;
+  uImage: WebGLUniformLocation | null;
+}
+
+const programLocationsCache = new Map<WebGLProgram, ProgramLocations>();
+
+export function getProgramLocations(program: WebGLProgram): ProgramLocations {
+  let locs = programLocationsCache.get(program);
+  if (!locs) {
+    locs = {
+      position: gl.getAttribLocation(program, "position"),
+      texCoord: gl.getAttribLocation(program, "texCoord"),
+      uImage: gl.getUniformLocation(program, "u_image"),
+    };
+    programLocationsCache.set(program, locs);
+  }
+  return locs;
+}
+
+export function createProgram(
+  vSource: string,
+  fSource: string,
+): WebGLProgram {
   const vs = gl.createShader(gl.VERTEX_SHADER)!;
   gl.shaderSource(vs, vSource);
   gl.compileShader(vs);
@@ -187,15 +216,45 @@ export function fixCanvasDisplay(): void {
   const canvasRatio = canvas.width / canvas.height;
 
   if (windowRatio > canvasRatio) {
-    canvas.style.width = `${window.innerHeight * canvasRatio}px`;
-    canvas.style.height = `${window.innerHeight}px`;
+    const w = `${window.innerHeight * canvasRatio}px`;
+    const h = `${window.innerHeight}px`;
+    canvas.style.width = w;
+    canvas.style.height = h;
+    hiddenCanvas.style.width = w;
+    hiddenCanvas.style.height = h;
   } else {
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerWidth / canvasRatio}px`;
+    const w = `${window.innerWidth}px`;
+    const h = `${window.innerWidth / canvasRatio}px`;
+    canvas.style.width = w;
+    canvas.style.height = h;
+    hiddenCanvas.style.width = w;
+    hiddenCanvas.style.height = h;
   }
 }
 
 export function swapPingPong(): void {
   [readTexture, writeTexture] = [writeTexture, readTexture];
   [readFramebuffer, writeFramebuffer] = [writeFramebuffer, readFramebuffer];
+}
+
+// Canvas display mode: when no shaders are active, skip WebGL entirely
+// by showing the 2D canvas directly and hiding the WebGL canvas.
+let displayMode2D = false;
+
+export function is2DMode(): boolean {
+  return displayMode2D;
+}
+
+export function showCanvas2D(): void {
+  if (displayMode2D) return;
+  displayMode2D = true;
+  canvas.style.display = "none";
+  hiddenCanvas.style.display = "block";
+}
+
+export function showCanvasWebGL(): void {
+  if (!displayMode2D) return;
+  displayMode2D = false;
+  hiddenCanvas.style.display = "none";
+  canvas.style.display = "block";
 }

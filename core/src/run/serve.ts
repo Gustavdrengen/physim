@@ -103,6 +103,13 @@ export async function runServer(
     if (isFinished) return;
     isFinished = true;
 
+    // In raw mode, dump all accumulated simulation logs to stdout
+    if (print.isRawModeEnabled()) {
+      logs.forEach((log) => {
+        print.raw(log);
+      });
+    }
+
     ret = failure;
 
     if (frameTimeInterval !== undefined) {
@@ -322,11 +329,6 @@ export async function runServer(
         return new Response(null, { status: 200 });
       } else if (url.pathname === "/finish") {
         setTimeout(async () => {
-          if (print.isRawModeEnabled()) {
-            logs.forEach((log) => {
-              print.raw(log);
-            });
-          }
           print.info("Simulation finished");
           await endAndFail(undefined);
         }, 100);
