@@ -165,7 +165,10 @@ export async function addAudioToMp4(
   const backupPath = `${mp4Path}.bak.${Date.now()}`;
   try {
     await Deno.rename(mp4Path, backupPath);
-    await Deno.rename("/tmp/physim_audio_final.mp4", mp4Path);
+    // Use copyFile + remove instead of rename to handle cross-device moves
+    // (e.g., /tmp and the target directory may be on different filesystems)
+    await Deno.copyFile("/tmp/physim_audio_final.mp4", mp4Path);
+    await Deno.remove("/tmp/physim_audio_final.mp4").catch(() => {});
     await Deno.remove(backupPath);
   } catch (err) {
     try {

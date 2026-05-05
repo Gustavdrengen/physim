@@ -146,23 +146,25 @@ export async function runServer(
   let servePort: number;
 
   // Monitor stdin for EOF (Ctrl+D)
-  (async () => {
-    const buf = new Uint8Array(1024);
-    while (!isFinished) {
-      try {
-        const n = await Deno.stdin.read(buf);
-        if (n === null) {
-          if (!isFinished) {
-            print.info("EOF detected, terminating simulation...");
-            await endAndFail(undefined);
+  if (Deno.stdin.isTerminal()) {
+    (async () => {
+      const buf = new Uint8Array(1024);
+      while (!isFinished) {
+        try {
+          const n = await Deno.stdin.read(buf);
+          if (n === null) {
+            if (!isFinished) {
+              print.info("EOF detected, terminating simulation...");
+              await endAndFail(undefined);
+            }
+            break;
           }
+        } catch {
           break;
         }
-      } catch {
-        break;
       }
-    }
-  })();
+    })();
+  }
 
   // Start FFmpeg process if recording is enabled
   if (record) {
