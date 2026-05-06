@@ -11,7 +11,7 @@ import {
 import { flushFrame, resetFrameState } from "./flush.ts";
 import { showErrorOverlay, showFinishOverlay } from "./overlays.ts";
 import { setupUI, startPinging, waitForNext } from "./ui.ts";
-import { fixCanvasDisplay, hiddenCtx } from "./webgl.ts";
+import { fixCanvasDisplay, hiddenCanvas, hiddenCtx, is2DMode } from "./webgl.ts";
 import { __profiling } from "./profiling.ts";
 import {
   frameCountState,
@@ -99,8 +99,11 @@ export function runSimulation(onUpdate: () => unknown): Promise<void> {
         (globalThis as any).SHOULD_RECORD
       ) {
         await new Promise<void>((resolveBlob) => {
-          const canvas = document.getElementById("sim") as HTMLCanvasElement;
-          canvas.toBlob(async (blob) => {
+          // In 2D mode, capture from the 2D canvas; in WebGL mode, capture from the WebGL canvas
+          const captureCanvas = is2DMode()
+            ? hiddenCanvas
+            : (document.getElementById("sim") as HTMLCanvasElement);
+          captureCanvas.toBlob(async (blob) => {
             if (blob) {
               try {
                 await fetch("/frame", { method: "POST", body: blob });
@@ -182,6 +185,24 @@ async function main(): Promise<void> {
   (window as Record<string, unknown>).simFrame = val;
 
   if (getHasError() || getIsStopped()) {
+    return;
+  }
+
+  if (
+    typeof (globalThis as any).MIN_FINISH_TIME !== "undefined" &&
+    frameCountState.frameCount / 60 < (globalThis as any).MIN_FINISH_TIME
+  ) {
+    const time = (frameCountState.frameCount / 60).toFixed(2);
+    const message = `Simulation finished before required time: ${time}s < ${(globalThis as any).MIN_FINISH_TIME}s`;
+    fetch("/terminate_requirement", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+      headers: { "Content-Type": "application/json" },
+    }).catch(() => {});
+    setHasError(true);
+    showErrorOverlay(new Error(message));
+    stopSimulation();
+    waitForNext();
     return;
   }
 

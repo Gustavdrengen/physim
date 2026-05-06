@@ -45,11 +45,12 @@ const cmd = new Command()
   )
   .option("--_error-on-time <n:number>", "Throw an error if the simulation time exceeds this value.")
   .option("--_error-on-frame-time <n:number>", "Throw an error if the time to run a frame exceeds this value.")
-  .action(async ({ raw, record, webview, headless, audio, profiling, throttle, maxTraceback, errorOnTime, errorOnFrameTime }, entrypoint) => {
+  .option("--_error-on-finish-before <n:number>", "Throw an error if the simulation finishes before this in-simulation time has passed.")
+  .action(async ({ raw, record, webview, headless, audio, profiling, throttle, maxTraceback, errorOnTime, errorOnFrameTime, errorOnFinishBefore }, entrypoint) => {
     if (raw) {
       enablePrintRawMode();
     }
-    unwrap(await run(entrypoint, record, !!headless || !!webview, !!headless, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime, errorOnFrameTime));
+    unwrap(await run(entrypoint, record, !!headless || !!webview, !!headless, !audio, !!profiling, throttle === false, maxTraceback, errorOnTime, errorOnFrameTime, errorOnFinishBefore));
     Deno.exit(0);
   })
   .command("init", "Adds typescript configuration to the current directory")

@@ -19,6 +19,7 @@ export async function run(
   maxTraceback: number,
   errorOnTime: number | undefined,
   errorOnFrameTime: number | undefined,
+  errorOnFinishBefore: number | undefined,
 ): Promise<Result<undefined>> {
   try {
     if (!(await Deno.stat(entrypoint)).isFile) {
@@ -68,6 +69,7 @@ export async function run(
     dirname(entrypoint),
     errorOnTime,
     errorOnFrameTime,
+    errorOnFinishBefore,
   );
 
   if (failed(runResult)) {

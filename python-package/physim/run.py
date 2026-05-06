@@ -13,6 +13,7 @@ class Restrictions:
 
     error_on_time: float | None = None
     error_on_frame_time: float | None = None
+    error_on_finish_before: float | None = None
 
 
 @dataclass
@@ -79,6 +80,8 @@ def run_script(
         args.extend(["--_error-on-time", str(restrictions.error_on_time)])
     if restrictions and restrictions.error_on_frame_time is not None:
         args.extend(["--_error-on-frame-time", str(restrictions.error_on_frame_time)])
+    if restrictions and restrictions.error_on_finish_before is not None:
+        args.extend(["--_error-on-finish-before", str(restrictions.error_on_finish_before)])
     args.extend(["--max-traceback", str(max_traceback)])
     args.append(filepath)
     exit_code, stdout, stderr = _run_physim_command(args)

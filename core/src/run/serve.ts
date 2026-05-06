@@ -34,6 +34,7 @@ export async function runServer(
   baseDir: string,
   errorOnTime: number | undefined,
   errorOnFrameTime: number | undefined,
+  errorOnFinishBefore: number | undefined,
 ): Promise<Result<string | undefined>> {
   const bundleDir = dirname(bundle);
   let server: Deno.HttpServer<Deno.NetAddr>;
@@ -90,6 +91,10 @@ export async function runServer(
 
   if (errorOnTime !== undefined) {
     htmlContent = htmlContent.replace(/window\.MAX_TIME = undefined/g, `window.MAX_TIME = ${errorOnTime}`);
+  }
+
+  if (errorOnFinishBefore !== undefined) {
+    htmlContent = htmlContent.replace(/window\.MIN_FINISH_TIME = undefined/g, `window.MIN_FINISH_TIME = ${errorOnFinishBefore}`);
   }
 
   let ret: Result<string | undefined>;
@@ -384,7 +389,7 @@ export async function runServer(
   }
 
   pingTimeoutInterval = setInterval(() => {
-    if (started && Date.now() - lastPingTime > 3000) {
+    if (started && Date.now() - lastPingTime > 10000) {
       endAndFail(fail(SystemFailureTag.NetworkFailure, "Connection lost"));
     }
   }, 1000);
