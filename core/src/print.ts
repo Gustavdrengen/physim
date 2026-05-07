@@ -21,3 +21,8 @@ export function log(str: string) {
   if (rawMode) return;
   console.log(`%c[LOG]%c ${str}`, "background-color: blue; font-weight: bold;", "color: blue;");
 }
+
+export function warn(str: string) {
+  if (rawMode) return;
+  console.warn(`%c[WARN]%c ${str}`, "background-color: orange; font-weight: bold;", "color: orange;");
+}

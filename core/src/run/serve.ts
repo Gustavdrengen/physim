@@ -17,6 +17,13 @@ import { openWebview } from "./webview.ts";
 import { TraceMap } from "@jridgewell/trace-mapping";
 import { CACHE_DIR } from "../paths.ts";
 
+const MAX_LAUNCH_RETRIES = 3;
+const LAUNCH_BASE_DELAY_MS = 1000;
+const PAGE_GOTO_TIMEOUT_MS = 15000;
+const RECONNECT_MAX_ATTEMPTS = 3;
+const RECONNECT_DELAY_MS = 2000;
+const SETUP_PING_TIMEOUT_MS = 15000;
+
 const coreDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
 const htmlPath = join(coreDir, "sim.html");
 const cssPath = join(coreDir, "sim.css");
@@ -46,9 +53,25 @@ export async function runServer(
 
   let started = false;
   let pingNexted = false;
+  let setupPingTimeout: number | undefined;
+  let reconnectAttempts = 0;
+  let isReconnecting = false;
+  let page: any | undefined;
 
   let frame = 0;
   const logs: string[] = [];
+
+  function warn(msg: string): void {
+    if (!print.isRawModeEnabled()) {
+      print.warn(msg);
+    }
+  }
+
+  function info(msg: string): void {
+    if (!print.isRawModeEnabled()) {
+      print.info(msg);
+    }
+  }
 
   const jsPath = join(CACHE_DIR, 'sim.js');
   const jsContent = await Deno.readTextFile(jsPath);
@@ -122,6 +145,9 @@ export async function runServer(
     }
     if (pingTimeoutInterval !== undefined) {
       clearInterval(pingTimeoutInterval);
+    }
+    if (setupPingTimeout !== undefined) {
+      clearTimeout(setupPingTimeout);
     }
 
     if (browser) {
@@ -199,23 +225,125 @@ export async function runServer(
     ffmpegWriter = ffmpegProcess.stdin.getWriter();
   }
 
+  // Launch browser with retry logic
+  async function launchBrowserWithRetry(url: string, attempt = 1): Promise<boolean> {
+    try {
+      // @ts-ignore: Playwright might not be in the type system but is available via npm:
+      const { chromium } = await import("npm:playwright");
+      browser = await chromium.launch({ headless: true });
+
+      page = await browser.newPage();
+
+      // Log browser console messages for debugging
+      page.on("console", (msg: any) => {
+        if (!print.isRawModeEnabled()) {
+          console.log(`[Browser Console] ${msg.text()}`);
+        }
+      });
+
+      page.on("pageerror", (err: any) => {
+        if (!print.isRawModeEnabled()) {
+          console.error(`[Browser Error] ${err.message}`);
+        }
+      });
+
+      await page.goto(url, { timeout: PAGE_GOTO_TIMEOUT_MS });
+      return true;
+    } catch (err) {
+      if (attempt < MAX_LAUNCH_RETRIES) {
+        const delay = LAUNCH_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+        warn(`Browser launch attempt ${attempt} failed: ${String(err)}`);
+        warn(`Retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_LAUNCH_RETRIES})...`);
+
+        // Close browser if partially launched
+        if (browser) {
+          try {
+            await browser.close();
+          } catch {}
+          browser = undefined;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return launchBrowserWithRetry(url, attempt + 1);
+      }
+      return false;
+    }
+  }
+
+  // Reconnect browser with warning
+  async function reconnectBrowser(url: string): Promise<boolean> {
+    if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
+      return false;
+    }
+
+    if (isReconnecting) {
+      return false; // Already attempting to reconnect
+    }
+    isReconnecting = true;
+
+    reconnectAttempts++;
+    warn(`Connection lost, attempting reconnection (${reconnectAttempts}/${RECONNECT_MAX_ATTEMPTS})...`);
+
+    try {
+      // Close existing page if any
+      if (page) {
+        try {
+          await page.close();
+        } catch {}
+      }
+
+      // Create new page
+      page = await browser.newPage();
+
+      // Log browser console messages for debugging
+      page.on("console", (msg: any) => {
+        if (!print.isRawModeEnabled()) {
+          console.log(`[Browser Console] ${msg.text()}`);
+        }
+      });
+
+      page.on("pageerror", (err: any) => {
+        if (!print.isRawModeEnabled()) {
+          console.error(`[Browser Error] ${err.message}`);
+        }
+      });
+
+      await page.goto(url, { timeout: PAGE_GOTO_TIMEOUT_MS });
+      warn("Reconnection successful");
+      return true;
+    } catch (err) {
+      warn(`Reconnection attempt ${reconnectAttempts} failed: ${String(err)}`);
+      isReconnecting = false;
+      return false;
+    } finally {
+      isReconnecting = false;
+    }
+  }
+
   setTimeout(async () => {
     if (!started) {
       const url = `http://127.0.0.1:${servePort}/`;
       if (headless) {
-        try {
-          // @ts-ignore: Playwright might not be in the type system but is available via npm:
-          const { chromium } = await import("npm:playwright");
-          browser = await chromium.launch({ headless: true });
-          const page = await browser.newPage();
-          await page.goto(url);
-        } catch (err) {
+        const success = await launchBrowserWithRetry(url);
+        if (!success) {
           endAndFail(
             fail(
               SystemFailureTag.OpenFailure,
-              `Failed to launch headless browser (Playwright): ${String(err)}`,
+              `Failed to launch headless browser after ${MAX_LAUNCH_RETRIES} attempts (Playwright)`,
             ),
           );
+        } else {
+          // Set up timeout for initial connection (before 'started' is true)
+          setupPingTimeout = setTimeout(() => {
+            if (!started) {
+              endAndFail(
+                fail(
+                  SystemFailureTag.NetworkFailure,
+                  `Browser connected but simulation failed to start within ${SETUP_PING_TIMEOUT_MS / 1000}s`,
+                ),
+              );
+            }
+          }, SETUP_PING_TIMEOUT_MS);
         }
       } else if (useClient) {
         webviewProcess = openWebview(url);
@@ -278,9 +406,16 @@ export async function runServer(
       }
 
       if (!started) {
-        if (url.pathname === "/begin") {
-          print.info("Simulation started");
-          started = true;
+        if (url.pathname === "/begin" || url.pathname === "/ping") {
+          // Clear the setup ping timeout since we got a response
+          if (setupPingTimeout !== undefined) {
+            clearTimeout(setupPingTimeout);
+            setupPingTimeout = undefined;
+          }
+          if (url.pathname === "/begin") {
+            info("Simulation started");
+            started = true;
+          }
           return new Response(null, { status: 200 });
         } else if (url.pathname === "/pingNext" && !pingNexted) {
           pingNexted = true;
@@ -390,7 +525,24 @@ export async function runServer(
 
   pingTimeoutInterval = setInterval(() => {
     if (started && Date.now() - lastPingTime > 10000) {
-      endAndFail(fail(SystemFailureTag.NetworkFailure, "Connection lost"));
+      if (headless && reconnectAttempts < RECONNECT_MAX_ATTEMPTS) {
+        const url = `http://127.0.0.1:${servePort}/`;
+        reconnectBrowser(url).then((success) => {
+          if (success) {
+            // Reset ping time since we reconnected
+            lastPingTime = Date.now();
+          } else if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
+            endAndFail(fail(SystemFailureTag.NetworkFailure, `Connection lost after ${RECONNECT_MAX_ATTEMPTS} reconnection attempts`));
+          }
+        }).catch(() => {
+          // Reconnection threw, check if we've exhausted attempts
+          if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
+            endAndFail(fail(SystemFailureTag.NetworkFailure, `Connection lost after ${RECONNECT_MAX_ATTEMPTS} reconnection attempts`));
+          }
+        });
+      } else {
+        endAndFail(fail(SystemFailureTag.NetworkFailure, "Connection lost"));
+      }
     }
   }, 1000);
 
