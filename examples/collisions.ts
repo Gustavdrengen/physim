@@ -23,6 +23,16 @@ const CONSTANT_PULL = 10;
 const TRAIL_COLOR_START = new Color(255, 255, 255);
 const TRAIL_COLOR_END = new Color(255, 255, 255, 0);
 
+// Shrink configuration: shrink to 5% of original size over 30 seconds
+const SHRINK_DURATION = 30;
+const SHRINK_MIN_FACTOR = 0.05;
+
+// Store original sizes so we can lerp from original to target
+const RING_INNER_RADIUS = 280;
+const RING_OUTER_RADIUS = 300;
+const HEXAGON_RADIUS = 600;
+const HEXAGON_WIDTH = 40;
+
 // Initialize canvas size
 Draw.setCanvasSize(WIDTH, HEIGHT);
 
@@ -64,12 +74,11 @@ addCollisionCallback((event) => {
 // --- Entity Creation ---
 
 // 1. Static Ring Barrier
-const ringBody = Body.fromShape(
-  createRing(280, 300, [
-    { startAngle: 1, size: 0.3 },
-    { startAngle: 4, size: 0.1 },
-  ]),
-);
+const ringShape = createRing(RING_INNER_RADIUS, RING_OUTER_RADIUS, [
+  { startAngle: 1, size: 0.3 },
+  { startAngle: 4, size: 0.1 },
+]);
+const ringBody = Body.fromShape(ringShape);
 ringBody.angularVelocity = 0.6; // radians per second
 
 Entity.create(new Vec2(50, 50), [
@@ -79,9 +88,11 @@ Entity.create(new Vec2(50, 50), [
 ]);
 
 // 1.5. Static Hexagon Barrier
-const hexagonBody = Body.fromShape(
-  createHollowPolygon(getRegularPolygonVertices(6, 600), 40),
-);
+const hexagonVertices = getRegularPolygonVertices(6, HEXAGON_RADIUS);
+// Store a copy of the original vertices for smooth lerping during shrinking
+const originalHexVertices = hexagonVertices.map((v) => v.clone());
+const hexagonShape = createHollowPolygon(hexagonVertices, HEXAGON_WIDTH);
+const hexagonBody = Body.fromShape(hexagonShape);
 
 Entity.create(new Vec2(50, 50), [
   [bodyComp, hexagonBody],
@@ -153,4 +164,28 @@ addCaption(sim.display, {
 });
 
 // --- Main Loop ---
-await sim.run();
+await sim.run(() => {
+  // Compute shrink factor (eased for a smooth feel, but we'll use linear here)
+  const t = Math.min(sim.time / SHRINK_DURATION, 1);
+  const shrinkFactor = 1 - (1 - SHRINK_MIN_FACTOR) * t;
+
+  // Shrink ring
+  const ringShapeData = ringBody.parts[0].shape;
+  if (ringShapeData.type === "ring") {
+    ringShapeData.innerRadius = RING_INNER_RADIUS * shrinkFactor;
+    ringShapeData.outerRadius = RING_OUTER_RADIUS * shrinkFactor;
+  }
+
+  // Shrink hexagon
+  const hexagonShapeData = hexagonBody.parts[0].shape;
+  if (hexagonShapeData.type === "hollow_polygon") {
+    // Scale each vertex from its original position
+    for (let i = 0; i < hexagonShapeData.vertices.length; i++) {
+      const orig = originalHexVertices[i];
+      hexagonShapeData.vertices[i].x = orig.x * shrinkFactor;
+      hexagonShapeData.vertices[i].y = orig.y * shrinkFactor;
+    }
+    hexagonShapeData.width = HEXAGON_WIDTH * shrinkFactor;
+  }
+
+});

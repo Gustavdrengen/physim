@@ -85,7 +85,13 @@ export class CollisionSystem {
     return this._entitiesWithCollisionEvents;
   }
 
-  addCollisionCallback(callback: (event: CollisionEvent) => void): void {
-    this._collisionCallbacks.push(callback);
+  addCollisionCallback(callback: (event: CollisionEvent) => void): number {
+    return this._collisionCallbacks.push(callback) - 1;
+  }
+
+  removeCollisionCallback(index: number): void {
+    if (index >= 0 && index < this._collisionCallbacks.length) {
+      this._collisionCallbacks.splice(index, 1);
+    }
   }
 }

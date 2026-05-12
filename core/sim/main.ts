@@ -129,7 +129,7 @@ export function runSimulation(onUpdate: () => unknown): Promise<void> {
         sendYield();
         await waitForYield();
 
-        if (typeof (globalThis as any).NO_THROTTLE === "undefined" && running) {
+        if ((globalThis as any).NO_THROTTLE !== true && running) {
           const targetFrameTime = 1000 / 60;
           nextFrameTime += targetFrameTime;
           const sleepTime = nextFrameTime - performance.now();

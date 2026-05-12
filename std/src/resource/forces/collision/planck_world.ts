@@ -196,6 +196,17 @@ export class PlanckWorldManager implements WorldPort {
 
     this._pendingCollisions = [];
 
+    // Rebuild fixtures for any entities whose shapes have changed
+    for (const [entity, data] of this._entityToData) {
+      const bodyComp = entity.getComp(this._bodyComponent);
+      if (!bodyComp) continue;
+
+      const currentSignature = this.computeBodySignature(bodyComp);
+      if (currentSignature !== data.bodySignature) {
+        this.rebuildFixtures(entity, bodyComp, data);
+      }
+    }
+
     for (const [entity, data] of this._entityToData) {
       const bodyComp = entity.getComp(this._bodyComponent);
       if (!bodyComp) continue;
@@ -272,6 +283,52 @@ export class PlanckWorldManager implements WorldPort {
         fixture = fixture.getNext();
       }
     }
+  }
+
+  /**
+   * Rebuilds all fixtures on the Planck body from the current visual shape.
+   * Called automatically when the body's shape signature changes.
+   */
+  private rebuildFixtures(
+    entity: Entity,
+    body: Body,
+    data: EntityData,
+  ): void {
+    const planckBody = data.body;
+    const defaultProps = data.defaultProps;
+
+    // Destroy all existing fixtures
+    const fixtures: planck.Fixture[] = [];
+    let fixture = planckBody.getFixtureList();
+    while (fixture) {
+      fixtures.push(fixture);
+      fixture = fixture.getNext();
+    }
+    for (const f of fixtures) {
+      planckBody.destroyFixture(f);
+    }
+
+    // Create new fixtures from current shapes
+    for (const part of body.parts) {
+      const shapes = this.createPlanckShapes(part.shape);
+      const density = planckBody.isStatic()
+        ? 0
+        : (this._physics.mass.get(entity) ?? defaultProps.mass ?? 1.0) /
+          this.computeArea(part.shape);
+      for (const shape of shapes) {
+        const fixture = planckBody.createFixture(shape, {
+          density: Math.max(density, 0.001),
+          friction: defaultProps.friction ?? 0.5,
+          restitution: data.restitution,
+        });
+        if (defaultProps.sensor) {
+          (fixture as any)?.setSensor(true);
+        }
+      }
+    }
+
+    // Update stored signature so we don't rebuild again next frame
+    data.bodySignature = this.computeBodySignature(body);
   }
 
   syncRigidBodyToEntity(entity: Entity): void {}

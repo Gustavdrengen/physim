@@ -82,17 +82,39 @@ export type CollisionForce = {
    * Use this to trigger visual effects, sounds, game logic, etc.
    *
    * @param callback - Function called with the CollisionEvent on each collision.
+   * @returns A callback ID that can be used with `removeCollisionCallback` to unregister the callback.
    *
    * @example
    * ```ts
-   * const { addCollisionCallback } = await initCollisionForce(...);
+   * const { addCollisionCallback, removeCollisionCallback } = await initCollisionForce(...);
    *
-   * addCollisionCallback((event) => {
+   * const callbackId = addCollisionCallback((event) => {
    *   log('Bodies collided at', event.position.x, event.position.y);
    * });
+   *
+   * // Later, when you want to stop handling collisions:
+   * removeCollisionCallback(callbackId);
    * ```
    */
-  addCollisionCallback: (callback: CollisionCallback) => void;
+  addCollisionCallback: (callback: CollisionCallback) => number;
+
+  /**
+   * Unregisters a collision callback that was previously added with `addCollisionCallback`.
+   * This prevents memory leaks in long-running simulations.
+   *
+   * @param callbackId - The ID returned by `addCollisionCallback`.
+   *
+   * @example
+   * ```ts
+   * const callbackId = addCollisionCallback((event) => {
+   *   // Handle collision
+   * });
+   *
+   * // When no longer needed:
+   * removeCollisionCallback(callbackId);
+   * ```
+   */
+  removeCollisionCallback: (callbackId: number) => void;
 
   /**
    * A component to mark entities as static (immovable) in collisions.
@@ -275,7 +297,10 @@ export async function initCollisionForce(
 
   return {
     addCollisionCallback: (callback: CollisionCallback) => {
-      collisionSystem.addCollisionCallback(callback);
+      return collisionSystem.addCollisionCallback(callback);
+    },
+    removeCollisionCallback: (callbackId: number) => {
+      collisionSystem.removeCollisionCallback(callbackId);
     },
     staticComponent,
     restitutionComponent,

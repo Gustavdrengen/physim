@@ -31,23 +31,37 @@ export interface BodyPart {
 export class Body {
   /**
    * An array of `BodyPart` objects that compose this body.
+   *
+   * The shapes within these parts are mutable — any modifications to shape
+   * properties (e.g., resizing a ring or scaling polygon vertices) are
+   * automatically reflected when {@linkcode vertices} or {@linkcode aabb}
+   * are next accessed.
    */
   readonly parts: readonly BodyPart[];
+
   /**
    * The combined vertices of all parts in local space, grouped by polygon.
-   * @readonly
+   * Derived freshly from the current parts on each access, so any mutations
+   * to the shapes are automatically reflected.
    */
-  readonly vertices: readonly (readonly Vec2[])[];
+  get vertices(): readonly (readonly Vec2[])[] {
+    const allVertices: Vec2[][] = [];
+    for (const part of this.parts) {
+      const partVertices = Body.calculatePartVertices(part);
+      allVertices.push(...partVertices);
+    }
+    return allVertices;
+  }
+
   /**
    * The axis-aligned bounding box (AABB) of the body in local space.
-   * This box completely encloses the body.
+   * This box completely encloses the body. Derived freshly from the current
+   * parts on each access.
    */
-  readonly aabb: {
-    /** The minimum corner (bottom-left) of the AABB. */
-    min: Vec2;
-    /** The maximum corner (top-right) of the AABB. */
-    max: Vec2;
-  };
+  get aabb(): { min: Vec2; max: Vec2 } {
+    return Body.calculateAABB((this.vertices as Vec2[][]).flat());
+  }
+
   /**
    * The overall rotation of the body in radians.
    */
@@ -73,15 +87,6 @@ export class Body {
     this.parts = parts;
     this.rotation = initialRotation;
     this.angularVelocity = initialAngularVelocity;
-
-    const allVertices: Vec2[][] = [];
-    for (const part of parts) {
-      const partVertices = Body.calculatePartVertices(part);
-      allVertices.push(...partVertices);
-    }
-
-    this.vertices = allVertices;
-    this.aabb = Body.calculateAABB(this.vertices.flat());
   }
 
   /**
