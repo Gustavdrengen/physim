@@ -292,6 +292,11 @@ export async function runServer(
         } catch {}
       }
 
+      // Reset connection state so the re-loaded page's /begin request
+      // is treated as a fresh connection, not a duplicate client.
+      started = false;
+      pingNexted = false;
+
       // Create new page
       page = await browser.newPage();
 
@@ -312,8 +317,9 @@ export async function runServer(
       warn("Reconnection successful");
       return true;
     } catch (err) {
+      // Restore started state so the ping timeout can keep retrying
+      started = true;
       warn(`Reconnection attempt ${reconnectAttempts} failed: ${String(err)}`);
-      isReconnecting = false;
       return false;
     } finally {
       isReconnecting = false;
