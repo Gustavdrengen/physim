@@ -126,6 +126,7 @@ export async function runServer(
   let lastPingTime = Date.now();
   let frameTimeInterval: number | undefined;
   let pingTimeoutInterval: number | undefined;
+  let reconnectTimeout: number | undefined;
 
   async function endAndFail(failure: Failure | undefined) {
     if (isFinished) return;
@@ -145,6 +146,9 @@ export async function runServer(
     }
     if (pingTimeoutInterval !== undefined) {
       clearInterval(pingTimeoutInterval);
+    }
+    if (reconnectTimeout !== undefined) {
+      clearTimeout(reconnectTimeout);
     }
     if (setupPingTimeout !== undefined) {
       clearTimeout(setupPingTimeout);
@@ -531,21 +535,28 @@ export async function runServer(
 
   pingTimeoutInterval = setInterval(() => {
     if (started && Date.now() - lastPingTime > 10000) {
+      // Reset ping timer so we don't keep re-triggering during reconnect delay
+      lastPingTime = Date.now();
       if (headless && reconnectAttempts < RECONNECT_MAX_ATTEMPTS) {
         const url = `http://127.0.0.1:${servePort}/`;
-        reconnectBrowser(url).then((success) => {
-          if (success) {
-            // Reset ping time since we reconnected
-            lastPingTime = Date.now();
-          } else if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
-            endAndFail(fail(SystemFailureTag.NetworkFailure, `Connection lost after ${RECONNECT_MAX_ATTEMPTS} reconnection attempts`));
-          }
-        }).catch(() => {
-          // Reconnection threw, check if we've exhausted attempts
-          if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
-            endAndFail(fail(SystemFailureTag.NetworkFailure, `Connection lost after ${RECONNECT_MAX_ATTEMPTS} reconnection attempts`));
-          }
-        });
+        if (reconnectTimeout !== undefined) {
+          clearTimeout(reconnectTimeout);
+        }
+        reconnectTimeout = setTimeout(() => {
+          reconnectBrowser(url).then((success) => {
+            if (success) {
+              // Reset ping time since we reconnected
+              lastPingTime = Date.now();
+            } else if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
+              endAndFail(fail(SystemFailureTag.NetworkFailure, `Connection lost after ${RECONNECT_MAX_ATTEMPTS} reconnection attempts`));
+            }
+          }).catch(() => {
+            // Reconnection threw, check if we've exhausted attempts
+            if (reconnectAttempts >= RECONNECT_MAX_ATTEMPTS) {
+              endAndFail(fail(SystemFailureTag.NetworkFailure, `Connection lost after ${RECONNECT_MAX_ATTEMPTS} reconnection attempts`));
+            }
+          });
+        }, RECONNECT_DELAY_MS);
       } else {
         endAndFail(fail(SystemFailureTag.NetworkFailure, "Connection lost"));
       }
@@ -559,6 +570,9 @@ export async function runServer(
   }
   if (pingTimeoutInterval !== undefined) {
     clearInterval(pingTimeoutInterval);
+  }
+  if (reconnectTimeout !== undefined) {
+    clearTimeout(reconnectTimeout);
   }
 
   if (ret) {

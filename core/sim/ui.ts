@@ -128,22 +128,32 @@ export function waitForNext(): void {
 }
 
 export function startPinging(): ReturnType<typeof setInterval> {
+  let consecutiveFailures = 0;
+  const MAX_CONSECUTIVE_FAILURES = 30;
   return setInterval(() => {
     fetch("/ping")
       .then((res) => {
         if (!res.ok && !getIsFinished()) {
-          setIsStopped(true);
-          stopSimulation();
-          showStoppedOverlay();
-          waitForNext();
+          consecutiveFailures++;
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            setIsStopped(true);
+            stopSimulation();
+            showStoppedOverlay();
+            waitForNext();
+          }
+        } else {
+          consecutiveFailures = 0;
         }
       })
       .catch(() => {
         if (!getIsFinished()) {
-          setIsStopped(true);
-          stopSimulation();
-          showStoppedOverlay();
-          waitForNext();
+          consecutiveFailures++;
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            setIsStopped(true);
+            stopSimulation();
+            showStoppedOverlay();
+            waitForNext();
+          }
         }
       });
   }, 300);
